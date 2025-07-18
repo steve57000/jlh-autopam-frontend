@@ -1,0 +1,8 @@
+services:
+  frontend:
+    image: steve57/jlh-autopam-frontend:latest
+    restart: unless-stopped
+    ports:
+      - '80:3000'
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:8080
