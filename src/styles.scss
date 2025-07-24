@@ -1,1 +1,96 @@
-/* You can add global styles to this file, and also import other style files */
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+// Learn more about theming and how to use it for your application's
+// custom components at https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+
+@use 'styles/variables' as variables;
+
+// (Optionnel) Importe un reset CSS de base
+@use 'styles/reset';
+
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+
+  // Default the application to a light color theme. This can be changed to
+  // `dark` to enable the dark color theme, or to `light dark` to defer to the
+  // user's system settings.
+  color-scheme: light;
+
+  // Set a default background, font and text colors for the application using
+  // Angular Material's system-level CSS variables. Learn more about these
+  // variables at https://material.angular.dev/guide/system-variables
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+}
+
+// Google Fonts (via index.html, pas SCSS)
+body {
+  font-family: variables.$font-body;
+  background: variables.$color-quaternary;
+  color: variables.$color-primary;
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  font-family: variables.$font-title;
+}
+h4, h5, h6 {
+  font-family: variables.$font-subtitle;
+}
+a {
+  color: variables.$color-secondary;
+  text-decoration: none;
+  transition: color variables.$transition-fast;
+  &:hover {
+    color: variables.$color-tertiary;
+  }
+}
+button, .btn {
+  font-family: variables.$font-cta;
+  background: variables.$color-tertiary;
+  color: variables.$color-quaternary;
+  border-radius: variables.$border-radius-small;
+  border: none;
+  box-shadow: variables.$shadow-btn;
+  padding: 0.6em 1.4em;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background variables.$transition-fast, box-shadow variables.$transition-fast;
+  &:hover {
+    background: variables.$btn-hover-bg;
+    box-shadow: variables.$shadow-btn-hover;
+  }
+}
+
+.container-main {
+  min-height: 100vh;
+}
+
+.container-max {
+  display: flex;
+  flex-direction: row;
+  max-width: 1480px;
+  width: 100%;
+  height: 100%;
+  padding: 1.5rem;
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+  .container-max {
+    padding: 0.8rem 0.7rem;
+  }
+}
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

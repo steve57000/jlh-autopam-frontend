@@ -1,0 +1,27 @@
+@if (cards && cards.length > 0) {
+  <div class="carousel-section" [ngClass]="{ 'gradient': background === 'gradient', 'white': background === 'white' }">
+    <div class="container-max" >
+      <h2 class="carousel-title">{{ title }}</h2>
+      <div class="carousel">
+        @for (card of cards; track card.title; let i = $index) {
+          <div class="carousel-card"
+               [class.active]="i === activeIndex"
+               [class.next]="i === (activeIndex + 1) % cards.length"
+               [class.light]="card.color === 'light'"
+               [class.dark]="card.color === 'dark'">
+            <h3 class="card-title">{{ card.title }}</h3>
+            <p class="card-content">{{ card.content }}</p>
+          </div>
+        }
+      </div>
+      <div class="carousel-dots">
+        @for (card of cards; track card.title; let i = $index) {
+          <span
+            [class.active]="i === activeIndex"
+            (click)="goTo(i)">
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+}

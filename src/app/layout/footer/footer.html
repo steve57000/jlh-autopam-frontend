@@ -1,0 +1,66 @@
+<footer class="footer">
+  <div class="container-max">
+    <div class="footer__top">
+      <div class="footer__logo-contact">
+        <div class="footer__logo">
+          <img ngSrc="assets/logo/jlh-logo-white.svg" alt="JLH Auto Pam" width="160" height="36">
+        </div>
+      </div>
+      <div class="footer__contact">
+        <div class="footer__contact-item">
+          <img ngSrc="assets/icons/phone.svg" alt="Téléphone" width="20" height="20">
+          <a href="tel:0383823540">03 83 82 35 40</a>
+        </div>
+        <div class="footer__contact-item">
+          <img ngSrc="assets/icons/map.svg" alt="Adresse" width="20" height="20">
+          <span>27 Avenue du Général de Gaulle, 54700 PONT-A-MOUSSON</span>
+        </div>
+      </div>
+      <div class="footer__social">
+        <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook">
+          <img ngSrc="assets/icons/facebook.svg" alt="Facebook" width="40" height="40">
+        </a>
+        <div class="footer__social-label">Suivez-nous</div>
+      </div>
+    </div>
+
+    <hr class="footer__separator" />
+
+    <div class="footer__links">
+      <div class="footer__col">
+        <div class="footer__title">Navigation</div>
+        <a routerLink="/">Accueil</a>
+        <a routerLink="/about">À propos</a>
+        <a routerLink="/services">Nos services</a>
+        <a routerLink="/contact">Contact</a>
+      </div>
+      <div class="footer__col">
+        <div class="footer__title">À propos</div>
+        <a routerLink="/about">Qui sommes-nous ?</a>
+        <a routerLink="/team">Notre équipe</a>
+        <a routerLink="/history">Historique du garage</a>
+        <a routerLink="/values">Valeurs &amp; engagements</a>
+      </div>
+      <div class="footer__col">
+        <div class="footer__title">Nos services</div>
+        <a routerLink="/services/entretien">Entretien &amp; révision</a>
+        <a routerLink="/services/mecanique">Mécanique générale</a>
+        <a routerLink="/services/pneumatiques">Pneumatiques</a>
+        <a routerLink="/services/diagnostic">Diagnostic électronique</a>
+      </div>
+      <div class="footer__col">
+        <div class="footer__title">Mentions légales &amp; politiques</div>
+        <a routerLink="/legal">Mentions légales</a>
+        <a routerLink="/privacy">Politique de confidentialité</a>
+        <a routerLink="/cookies">Politique de cookies</a>
+        <a routerLink="/cgv">Conditions générales de vente</a>
+      </div>
+    </div>
+
+    <hr class="footer__separator" />
+
+    <div class="footer__bottom">
+      &copy; {{ currentYear }} Michael BONGEOT – JLH Auto Pam. Tous droits réservés. Site réalisé par Steve BELL.
+    </div>
+  </div>
+</footer>

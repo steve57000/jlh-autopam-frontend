@@ -1,0 +1,38 @@
+// ----- Couleurs principales -----
+$color-primary:        #404040; // dark neutral
+$color-secondary:      #4d868d; // accent
+$color-tertiary:       #e67e22; // call-to-action orange
+$color-quaternary:     #f5f5f5; // texte clair
+
+// ----- Fonts -----
+$font-title:           'Chivo', sans-serif;
+$font-subtitle:        'Oswald', sans-serif;
+$font-body:            'Source Sans Pro', sans-serif;
+$font-cta:             'Abacaxi Devanagari', 'Chivo', sans-serif;
+
+// ----- Backgrounds & gradients -----
+$linear-bg:            linear-gradient(90deg, $color-secondary 0%, $color-primary 100%);
+$linear-bg-revert:     linear-gradient(90deg, $color-primary 0%, $color-secondary 100%);
+$btn-hover-bg:         linear-gradient(90deg, $color-tertiary 0%, $color-secondary 100%);
+
+// ----- Radius -----
+$border-radius-small:  10px;
+$border-radius-high:   16px;
+
+// ----- Shadows -----
+$shadow-btn:           4px 8px 5px 0 rgba(#000000, 0.45);
+$shadow-btn-hover:    -2px -3px 4px 0 rgba(#000000, 0.75);
+$shadow-high-left:   -30px -30px 20px 0 rgba(#000000, 0.45);
+$shadow-high-right:   30px 30px 20px 0 rgba(#000000, 0.45);
+$shadow-small:        10px 10px 5px 0 rgba(#000000, 0.65);
+
+// ----- Utilitaires -----
+$transition-fast:      0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+// ----- Exemples d’utilisation -----
+/*
+h1, h2, h3   { font-family: $font-title; }
+h4, h5, h6   { font-family: $font-subtitle; }
+body, p, li  { font-family: $font-body; }
+.cta, .btn-cta { font-family: $font-cta; }
+*/

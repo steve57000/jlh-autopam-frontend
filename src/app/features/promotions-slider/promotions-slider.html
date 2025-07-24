@@ -1,0 +1,49 @@
+@if (promotions.length) {
+  <div class="promo-section container-max">
+    <h2>Offre du moment</h2>
+    <div class="slider-wrapper">
+      <div class="slider" [style.transform]="'translateX(-' + currentIndex * 100 + '%)'">
+        @for (promo of promotions; track promo.idPromotion; let i = $index) {
+          <div class="slide">
+            <div class="promo-card">
+              <img
+                ngSrc="{{ promo.imageUrl }}"
+                [alt]="'Promotion ' + promo.idPromotion"
+                class="promo-img"
+                width="320"
+                height="180"
+              />
+              <div class="promo-content">
+                <div>
+                  Valide du
+                  {{ promo.validFrom | date:'dd/MM/yyyy':'UTC' }}
+                  au
+                  {{ promo.validTo | date:'dd/MM/yyyy':'UTC' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+      @if (promotions.length > 1) {
+        <button class="slider-arrow left" (click)="prev()" aria-label="Précédent">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <button class="slider-arrow right" (click)="next()" aria-label="Suivant">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      }
+    </div>
+    @if (promotions.length > 1) {
+      <div class="slider-dots">
+        @for (promo of promotions; track promo.idPromotion; let i = $index) {
+          <span
+            class="dot"
+            [class.active]="i === currentIndex"
+            (click)="goTo(i)">
+          </span>
+        }
+      </div>
+    }
+  </div>
+}

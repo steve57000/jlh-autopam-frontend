@@ -1,0 +1,23 @@
+<header class="header" [class.menu-open]="menuOpen">
+  <div class="container-max">
+    <a routerLink="/" class="logo" (click)="closeMenu()">
+      <img ngSrc="assets/logo/jlh-logo.svg" alt="JLH Auto Pam" height="69" width="300" priority />
+    </a>
+
+    <!-- Icône burger visible <600px -->
+    <button class="burger" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen" aria-label="Ouvrir/fermer le menu">
+      <span [class.open]="menuOpen"></span>
+      <span [class.open]="menuOpen"></span>
+      <span [class.open]="menuOpen"></span>
+    </button>
+
+    <!-- Menu de navigation -->
+    <nav [class.open]="menuOpen">
+      <a routerLink="/" routerLinkActive="active" (click)="closeMenu()">Accueil</a>
+      <a routerLink="/services" routerLinkActive="active" (click)="closeMenu()">Services</a>
+      <a routerLink="/devis" routerLinkActive="active" (click)="closeMenu()">Demande de devis</a>
+      <a routerLink="/contact" routerLinkActive="active" (click)="closeMenu()">Contact</a>
+      <a routerLink="/admin" routerLinkActive="active" (click)="closeMenu()">Admin</a>
+    </nav>
+  </div>
+</header>

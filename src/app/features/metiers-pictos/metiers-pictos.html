@@ -1,0 +1,13 @@
+<section class="section-pictos-metiers">
+  <div class="container-max">
+    <h2 class="section-title">Nos métiers</h2>
+    <div class="pictos-wrapper">
+      @for (item of items; track item.img; let i = $index) {
+        <div class="picto-bloc">
+          <img [ngSrc]="item.img" [alt]="item.label" class="picto-img" width="150" height="150" loading="lazy" />
+          <div class="picto-label">{{ item.label }}</div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

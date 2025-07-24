@@ -1,0 +1,268 @@
+@use '../../../styles/variables' as variables;
+
+.container-max {
+  flex-direction: column;
+  align-items: center;
+}
+
+.footer {
+  background: variables.$color-primary;
+  color: variables.$color-quaternary;
+  padding: 2.5rem 0 1rem 0;
+  font-family: variables.$font-body;
+  font-size: 1rem;
+  text-align: center;
+
+  &__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    width: 100%;
+    padding: 0 2rem;
+    gap: 1.5rem;
+  }
+
+  &__logo-contact {
+    display: flex;
+    align-items: flex-start;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  &__logo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 320px;
+
+    img{
+      width: 100%;
+    }
+
+    h2 {
+      display: flex;
+      align-items: center;
+      font-family: variables.$font-title;
+      font-size: 2.4rem;
+      color: variables.$color-quaternary;
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+
+      .footer__brand-bold {
+        font-weight: bold;
+        letter-spacing: 1px;
+      }
+      .footer__brand-car {
+        margin: 0 0.3rem;
+      }
+    }
+
+    .footer__slogan {
+      font-family: variables.$font-subtitle;
+      color: variables.$color-secondary;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      margin-bottom: 1.2rem;
+    }
+  }
+
+  &__contact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: 0.6rem;
+    font-size: 1rem;
+
+    &-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: variables.$color-quaternary;
+      a, span {
+        color: inherit;
+        font-weight: 600;
+        text-decoration: none;
+        font-family: variables.$font-body;
+      }
+      img {
+
+      }
+    }
+  }
+
+  &__social {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    margin-left: 2rem;
+    a img {
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 8px 0 rgba(0,0,0,0.11);
+      padding: 4px;
+    }
+    &-label {
+      margin-top: 0.5rem;
+      font-weight: 600;
+      font-family: variables.$font-subtitle;
+      color: variables.$color-quaternary;
+    }
+  }
+
+  &__separator {
+    border: none;
+    border-top: 2px solid variables.$color-quaternary;
+    margin: 2rem 0 1.5rem 0;
+    width: 95%;
+    opacity: 0.15;
+  }
+
+  &__links {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 0 2rem;
+
+    @media (max-width: 900px) {
+      flex-direction: column;
+      gap: 2rem;
+    }
+  }
+
+  &__col {
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
+    gap: 0.3rem;
+    .footer__title {
+      color: variables.$color-secondary;
+      font-family: variables.$font-subtitle;
+      font-size: 1.13rem;
+      font-weight: 700;
+      margin-bottom: 0.7rem;
+    }
+    a {
+      color: variables.$color-quaternary;
+      font-family: variables.$font-body;
+      font-weight: 400;
+      margin-bottom: 0.1rem;
+      text-decoration: none;
+      transition: color 0.18s;
+      &:hover {
+        color: variables.$color-tertiary;
+      }
+    }
+  }
+
+  &__bottom {
+    width: 100%;
+    text-align: center;
+    color: variables.$color-quaternary;
+    font-size: 0.97rem;
+    margin-top: 1.2rem;
+    opacity: 0.86;
+  }
+}
+
+/* Responsive Footer */
+@media (max-width: 900px) {
+  .footer__top,
+  .footer__links {
+    flex-direction: column;
+    align-items: center;
+    padding: 0 1rem;
+  }
+  .footer__logo-contact {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+  }
+  .footer__social {
+    margin-left: 0;
+    margin-top: 1rem;
+  }
+  .footer__col {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .footer {
+    padding: 1.2rem 0 0.7rem 0;
+
+    &__top,
+    &__logo-contact {
+      flex-direction: column;
+      align-items: center;
+      padding: 0;
+      gap: 1rem;
+    }
+    &__logo {
+      align-items: center;
+      h2 {
+        font-size: 1.45rem;
+        text-align: center;
+      }
+      .footer__slogan {
+        font-size: 1rem;
+        text-align: center;
+      }
+    }
+    &__contact {
+      align-items: center;
+      margin: 0.6rem 0 0 0;
+      &-item {
+        justify-content: center;
+        font-size: 1.05rem;
+        a, span {
+          font-size: 1.05rem;
+        }
+      }
+    }
+    &__social {
+      margin: 1rem 0 0 0;
+      align-items: center;
+      .footer__social-label {
+        font-size: 1.05rem;
+        text-align: center;
+      }
+    }
+
+    &__separator {
+      margin: 1.2rem 0 1.2rem 0;
+      width: 95%;
+    }
+    &__links {
+      flex-direction: column;
+      align-items: center;
+      padding: 0;
+      gap: 1.5rem;
+      width: 100%;
+    }
+    &__col {
+      width: 100%;
+      min-width: 0;
+      align-items: center;
+      .footer__title {
+        text-align: center;
+        margin-bottom: 0.5rem;
+      }
+      a {
+        text-align: center;
+        font-size: 1.07rem;
+        margin-bottom: 0.05rem;
+      }
+    }
+    &__bottom {
+      font-size: 0.95rem;
+      margin-top: 1rem;
+      padding: 0 0.5rem;
+      text-align: center;
+    }
+  }
+}

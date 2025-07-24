@@ -1,0 +1,79 @@
+@use '../../../styles/variables' as v;
+
+.section-pictos-metiers {
+  background: #fff;
+  width: 100%;
+  .container-max {
+    flex-direction: column;
+    padding-top: 44px;
+    padding-bottom: 44px;
+    max-width: 1160px;     // Ajout d'une largeur max réelle
+    margin: 0 auto;
+
+    h2 {
+      margin-bottom: 48px;
+      font-size: 29.4px;
+    }
+
+    .pictos-wrapper {
+      width: 100%;         // Ajout
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 2.5rem 2rem;
+      justify-items: center;
+      margin: 0 auto;
+      transition: grid-template-columns 0.2s;
+    }
+    .picto-bloc {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      .picto-img {
+        width: 82px;
+        height: 82px;
+        margin-bottom: 0.9rem;
+        display: block;
+        border-radius: 50%;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.45);
+        background: v.$color-secondary;
+      }
+      .picto-label {
+        font-family: v.$font-body;
+        color: v.$color-primary;
+        font-size: 1.04rem;
+        text-align: center;
+        margin-top: 0;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 1200px) {
+  .section-pictos-metiers .container-max {
+    max-width: 100vw;
+    padding-left: 2vw;
+    padding-right: 2vw;
+  }
+}
+@media (max-width: 800px) {
+  .section-pictos-metiers .container-max .pictos-wrapper {
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); // Plus petit sur mobile
+    gap: 2.3rem 1rem;
+  }
+  .section-pictos-metiers .container-max .picto-bloc .picto-img {
+    width: 60px;
+    height: 60px;
+  }
+  .section-pictos-metiers .container-max .picto-label {
+    font-size: 0.97rem;
+  }
+}
+@media (max-width: 540px) {
+  .section-pictos-metiers .container-max .pictos-wrapper {
+    grid-template-columns: repeat(2, 1fr); // Forcer 2/col sur les tout petits écrans
+    gap: 2rem 0.8rem;
+  }
+}

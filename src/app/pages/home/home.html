@@ -1,0 +1,27 @@
+<div class="container-main">
+  <app-promotions-slider class="app-promotions-slider" [promotions]="promotions"></app-promotions-slider>
+  <app-intro-accueil />
+
+  <!-- Section 1 : MÉTIERS DU GARAGE -->
+  <div #sectionMetiers>
+    <app-section-caroussel
+      [title]="'MÉTIERS DU GARAGE'"
+      [background]="'white'"
+      [cards]="metiersCards"
+      [activeIndex]="activeIndexMetiers">
+    </app-section-caroussel>
+  </div>
+
+  <!-- Section 2 : AGRÉMENTS DU GARAGE -->
+  <div #sectionAgrements>
+    <app-section-caroussel
+      [title]="'AGRÉMENTS DU GARAGE'"
+      [background]="'gradient'"
+      [cards]="agrementsCards"
+      [activeIndex]="activeIndexAgrements">
+    </app-section-caroussel>
+  </div>
+
+  <app-metiers-pictos [items]="metiersPictos"></app-metiers-pictos>
+
+</div>

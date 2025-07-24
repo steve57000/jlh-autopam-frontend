@@ -6,8 +6,7 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "serve:ssr:jlh-autopam-frontend": "node dist/jlh-autopam-frontend/server/server.mjs"
+    "test": "ng test"
   },
   "prettier": {
     "overrides": [
@@ -21,10 +20,12 @@
   },
   "private": true,
   "dependencies": {
+    "@angular/cdk": "^20.1.2",
     "@angular/common": "^20.1.0",
     "@angular/compiler": "^20.1.0",
     "@angular/core": "^20.1.0",
     "@angular/forms": "^20.1.0",
+    "@angular/material": "^20.1.2",
     "@angular/platform-browser": "^20.1.0",
     "@angular/platform-server": "^20.1.0",
     "@angular/router": "^20.1.0",
