@@ -1,0 +1,109 @@
+/* Import des variables et des mixins */
+@use '../../styles/variables' as vars;
+@use '../../styles/mixins.scss'   as mixins;
+@use '../../styles/animations' as anim;
+
+:host {
+  /* valeur par défaut, pour que l’IDE comprenne que --delay existe */
+  --delay: 0s;
+}
+
+.service-card {
+  // on définit ici l’animation fade-in-up qui sera retardée
+  @include anim.fade-in-up(.6s ease-out);
+  animation-fill-mode: both;
+  // on lit la variable CSS
+  animation-delay: var(--delay);
+  /* Fond, arrondis et ombre */
+  position: relative;
+  background-color: vars.$color-quaternary;
+  border-radius:    vars.$border-radius-high;
+  box-shadow:       vars.$shadow-small-light;
+  padding:          1.5rem;
+  margin-bottom:    1rem;
+  transition:       box-shadow vars.$transition-fast;
+
+  &:hover {
+    /* Ombre plus marquée au hover */
+    box-shadow: vars.$shadow-small;
+  }
+
+  /* Étiquette “À partir de” */
+  .service-tag {
+    display:          flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    top:     10px;
+    right:     10px;
+    background: vars.$color-primary;
+    box-shadow: vars.$shadow-btn, inset -1px -1px 1px vars.$color-tertiary;
+    font-family:      vars.$font-body;
+    font-size:        1rem;
+    font-weight:      bold;
+    color:            vars.$color-tertiary;
+
+    //text-transform:   uppercase;
+    border-radius:     12px;
+    margin-bottom:    0.5rem;
+    padding:      0.6rem 0.8rem;
+
+    @include anim.scale-in(.4s ease-out);
+    // on ajoute le décalage propre à cette sous-animation
+    animation-delay: calc(var(--delay) + 0.2s);
+
+  }
+
+  .service-price {
+    font-family: vars.$font-subtitle !important;
+    font-weight: bold;
+    font-size:      1.2rem;
+    text-shadow: 1px 0 0 #000000;
+
+    // pop-up à l’arrivée
+    @include anim.pop-up(.8s);
+    animation-delay: calc(var(--delay) + 0.25s);
+  }
+
+  /* Titre */
+  .service-title {
+    font-family:      vars.$font-title;
+    font-size:        1.25rem;
+    margin:           0.5rem 0 1.8rem 0;
+
+    /* Exemple d’effet texte animé */
+    @include mixins.text-fill-center(
+        vars.$color-primary,    // couleur de base
+        vars.$color-tertiary,   // couleur de survol
+        0.5s                   // durée
+    );
+
+    @include anim.fade-in(.5s);
+    animation-delay: calc(var(--delay) + 0.3s);
+
+    &:hover {
+      @include mixins.text-fill-center-with-gradient(
+          vars.$color-primary,
+          vars.$btn-hover-txt,
+          0.5s
+      );
+    }
+  }
+
+  /* Description */
+  .service-description {
+    font-family:      vars.$font-body;
+    font-size:        1rem;
+    color:            vars.$color-primary;
+    line-height:      1.5;
+
+    @include anim.fade-in(.6s);
+    animation-delay: calc(var(--delay) + 0.4s);
+  }
+}
+
+.cta-btn{
+  width: 100%;
+  margin-top: 1rem;
+  padding-inline: 2rem;
+}

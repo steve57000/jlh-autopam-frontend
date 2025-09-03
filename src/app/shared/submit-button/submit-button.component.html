@@ -1,0 +1,15 @@
+<button
+  [type]="type"
+  class="cta-btn"
+  [disabled]="isDisabled"
+  [attr.aria-busy]="isLoading() ? 'true' : null"
+  [attr.aria-disabled]="isDisabled ? 'true' : null"
+>
+  @if (isLoading()) {
+    <span class="spinner" aria-hidden="true"></span>
+    <span class="label">{{ loadingLabel || label }}</span>
+  } @else {
+    <span class="label">{{ label }}</span>
+  }
+  <ng-content></ng-content>
+</button>

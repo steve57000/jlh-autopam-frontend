@@ -1,0 +1,118 @@
+// src/styles/_animations.scss
+
+@use 'sass:math';
+@use 'sass:string';
+
+// 1) Animation générique “fade-in + slide up”
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(var(--initial-offset, 20px));
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Mixin pour appliquer cette animation sur un élément
+// $duration : durée totale de l’animation
+// $ease     : fonction de timing
+// $fill     : fill-mode (forwards pour conserver l’état final)
+// $offset   : valeur de départ pour translateY
+@mixin fade-in-up(
+  $duration: .6s,
+  $ease: ease,
+  $fill: forwards,
+  $offset: 20px
+) {
+  // on stocke l’offset dans une variable CSS pour la clef
+  --initial-offset: #{$offset};
+  animation: fade-in-up $duration $ease $fill;
+}
+
+// 2) Staggered list : applique fade-in-up à chaque enfant avec un délai croissant
+// $child       : sélecteur de l’enfant (ex. '> *' ou '> app-service-card')
+// $step        : incrément de delay entre chaque
+// $max-children: nombre maximal d’enfants à gérer
+@mixin staggered-list($child: '> *', $step: .1s, $max-children: 10) {
+  @for $i from 1 through $max-children {
+    // génère : & > *:nth-child(1) { animation-delay: .1s; } etc.
+    #{string.unquote("& " + $child + ":nth-child(#{$i})")} {
+      opacity: 0;
+      @include fade-in-up();
+      animation-delay: math.div($i, 1) * $step;
+    }
+  }
+}
+
+// 3) Animation “fade-in simple” pour les textes
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@mixin fade-in($duration: .4s, $ease: ease-out, $fill: both) {
+  animation: fade-in $duration $ease $fill;
+}
+
+// 4) Animation “scale-in” pour l’étiquette de prix
+@keyframes scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@mixin scale-in($duration: .4s, $ease: ease-out, $fill: both) {
+  animation: scale-in $duration $ease $fill;
+}
+
+// 5) Animation “pop-up” : effet d’apparition rapide avec un léger rebond
+@keyframes pop-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1.1);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+/// Usage : pop-up rapide avec rebond
+/// $duration : durée totale
+/// $ease     : easing
+/// $fill     : fill-mode
+@mixin pop-up(
+  $duration: .6s,
+  $ease: cubic-bezier(0.25, 1.25, 0.5, 1),
+  $fill: both
+) {
+  animation: pop-up $duration $ease $fill;
+}
+
+// 6) Animation “bounce” : rebond continu (utile si vous voulez un effet permanent)
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+/// Usage : petit rebond continu
+/// $duration : cycle de rebond
+/// $ease     : easing
+/// $infinite : booléen pour repeat
+@mixin bounce(
+  $duration: 1.5s,
+  $ease: ease-in-out,
+  $infinite: true
+) {
+  animation: bounce $duration $ease #{if($infinite, 'infinite', '1')};
+}

@@ -1,0 +1,23 @@
+.demandes-section { padding: 1rem; }
+.filters { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .75rem; align-items: end; margin-bottom: 1rem; }
+.filters label { display: grid; gap: .25rem; font-size: .9rem; }
+
+.table { width: 100%; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: .5rem .6rem; border-bottom: 1px solid #eee; text-align: left; }
+
+.actions { display: flex; gap: .5rem; }
+button { padding: .4rem .6rem; border-radius: .5rem; border: 1px solid #ccc; background: #fff; cursor: pointer; }
+button:hover { background: #f7f7f7; }
+button.danger { border-color: #e00; color: #e00; }
+button[disabled] { opacity: .5; cursor: not-allowed; }
+
+.badge { padding: .15rem .45rem; border-radius: .4rem; font-size: .8rem; border: 1px solid #ddd; }
+.badge.statut-En_attente { background: #fffdf2; border-color: #f0d76b; }
+.badge.statut-Traitee { background: #f0fff2; border-color: #68c46d; }
+.badge.statut-Annulee { background: #fff2f2; border-color: #e06a6a; }
+.badge.type-Devis { background: #eef6ff; border-color: #99c1ff; }
+.badge.type-Service { background: #eefcff; border-color: #99e1ff; }
+.badge.type-RendezVous { background: #f1efff; border-color: #b3a6ff; }
+
+.chip { display: inline-block; margin: 0 .25rem .25rem 0; padding: .15rem .4rem; background: #f5f5f5; border-radius: 1rem; font-size: .8rem; }

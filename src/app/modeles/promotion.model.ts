@@ -1,8 +1,29 @@
 export interface PromotionModel {
   idPromotion: number;
-  administrateurId: number; // ou administrateur?: any si tu récupères l'objet complet
+  administrateurId: number;
   imageUrl: string;
-  validFrom: string; // format ISO-8601
-  validTo: string;   // format ISO-8601
-  [key: string]: any; // Pour flexibilité
+  validFrom: string;
+  validTo: string;
+  description: string;
+  [key: string]: any;
+}
+
+/** Ce que le formulaire envoie au serveur */
+export interface PromotionRequest {
+  administrateurId: number;
+  validFrom: string; // ISO
+  validTo:   string; // ISO
+  imageUrl?: string;
+  description: string;
+}
+
+/** Ce que le serveur renvoie */
+export interface PromotionResponse {
+  idPromotion: number;
+  administrateurId: number;
+  imageUrl: string;
+  validFrom: string;
+  validTo: string;
+  description: string;
+  [key: string]: any;
 }

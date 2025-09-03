@@ -1,0 +1,43 @@
+@use '../../styles/variables' as v;
+
+.register {
+  max-width: 560px;
+  margin: 4rem auto;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: v.$shadow-box-form;
+
+  h2 {
+    margin: 0 0 2rem;
+    font-size: 1.5rem;
+    color: v.$color-secondary;
+  }
+
+  .row {
+    display: grid; gap: .35rem; margin-bottom: .85rem;
+    label { font-weight: 500; }
+    input {
+      padding: .65rem .8rem; border-radius: .7rem; border: 1px solid v.$color-secondary;
+      &:focus { outline: none; border-color: v.$color-secondary; box-shadow: 0 0 0 3px rgb(v.$color-sixt, .15); }
+    }
+    .hint { color:#6b7280; font-size:.85rem; }
+    .error { color:#b91c1c; font-size:.85rem; }
+  }
+
+  .checkbox {
+    display:flex; align-items:center; gap:.6rem; margin: .8rem 0 1rem;
+    input[type="checkbox"] { width:1.05rem; height:1.05rem; }
+    .error { margin-left: .6rem; }
+  }
+
+  .api-errors { margin: .5rem 0 1rem; }
+  .error { color:#b91c1c; }
+  .alt { margin-top: 1rem; text-align:center; }
+}
+
+/* accessibilité */
+.sr-only {
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+  clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}

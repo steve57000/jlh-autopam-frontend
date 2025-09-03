@@ -1,0 +1,169 @@
+@use '../../styles/variables' as v;
+
+.admin-promos-section {
+  padding: 3rem 2rem;
+
+  h2 {
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
+  }
+
+  .cta-btn {
+    margin-bottom: 1rem;
+  }
+
+  .grid {
+    display: grid;
+    /* sur desktop : 3 colonnes flexibles, puis 2 et enfin 1 */
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    justify-items: center;
+    margin: 2rem 0;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: v.$shadow-small-light;
+    width: 100%;
+    max-width: 320px;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      /* hauteur responsive selon ratio et breakpoints */
+      height: auto;
+      aspect-ratio: 16/9;
+      object-fit: contain;
+      border-bottom: 1px solid #eee;
+    }
+
+    .promo-details {
+      padding: 0.75rem;
+      font-size: .9rem;
+      line-height: 1.4;
+    }
+
+    .actions {
+      display: flex;
+      gap: .5rem;
+      padding: .75rem;
+      /* pousse les boutons en bas si besoin */
+      margin-top: auto;
+    }
+    .actions button {
+      flex: 1;
+      font-size: .9rem;
+    }
+  }
+
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+
+    .modal {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 360px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+
+      &.confirm-modal {
+        text-align: center;
+      }
+
+      h3 {
+        margin-top: 0;
+        font-size: 1.25rem;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+
+        label {
+          font-weight: 600;
+        }
+
+        input[type="file"],
+        input[type="date"],
+        input[type="text"] {
+          padding: .5rem;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          width: 100%;
+        }
+
+        .error {
+          color: red;
+          font-size: .875rem;
+        }
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: .5rem;
+        margin-top: 1rem;
+      }
+    }
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: .8rem 1.2rem;
+    border-radius: 4px;
+    color: white;
+    &.success { background: green; }
+    &.error   { background: red; }
+  }
+
+  // --------------------------------
+  // MEDIA QUERIES
+  // --------------------------------
+
+  @media (max-width: 1200px) {
+    .grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+  }
+
+  @media (max-width: 768px) {
+    .grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .card img {
+      aspect-ratio: 4/3;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+    .card {
+      max-width: none;
+    }
+    .card img {
+      aspect-ratio: 16/9;
+    }
+    .modal-actions {
+      flex-direction: column-reverse;
+    }
+    .modal-actions button {
+      width: 100%;
+    }
+  }
+}

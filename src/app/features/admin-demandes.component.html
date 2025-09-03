@@ -1,0 +1,99 @@
+<div class="demandes-section">
+  <h2>Demandes</h2>
+
+  <div class="filters">
+    <label>
+      Type
+      <select [ngModel]="type()" (ngModelChange)="type.set($event)">
+        @for (t of types; track t) { <option [value]="t">{{ t }}</option> }
+      </select>
+    </label>
+    <label>
+      Statut
+      <select [ngModel]="statut()" (ngModelChange)="statut.set($event)">
+        @for (s of statuts; track s) { <option [value]="s">{{ s }}</option> }
+      </select>
+    </label>
+    <label>
+      Recherche
+      <input
+        type="search"
+        [value]="q()"
+        (input)="q.set(($any($event.target)).value)"
+        placeholder="nom, email, service…"
+      />
+    </label>
+    <label>
+      Du
+      <input
+        type="date"
+        [value]="dateFrom() ?? ''"
+        (change)="dateFrom.set(($any($event.target)).value || null)"
+      />
+    </label>
+    <label>
+      Au
+      <input
+        type="date"
+        [value]="dateTo() ?? ''"
+        (change)="dateTo.set(($any($event.target)).value || null)"
+      />
+    </label>
+    <button type="button" (click)="reload()">↻ Actualiser</button>
+  </div>
+
+  @if (loading()) {
+    <p>Chargement…</p>
+  } @else if (error()) {
+    <p class="error">{{ error() }}</p>
+  } @else {
+    <table>
+      <thead>
+      <tr>
+        <th>#</th>
+        <th>Type</th>
+        <th>Client</th>
+        <th>Email</th>
+        <th>Date</th>
+        <th>Services</th>
+        <th>Statut</th>
+        <th>Action</th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (d of filtered(); let i = $index; track (getDemandeId(d) ?? i)) {
+          <tr>
+            <td>{{ getDemandeId(d) }}</td>
+            <td>
+              <span class="badge type-{{ d.code_type }}">
+                {{ d.type_libelle || d.code_type }}
+              </span>
+            </td>
+            <td>{{ d.client?.nom }} {{ d.client?.prenom }}</td>
+            <td>{{ d.client?.email }}</td>
+            <td>{{ d.date_demande | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              @for (s of d.services; let j = $index; track getServiceKey(s)) {
+                <span class="chip">
+            {{ s.libelle }}
+                  @if (s.quantite) { <small>×{{ s.quantite }}</small> }
+          </span>
+              }
+            </td>
+            <td>
+              <span class="badge statut-{{ d.code_statut }}">
+                {{ d.statut_libelle || d.code_statut }}
+              </span>
+            </td>
+            <td class="actions">
+              <button (click)="marquerTraitee(d)" [disabled]="d.code_statut==='Traitee'">Traiter</button>
+              <button class="danger" (click)="supprimer(d)">Supprimer</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (!filtered().length) { <p>Aucun résultat avec ces filtres.</p> }
+  }
+</div>

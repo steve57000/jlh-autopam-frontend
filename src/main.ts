@@ -1,12 +1,11 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { App } from './app/app';
-import { provideHttpClient } from '@angular/common/http';
 
-bootstrapApplication(App, {
-  ...appConfig,
-  providers: [
-    ...(appConfig.providers || []),
-    provideHttpClient() // AJOUT ce provider pour HttpClient
-  ]
-}).catch((err) => console.error(err));
+import { registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
+
+registerLocaleData(localeFr, 'fr-FR');
+
+bootstrapApplication(App, appConfig)
+  .catch(err => console.error(err));

@@ -1,0 +1,116 @@
+<section class="client-dashboard">
+  <div class="container-max">
+    <div class="header">
+      <h2>Mon tableau de bord</h2>
+      <div class="toolbar">
+        <button class="cta-btn-secondary" (click)="refresh()">Rafraîchir</button>
+        <a routerLink="/services" class="cta-btn-secondary">Ajouter un service</a>
+        <a routerLink="/account" class="cta-btn-secondary">Mon compte</a>
+      </div>
+    </div>
+
+    @if (loading) {
+      <p>Chargement…</p>
+    }
+
+    @if (error) {
+      <p class="error">{{ error }}</p>
+    }
+
+    @if (!loading && !error) {
+
+      <!-- === Statistiques globales === -->
+      @if (stats) {
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-kpi">{{ stats.enAttente }}</div>
+            <div class="stat-label">En attente</div>
+          </div>
+          <div class="stat">
+            <div class="stat-kpi">{{ stats.traitees }}</div>
+            <div class="stat-label">Traitées</div>
+          </div>
+          <div class="stat">
+            <div class="stat-kpi">{{ stats.annulees }}</div>
+            <div class="stat-label">Annulées</div>
+          </div>
+          <div class="stat">
+            <div class="stat-kpi">{{ stats.rdvAvenir }}</div>
+            <div class="stat-label">RDV à venir</div>
+          </div>
+        </div>
+      }
+
+      <!-- === Prochain RDV (si présent) === -->
+      @if (prochainRdv) {
+        <article class="card next-rdv">
+          <header>
+            <strong>Prochain RDV</strong>
+            <span class="badge" [class]="badgeClassForRdv(prochainRdv.codeStatut)">
+              {{ prochainRdv.libelleStatut || prochainRdv.codeStatut }}
+            </span>
+          </header>
+
+          <div class="row">
+            <span>Début :</span>
+            <span>{{ prochainRdv.dateDebut | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="row">
+            <span>Fin :</span>
+            <span>{{ prochainRdv.dateFin | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+
+          <div class="actions">
+            <button class="cta-btn-secondary" type="button" (click)="downloadIcs()">
+              Ajouter à mon agenda (.ics)
+            </button>
+          </div>
+        </article>
+      }
+
+      <!-- === Liste des demandes === -->
+      @if (demandes.length === 0) {
+        <p>Vous n’avez aucune demande pour le moment.</p>
+      } @else {
+        <div class="list">
+          @for (d of demandes; track d.idDemande) {
+            <article class="card">
+              <header>
+                <strong>Demande #{{ d.idDemande }}</strong>
+                <span class="chip type">{{ d.typeDemande?.libelle || d.typeDemande?.codeType || '—' }}</span>
+                <span class="badge" [class]="badgeClassForDemande(d.statutDemande?.codeStatut)">
+                  {{ d.statutDemande?.libelle || d.statutDemande?.codeStatut || '—' }}
+                </span>
+              </header>
+
+              <div class="row">
+                <span>Créée le :</span>
+                <span>{{ d.dateDemande | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+
+              <!-- Services demandés + total estimatif -->
+              @if (d.services?.length) {
+                <div class="services">
+                  <div class="services-head">Services demandés</div>
+                  <ul>
+                    @for (s of d.services; track s.idService) {
+                      <li>
+                        <span class="svc-label">{{ s.libelle }}</span>
+                        <span class="svc-prix">
+                          {{ s.quantite }} × {{ s.prixUnitaire | number:'1.2-2' }} €
+                        </span>
+                      </li>
+                    }
+                  </ul>
+                  <div class="total">
+                    Total estimatif : <strong>{{ totalDemande(d) | number:'1.2-2' }} €</strong>
+                  </div>
+                </div>
+              }
+            </article>
+          }
+        </div>
+      }
+    }
+  </div>
+</section>

@@ -1,0 +1,46 @@
+@use '../../styles/variables' as vars;
+@use '../../styles/animations' as anim;
+
+.services-page {
+  padding: 40px 0;
+  margin: 0 auto;
+  background: vars.$linear-bg;
+
+  .container-max {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .container-max.has-aside {
+    grid-template-columns: 360px 1fr; // l’encart n’occupe la place qu’en présence d’un brouillon non vide
+    align-items: start;
+  }
+
+  h2 {
+    font-family: vars.$font-title;
+    font-size: 2rem;
+    margin-bottom: 32px;
+    color: vars.$color-quaternary;
+  }
+
+  .aside { position: sticky; top: 16px; }
+
+  .services-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    align-items: stretch;
+    grid-auto-rows: 1fr;
+
+    > app-service-card { display: block; height: 100%; }
+    @include anim.staggered-list('> app-service-card', .1s, 20);
+  }
+
+  @media (min-width: 1280px) {
+    .services-list {
+      gap: 28px;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+  }
+}

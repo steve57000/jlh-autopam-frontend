@@ -1,0 +1,86 @@
+<div class="services-section">
+  <h2>Services proposés</h2>
+  <button class="cta-btn" (click)="openAjoutService()">+ Ajouter un service</button>
+
+  @if (loading) {
+    <div>Chargement...</div>
+  }
+  @if (errorMsg) {
+    <div class="error-msg">{{ errorMsg }}</div>
+  }
+
+  <div class="services-grid">
+    @for (service of services; track service.idService; let i = $index) {
+      <div class="service-card">
+        <h3>{{ service.libelle }}</h3>
+        <p>{{ service.description }}</p>
+        <div><strong>Prix :</strong> {{ service.prixUnitaire }} €</div>
+        <div class="actions">
+          <button class="btn" (click)="openEditService(service)">Modifier</button>
+          <button class="secondary-btn" (click)="confirmDeletion(service)">Supprimer</button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Modale ajout/édition -->
+  @if (showModal) {
+    <div class="modal-bg">
+      <div class="modal-card">
+        <h3>{{ editingService ? 'Modifier' : 'Ajouter' }} un service</h3>
+        <form [formGroup]="form" (ngSubmit)="submitForm()">
+          <div class="field">
+            <label>Libellé</label>
+            <input formControlName="libelle" maxlength="100" required />
+            @if (form.controls['libelle'].invalid && form.controls['libelle'].touched) {
+              <div class="field-error">
+                Le libellé est requis (max 100 caractères).
+              </div>
+            }
+          </div>
+          <div class="field">
+            <label>Description</label>
+            <textarea formControlName="description" rows="3" maxlength="2000"></textarea>
+          </div>
+          <div class="field">
+            <label>Prix unitaire (€)</label>
+            <input formControlName="prixUnitaire" type="number" step="0.01" min="0" required />
+            @if (form.controls['prixUnitaire'].invalid && form.controls['prixUnitaire'].touched) {
+              <div class="field-error">
+                Prix unitaire requis (format : 0.00).
+              </div>
+            }
+          </div>
+          <div class="modal-actions">
+            <button class="cta-btn" type="submit" [disabled]="form.invalid">Enregistrer</button>
+            <button class="secondary-btn" type="button" (click)="closeModal()">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modale de confirmation de suppression -->
+  @if (showDeleteConfirm) {
+    <div class="modal-bg">
+      <div class="modal-card confirm">
+        <p>Êtes-vous sûr de vouloir supprimer « {{ serviceToDelete?.libelle }} » ?</p>
+        <div class="modal-actions">
+          <button class="cta-btn" (click)="deleteConfirmed()">
+            Oui, supprimer
+          </button>
+          <button class="cta-btn" (click)="cancelDeletion()">
+              Annuler
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Toast notification -->
+  @if (toastMsg) {
+    <div class="toast" [class.success]="toastType === 'success'" [class.error]="toastType === 'error'">
+      {{ toastMsg }}
+    </div>
+  }
+</div>

@@ -1,0 +1,97 @@
+<div class="admin-promos-section">
+  <h2>Promotions</h2>
+  <button class="cta-btn" (click)="openNew()">+ Nouvelle promotion</button>
+
+  @if (loading) {
+    <div>Chargement...</div>
+  }
+  @if (errorMsg) {
+    <div class="error">{{ errorMsg }}</div>
+  }
+
+  <div class="grid">
+    @for (promo of promotions; track promo.idPromotion; let i = $index) {
+      <div class="card">
+        <img
+          ngSrc="{{ promo.imageUrl }}"
+          [alt]="'Promo ' + promo.idPromotion"
+          width="160"
+          height="90"
+        />
+        <div class="promo-details">
+          Du {{ promo.validFrom | date:'dd/MM/yyyy' }}<br />
+          au {{ promo.validTo | date:'dd/MM/yyyy' }}
+        </div>
+        <div class="promo-description">
+          {{ promo.description }}
+        </div>
+        <div class="actions">
+          <button class="cta-btn" (click)="openEdit(promo)">
+            Modifier
+          </button>
+          <button class="cta-btn" (click)="confirmDelete(promo)">
+            Supprimer
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Modal création/édition -->
+  @if (showModal) {
+    <div class="modal-bg">
+      <div class="modal">
+        <h3>{{ editingPromo ? 'Modifier' : 'Ajouter' }} promotion</h3>
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <label>Image (PNG/JPG/PDF)</label>
+          <input type="file" (change)="onFileSelected($event)" />
+
+          <label>Début</label>
+          <input type="date" formControlName="validFrom" />
+          @if (form.controls['validFrom'].invalid && form.controls['validFrom'].touched) {
+            <div class="error">Date requise</div>
+          }
+
+          <label>Fin</label>
+          <input type="date" formControlName="validTo" />
+          @if (form.controls['validTo'].invalid && form.controls['validTo'].touched) {
+            <div class="error">Date requise</div>
+          }
+
+          <label>Description</label>
+          <input type="text" formControlName="description" />
+
+          <div class="modal-actions">
+            <button class="cta-btn" type="submit" [disabled]="form.invalid">
+              Enregistrer
+            </button>
+            <button type="button" class="cta-btn" (click)="closeModal()">
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de confirmation de suppression -->
+  @if (showDeleteModal) {
+    <div class="modal-bg">
+      <div class="modal confirm-modal">
+        <h3>Confirmation</h3>
+        <p>Voulez-vous vraiment supprimer la promo #{{ promoToDelete?.idPromotion }} ?</p>
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="cancelDelete()">Annuler</button>
+          <button class="btn-cta" (click)="doDelete()">Supprimer</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Toast -->
+  @if (toastMsg) {
+    <div class="toast" [class.success]="toastType==='success'" [class.error]="toastType==='error'">
+      {{ toastMsg }}
+    </div>
+  }
+</div>

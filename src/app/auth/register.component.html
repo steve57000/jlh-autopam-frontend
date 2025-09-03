@@ -1,0 +1,142 @@
+<section class="register">
+  <h2>Créer un compte</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate aria-describedby="formHelp">
+    <div id="formHelp" class="sr-only">Tous les champs marqués * sont obligatoires.</div>
+
+    <div class="row">
+      <label for="nom">Nom *</label>
+      <input id="nom" type="text" formControlName="nom" autocomplete="family-name" />
+      @if (apiFieldErrors()?.['nom']) {
+        <small class="error">{{ toText(apiFieldErrors()?.['nom']) }}</small>
+      }
+      @else if (showError(nomCtrl)) {
+        <small class="error">Nom requis (min. 2 caractères)</small>
+      }
+    </div>
+
+    <div class="row">
+      <label for="prenom">Prénom *</label>
+      <input id="prenom" type="text" formControlName="prenom" autocomplete="given-name" />
+      @if (apiFieldErrors()?.['prenom']) {
+        <small class="error">{{ toText(apiFieldErrors()?.['prenom']) }}</small>
+      }
+      @else if (showError(prenomCtrl)) {
+        <small class="error">Prénom requis (min. 2 caractères)</small>
+      }
+    </div>
+
+    <div class="row">
+      <label for="email">Email *</label>
+      <input id="email" type="email" formControlName="email" autocomplete="email" />
+      @if (apiFieldErrors()?.['email']) {
+        <small class="error">{{ toText(apiFieldErrors()?.['email']) }}</small>
+      }
+      @else if (showError(emailCtrl)) {
+        <small class="error">Adresse e‑mail invalide</small>
+      }
+    </div>
+
+    <div class="row">
+      <label for="telephone">Téléphone *</label>
+      <input id="telephone" type="tel" formControlName="telephone" autocomplete="tel" placeholder="0X XX XX XX XX" />
+
+      @if (apiFieldErrors()?.['telephone']) {
+        <small class="error">{{ toText(apiFieldErrors()?.['telephone']) }}</small>
+      }
+      @else if (showError(telephoneCtrl,'required')) {
+        <small class="error">Téléphone requis</small>
+      }
+      @else if (showError(telephoneCtrl,'pattern')) {
+        <small class="error">Format FR attendu (0X XX XX XX XX)</small>
+      }
+    </div>
+
+    <div class="row">
+      <label for="adresse">Adresse</label>
+      <input id="adresse" type="text" formControlName="adresse" autocomplete="street-address" />
+    </div>
+
+    <div class="row">
+      <label for="immatriculation">Immatriculation *</label>
+      <input id="immatriculation" type="text" formControlName="immatriculation" placeholder="AA-123-AA" />
+
+      @if (apiFieldErrors()?.['immatriculation']) {
+        <small class="error">{{ toText(apiFieldErrors()?.['immatriculation']) }}</small>
+      }
+      @else if (showError(immatriculationCtrl,'required')) {
+        <small class="error">Immatriculation requise</small>
+      }
+      @else if (showError(immatriculationCtrl,'pattern')) {
+        <small class="error">Format attendu : AA-123-AA</small>
+      }
+    </div>
+
+
+    <div class="row">
+      <label for="motDePasse">Mot de passe *</label>
+      <input id="motDePasse" type="password" formControlName="motDePasse" autocomplete="new-password" />
+      <small class="hint">8+ caractères, 1 maj, 1 min, 1 chiffre</small>
+
+      @if (apiFieldErrors()?.['motDePasse']) {
+        <small class="error">{{ toText(apiFieldErrors()?.['motDePasse']) }}</small>
+      }
+      @else if (showError(motDePasseCtrl, 'required')) {
+        <small class="error">Mot de passe requis</small>
+      }
+      @else if (passwordWeak()) {
+        <small class="error">Mot de passe trop faible</small>
+      }
+    </div>
+
+    <div class="row">
+      <label for="confirmPassword">Confirmer le mot de passe *</label>
+      <input id="confirmPassword" type="password" formControlName="confirmPassword" autocomplete="new-password" />
+
+      @if (showError(confirmPasswordCtrl, 'required')) {
+        <small class="error">Confirmation requise</small>
+      }
+      @else if (passwordMismatch()) {
+        <small class="error">Les mots de passe ne correspondent pas</small>
+      }
+    </div>
+
+    <div class="checkbox">
+      <input id="consentRgpd" type="checkbox" formControlName="consentRgpd" />
+      <label for="consentRgpd">J’accepte la politique de confidentialité *</label>
+      @if (apiFieldErrors()?.['consentRgpd']) {
+        <small class="error">{{ toText(apiFieldErrors()?.['consentRgpd']) }}</small>
+      }
+      @else if (showError(consentRgpdCtrl)) {
+        <small class="error">Obligatoire</small>
+      }
+    </div>
+
+    @if (apiError()) {
+      <div class="api-errors">
+        <p class="error" role="alert">{{ apiError() }}</p>
+
+        @if (apiFieldErrors()) {
+          <ul>
+            @for (kv of (apiFieldErrors() | keyvalue); track kv.key) {
+              <li>
+                <strong>{{ kv.key }}:</strong>
+                {{ toText(kv.value) }}
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    <app-submit-button
+      [form]="form"
+      [loading]="submitting()"
+      label="Créer mon compte"
+      loadingLabel="Création..."
+    />
+
+
+    <p class="alt">Déjà un compte ? <a routerLink="/login">Se connecter</a></p>
+  </form>
+</section>

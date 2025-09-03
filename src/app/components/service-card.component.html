@@ -1,0 +1,30 @@
+<!-- src/app/components/service-card.component.html -->
+<article class="service-card">
+  <span class="service-tag">
+    À partir de :
+    <span class="service-price">
+      {{ service.prixUnitaire | frCurrency }}
+    </span>
+  </span>
+
+  <h3 class="service-title">{{ service.libelle }}</h3>
+  <p class="service-description">{{ service.description }}</p>
+
+  <ng-container *appHasRole="'CLIENT'">
+    <button class="cta-btn" type="button" (click)="openConfirm()">
+      Ajouter à ma demande
+    </button>
+  </ng-container>
+</article>
+
+<dialog #confirmDialog>
+  <form method="dialog" class="modal">
+    <h3>Ajouter ce service ?</h3>
+    <p><strong>{{ service.libelle }}</strong> — {{ service.prixUnitaire | frCurrency }}</p>
+
+    <div class="actions">
+      <button value="cancel" class="btn">Annuler</button>
+      <button value="ok" class="btn primary" (click)="confirmAdd()">Confirmer</button>
+    </div>
+  </form>
+</dialog>

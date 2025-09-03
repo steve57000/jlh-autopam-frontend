@@ -1,0 +1,27 @@
+@use '../../../styles/variables' as v;
+
+.quote { background:#fff; border-radius:v.$border-radius-small; box-shadow:v.$shadow-small-light; padding:1rem; }
+.quote.empty { text-align:center; color:#666; }
+
+.quote__header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem;
+  h3 { margin:0; font-family:v.$font-title; color:v.$color-primary; }
+  .badge { background:#eef; color:#223; border-radius:.35rem; padding:.2rem .5rem; font-size:.85rem; }
+}
+
+.row { display:grid; grid-template-columns: 140px 1fr; gap:.5rem; align-items:center; margin:.25rem 0; }
+.label { color:#6c757d; }
+.value { color:v.$color-primary; }
+
+.link { background:none; border:none; color:v.$color-secondary; cursor:pointer; margin-left:.5rem; text-decoration:underline;
+  &.danger { color:v.$delete-btn-color; }
+}
+.error { color:v.$delete-btn-color; margin:.25rem 0 0; font-size:.9rem; }
+.quote__list { list-style:none; padding:0; margin:0 0 .75rem 0; }
+.line { display:grid; grid-template-columns: 1fr auto auto auto; gap:.5rem; align-items:center; padding:.4rem 0; border-bottom:1px solid #f0f0f0; }
+.line__libelle { font-weight:600; }
+.line__qty { color:#6c757d; }
+.line__price { min-width:90px; text-align:right; }
+.quote__total { display:flex; justify-content:space-between; align-items:baseline; padding-top:.5rem; border-top:2px solid #eee; }
+.quote__actions { margin-top:.75rem; display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+.muted { color:#6c757d; font-size:.9rem; }
+.cta-btn { padding-left: 8px; padding-right: 8px; }

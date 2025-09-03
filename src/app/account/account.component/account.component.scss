@@ -1,0 +1,169 @@
+@use '../../../styles/variables' as v;
+@use '../../../styles/mixins' as m;
+
+:host {
+  display: block;
+  color: v.$color-primary;
+}
+
+/* ===== Layout ===== */
+
+.account {
+  width: 100%;
+  display: grid;
+  gap: 1.5rem;
+  padding: 2.5rem 1.5rem 3.5rem 1.5rem;
+
+  h2 {
+    font-family: v.$font-title;
+    font-size: 2rem;
+    margin: 0;
+    color: v.$color-secondary;
+  }
+}
+
+/* ===== Card ===== */
+.card {
+  max-width: 680px;
+  width: 100%;
+  background: #fff;
+  border-radius: v.$border-radius-high;
+  box-shadow: v.$shadow-box-form;
+  padding: 1.75rem 1.5rem;
+  margin: 0 auto;
+
+  h3 {
+    font-family: v.$font-subtitle;
+    font-size: 1.25rem;
+    color: v.$color-primary;
+    margin: 0 0 1rem;
+  }
+}
+
+/* ===== Form ===== */
+form {
+  display: grid;
+  gap: 0.9rem;
+
+  label {
+    font-family: v.$font-subtitle;
+    font-weight: 600;
+    color: v.$color-primary;
+    display: inline-block;
+  }
+
+  input[type="password"] {
+    width: 100%;
+    padding: 0.85rem 0.9rem;
+    border-radius: v.$border-radius-small;
+    border: 1px solid rgba(0,0,0,.12);
+    background: #fff;
+    color: v.$color-primary;
+    transition: border-color v.$transition-fast, box-shadow v.$transition-fast;
+
+    &:focus {
+      outline: none;
+      border-color: v.$color-secondary;
+      box-shadow: 0 0 0 3px rgba(77,134,141,.15);
+    }
+
+    &.ng-invalid.ng-touched {
+      border-color: v.$alert-color;
+      box-shadow: 0 0 0 3px rgba(192,60,60,.12);
+    }
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.25rem;
+
+    // Bouton principal = look .cta-btn
+    button[type="submit"] {
+      @include m.hover-fill-center(
+          v.$btn-hover-bg,
+          0.5s,
+          inset -2px -3px 4px 0 rgba(#000000, 0.75)
+      );
+
+      position: relative;
+      background: v.$color-tertiary;
+      color: v.$color-quaternary;
+      font-family: v.$font-cta;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: v.$border-radius-small;
+      padding: 10px 18px;
+      cursor: pointer;
+      transition: box-shadow v.$transition-fast, opacity v.$transition-fast;
+      box-shadow: v.$shadow-btn;
+
+      &:disabled {
+        opacity: .65;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+    }
+
+    // Lien secondaire style global
+    a {
+      color: v.$color-secondary;
+      font-weight: 600;
+      text-decoration: none;
+      transition: color v.$transition-fast;
+
+      &:hover {
+        color: v.$color-tertiary;
+      }
+    }
+  }
+}
+
+/* ===== Notices ===== */
+.notice {
+  margin-top: 0.75rem;
+  padding: .85rem 1rem;
+  border-radius: v.$border-radius-small;
+  font-weight: 600;
+  border-left: 6px solid transparent;
+  box-shadow: v.$shadow-small-light;
+
+  &.success {
+    background: rgba(1,110,48,.08);
+    color: v.$color-sixt;
+    border-left-color: v.$color-sixt;
+  }
+
+  &.error {
+    background: rgba(226,0,68,.08);
+    color: v.$delete-btn-color;
+    border-left-color: v.$delete-btn-color;
+  }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 720px) {
+  .card {
+    padding: 1.25rem 1rem;
+  }
+
+  .account h2 {
+    font-size: 1.6rem;
+  }
+
+  form .row {
+    flex-direction: column;
+    align-items: stretch;
+
+    button[type="submit"] {
+      width: 100%;
+    }
+
+    a {
+      text-align: center;
+    }
+  }
+}

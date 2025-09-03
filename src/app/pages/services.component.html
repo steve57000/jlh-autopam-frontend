@@ -1,0 +1,28 @@
+<section class="services-page">
+  <div class="container-max grid">
+    @if (isClient && draft) {
+      <aside class="aside">
+        <app-current-quote
+          [demande]="draft"
+          (remove)="onRemoveLine($event)"
+          (submit)="onSubmitDemand($event)">
+        </app-current-quote>
+      </aside>
+    }
+
+    <div class="col content">
+      <h2>Nos services</h2>
+      <div class="services-list">
+        @for (svc of services; track trackById($index, svc)) {
+          <app-service-card
+            [service]="svc"
+            [delay]="$index * 0.2"
+            [showAdd]="isClient">
+          </app-service-card>
+        } @empty {
+          <p>Aucun service disponible pour le moment.</p>
+        }
+      </div>
+    </div>
+  </div>
+</section>

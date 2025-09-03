@@ -6,6 +6,7 @@
 @use '@angular/material' as mat;
 
 @use 'styles/variables' as variables;
+@use 'styles/mixins' as mixins;
 
 // (Optionnel) Importe un reset CSS de base
 @use 'styles/reset';
@@ -44,32 +45,112 @@ body {
 h1, h2, h3 {
   font-family: variables.$font-title;
 }
+
 h4, h5, h6 {
   font-family: variables.$font-subtitle;
 }
+
+h2 {
+  font-size: 2.1rem;
+  margin-bottom: 48px;
+}
+
 a {
   color: variables.$color-secondary;
   text-decoration: none;
   transition: color variables.$transition-fast;
-  &:hover {
+  &:hover:not(.cta-btn-secondary) {
     color: variables.$color-tertiary;
   }
 }
-button, .btn {
-  font-family: variables.$font-cta;
+
+a.cta-btn-secondary {
+  text-align: center;
+}
+
+.txt-color-primary {
+  color: variables.$color-primary
+}
+
+.txt-color-secondary {
+  color: variables.$color-secondary
+}
+
+.txt-color-tertienary {
+  color: variables.$color-tertiary
+}
+.cta-btn-secondary {
+  // 1) en tête, on inclut le mixin
+  @include mixins.hover-fill-center-secondary(
+      variables.$btn-modifier-gradient,
+      0.5s,
+      inset -2px -3px 4px 0 rgba(#000000, 0.75)
+  );
+
+  // 2) style de base
+  position: relative;
+  background: variables.$color-secondary;
+  color: variables.$color-quaternary;
+  font-family: variables.$font-body;
+  font-size:   1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: variables.$border-radius-small;
+  padding: 0.5rem 0.6rem;
+  min-width: 120px;
+  cursor: pointer;
+  transition: box-shadow variables.$transition-fast;
+  box-shadow: variables.$shadow-btn;
+}
+
+.cta-btn:not(:disabled) {
+  // 1) en tête, on inclut le mixin
+  @include mixins.hover-fill-center(
+      variables.$btn-hover-bg,
+      0.5s,
+      inset -2px -3px 4px 0 rgba(#000000, 0.75)
+  );
+}
+
+.cta-btn {
+  // 2) style de base
+  position: relative;
   background: variables.$color-tertiary;
   color: variables.$color-quaternary;
-  border-radius: variables.$border-radius-small;
+  font-family: variables.$font-cta;
+  font-size:   1rem;
+  font-weight: 700;
   border: none;
-  box-shadow: variables.$shadow-btn;
-  padding: 0.6em 1.4em;
+  border-radius: variables.$border-radius-small;
+  padding: 10px 0;
+  min-width: 120px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background variables.$transition-fast, box-shadow variables.$transition-fast;
-  &:hover {
-    background: variables.$btn-hover-bg;
-    box-shadow: variables.$shadow-btn-hover;
-  }
+  transition: box-shadow variables.$transition-fast;
+  box-shadow: variables.$shadow-btn;
+}
+
+.secondary-btn {
+  // 1) en tête, on inclut le mixin
+  @include mixins.hover-fill-center(
+      variables.$btn-delete-gradient,
+      0.5s,
+      inset -2px -3px 4px 0 rgba(#000000, 0.75)
+  );
+
+  // 2) style de base
+  position: relative;
+  background: variables.$color-tertiary;
+  color: variables.$color-quaternary;
+  font-family: variables.$font-cta;
+  font-size:   1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: variables.$border-radius-small;
+  padding: 10px 0;
+  width: 180px;
+  cursor: pointer;
+  transition: box-shadow variables.$transition-fast;
+  box-shadow: variables.$shadow-btn;
 }
 
 .container-main {
@@ -86,11 +167,11 @@ button, .btn {
   margin: 0 auto;
 }
 
-@media (max-width: 900px) {
-  .container-max {
-    padding: 0.8rem 0.7rem;
-  }
-}
+//@media (max-width: 900px) {
+//  .container-max {
+//    padding: 0.8rem 0.7rem;
+//  }
+//}
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

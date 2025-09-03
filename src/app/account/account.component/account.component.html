@@ -1,0 +1,31 @@
+<section class="account">
+    <h2>Mon compte</h2>
+
+    <article class="card">
+      <h3>Changer mon mot de passe</h3>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div>
+          <label>Ancien mot de passe</label>
+          <input type="password" formControlName="oldPassword" autocomplete="current-password" />
+        </div>
+
+        <div>
+          <label>Nouveau mot de passe</label>
+          <input type="password" formControlName="newPassword" autocomplete="new-password" />
+        </div>
+
+        <div>
+          <label>Confirmer le nouveau mot de passe</label>
+          <input type="password" formControlName="confirmPassword" autocomplete="new-password" />
+        </div>
+
+        <div class="row">
+          <button type="submit" [disabled]="loading">Mettre à jour</button>
+          <a routerLink="/reset-password">Mot de passe oublié ?</a>
+        </div>
+
+        @if (msg) { <div class="notice success">{{ msg }}</div> }
+        @if (err) { <div class="notice error">{{ err }}</div> }
+      </form>
+    </article>
+</section>

@@ -1,0 +1,75 @@
+<div class="quote">
+  @if (demande; as d) {
+    <div class="quote__header">
+      <h3>Ma demande en cours</h3>
+      <span class="badge">
+        {{ d.statutDemande?.libelle || d.statutDemande?.codeStatut || 'Brouillon' }}
+      </span>
+    </div>
+
+    <!-- Infos client -->
+    <div class="quote__client">
+      <div class="row">
+        <span class="label">Client</span>
+        <span class="value">{{ $any(d).client?.prenom }} {{ $any(d).client?.nom }}</span>
+      </div>
+      <div class="row">
+        <span class="label">Email</span>
+        <span class="value">{{ $any(d).client?.email || '—' }}</span>
+      </div>
+      <div class="row">
+        <span class="label">Téléphone</span>
+        <span class="value">{{ $any(d).client?.telephone || '—' }}</span>
+      </div>
+      <div class="row">
+        <span class="label">Immatriculation</span>
+        <input
+          type="text"
+          name="immat"
+          [(ngModel)]="immatOverride"
+          placeholder="AA-123-BB"
+        />
+      </div>
+      <div class="row">
+        <span class="label">Type de demande</span>
+        <select name="type" [(ngModel)]="type">
+          <option value="Devis">Devis</option>
+          <option value="RendezVous">Rendez-vous</option>
+        </select>
+      </div>
+    </div>
+
+    <ul class="quote__list">
+      @for (s of d.services; track s.idService) {
+        <li>
+          <div class="line">
+            <div class="line__libelle">{{ s.libelle }}</div>
+            <div class="line__qty">x{{ s.quantite }}</div>
+            <div class="line__price">{{ s.prixUnitaire | number:'1.2-2' }} €</div>
+            <button type="button" class="link danger" (click)="onRemove(s.idService)">
+              Retirer
+            </button>
+          </div>
+        </li>
+      } @empty {
+        <li><p>Aucun service dans votre demande.</p></li>
+      }
+    </ul>
+
+    <div class="quote__total">
+      <span>Total</span>
+      <strong>{{ total() | number:'1.2-2' }} €</strong>
+    </div>
+
+    <!-- ✅ formulaire local déclenchant l’@Output submit -->
+    <form (ngSubmit)="onSubmitForm()">
+      <button class="cta-btn" type="submit" [disabled]="!(($any(d).services?.length || 0) > 0)">
+        Valider ma demande
+      </button>
+    </form>
+  } @else {
+    <div class="quote empty">
+      <p>Ajoutez un service pour commencer votre demande.</p>
+    </div>
+  }
+</div>
