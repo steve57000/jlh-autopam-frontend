@@ -1,0 +1,47 @@
+<section class="brands-section" aria-labelledby="brands-title">
+  <div class="container">
+    <h2 id="brands-title" class="title">Nos marques</h2>
+
+    <div class="rail-wrap">
+      <!-- Chevrons conditionnels (petits écrans) -->
+      <button
+        class="chevron chevron--left"
+        type="button"
+        aria-label="Défiler vers la gauche"
+        (click)="scroll('left')"
+        *ngIf="canScrollLeft"
+      >
+        ‹
+      </button>
+
+      <div #rail class="rail" [@listStagger]>
+        <article
+          class="brand-item"
+          *ngFor="let brand of brands; trackBy: trackByName"
+          [attr.aria-label]="brand.name"
+        >
+          <img
+            [ngSrc]="brand.src"
+            [alt]="brand.alt || brand.name"
+            [width]="300"
+            [height]="104"
+            loading="lazy"
+            decoding="async"
+          />
+          <span class="sr-only">{{ brand.name }}</span>
+        </article>
+      </div>
+
+      <button
+        class="chevron chevron--right"
+        type="button"
+        aria-label="Défiler vers la droite"
+        (click)="scroll('right')"
+        *ngIf="canScrollRight"
+      >
+        ›
+      </button>
+    </div>
+  </div>
+</section>
+

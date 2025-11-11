@@ -1,0 +1,109 @@
+.brands-section {
+  padding: clamp(24px, 4vw, 56px) 0;
+  background: #0d0d0f; // fond sombre (cohérent avec tes tons noirs)
+  color: #fff;
+
+  .container {
+    width: min(1200px, 92vw);
+    margin: 0 auto;
+  }
+
+  .title {
+    font-size: clamp(1.25rem, 1.1rem + 1.5vw, 2rem);
+    margin: 0 0 16px;
+  }
+
+  .rail-wrap {
+    position: relative;
+  }
+
+  .rail {
+    display: grid;
+    gap: 16px;
+    align-items: center;
+
+    /* Grands écrans : grille complète */
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+
+    /* Visuel */
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    padding: clamp(8px, 1vw, 16px);
+
+    /* Petits écrans : passe en carrousel horizontal */
+    @media (max-width: 900px) {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding: 12px 40px; /* pour laisser place aux chevrons */
+
+      /* Masquer scrollbar (sans l’empêcher d’exister/accessibilité) */
+      scrollbar-width: none; /* Firefox */
+      &::-webkit-scrollbar { display: none; }
+    }
+  }
+
+  .brand-item {
+    height: 104px;
+    min-width: 140px;
+    padding: 8px 8px;
+    background: rgb(255, 255, 255);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    scroll-snap-align: start;
+    align-content: center;
+    overflow: hidden;
+
+    img {
+      max-height: 100%;
+      max-width: 100%;
+      object-fit: cover;
+      filter: brightness(1) contrast(1.05);
+    }
+  }
+
+  .chevron {
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(0,0,0,0.45);
+    color: #fff;
+    font-size: 32px;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: transform .15s ease, background .15s ease, opacity .2s ease;
+    z-index: 1;
+
+    &:hover { transform: translateY(-50%) scale(1.06); }
+    &:active { transform: translateY(-50%) scale(0.98); }
+
+    &--left { left: 8px; }
+    &--right { right: 8px; }
+
+    /* Masquer les chevrons quand on est en grille (desktop) */
+    @media (min-width: 901px) {
+      display: none;
+    }
+  }
+
+  /* Texte seulement pour lecteurs d’écran */
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0);
+    white-space: nowrap; border: 0;
+  }
+}

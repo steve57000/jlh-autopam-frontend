@@ -1,0 +1,26 @@
+<div class="toast-wrap" aria-live="polite" aria-atomic="true">
+  @for (t of list(); track t.id) {
+    <div class="toast" [ngClass]="kindClass(t)" [style]="durStyle(t)">
+      <div class="toast__icon" aria-hidden="true">
+        @if (t.kind === 'success') { <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2"/></svg> }
+        @if (t.kind === 'error')   { <svg viewBox="0 0 24 24"><path d="M12 8v5m0 3h.01M4.93 4.93l14.14 14.14" fill="none" stroke="currentColor" stroke-width="2"/></svg> }
+        @if (t.kind === 'info')    { <svg viewBox="0 0 24 24"><path d="M12 8h.01M11 12h1v4h1" fill="none" stroke="currentColor" stroke-width="2"/></svg> }
+        @if (t.kind === 'warning') { <svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10 2l10 18H0L10 2z" fill="none" stroke="currentColor" stroke-width="2"/></svg> }
+      </div>
+
+      <div class="toast__body">
+        <div class="toast__msg">{{ t.message }}</div>
+        @if (t.detail) {
+          <div class="toast__detail">{{ t.detail }}</div>
+        }
+      </div>
+
+      @if (t.closable) {
+        <button class="toast__close" (click)="close(t.id)" aria-label="Fermer">×</button>
+      }
+
+      <!-- progress bar -->
+      <div class="toast__progress" aria-hidden="true"></div>
+    </div>
+  }
+</div>
