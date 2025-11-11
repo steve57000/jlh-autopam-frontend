@@ -1,4 +1,3 @@
-// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout.component';
 import { HomeComponent } from './pages/home.component';

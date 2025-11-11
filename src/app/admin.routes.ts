@@ -1,4 +1,3 @@
-// src/app/admin.routes.ts
 import { Routes } from '@angular/router';
 import { AdminLayoutComponent } from './layout/admin-layout.component';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard.component';
@@ -11,7 +10,7 @@ export const adminRoutes: Routes = [
   {
     path: '',
     component: AdminLayoutComponent,
-    canActivate: [AdminGuard], // double sécurité à l’exécution
+    canActivate: [AdminGuard],
     children: [
       { path: '',           component: AdminDashboardComponent },
       { path: 'services',   component: AdminServicesComponent },

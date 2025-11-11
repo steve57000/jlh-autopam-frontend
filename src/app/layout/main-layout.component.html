@@ -1,11 +1,12 @@
+<!-- main-layout.component.html -->
 <app-header></app-header>
 <main>
-  @if (loadingRoute){
-    <div class="spinner-overlay">
-      <div class="spinner"></div>
-    </div>
-  }
   <router-outlet></router-outlet>
 </main>
-<app-footer></app-footer>
 
+@if (showSpinner()) {
+  <app-full-page-spinner></app-full-page-spinner>
+}
+
+<app-toast-container></app-toast-container>
+<app-footer></app-footer>

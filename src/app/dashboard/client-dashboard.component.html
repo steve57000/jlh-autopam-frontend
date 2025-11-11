@@ -19,7 +19,57 @@
 
     @if (!loading && !error) {
 
-      <!-- === Statistiques globales === -->
+      <!-- ====== Filtres ====== -->
+      <div class="filters">
+        <div class="row">
+          <div class="field">
+            <label>Recherche</label>
+            <input
+              type="search"
+              [ngModel]="filters().q"
+              (ngModelChange)="setQ($event)"
+              placeholder="Service, type, statut, #id…" />
+          </div>
+
+          <div class="field">
+            <label>Type</label>
+            <select [ngModel]="filters().type" (ngModelChange)="setType($event)">
+              <option value="ALL">Tous</option>
+              <option value="Devis">Devis</option>
+              <option value="RendezVous">Rendez-vous</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Statut</label>
+            <select [ngModel]="filters().statut" (ngModelChange)="setStatut($event)">
+              <option value="ALL">Tous</option>
+              <option value="Brouillon">Brouillon</option>
+              <option value="En_attente">En attente</option>
+              <option value="Traitee">Traitée</option>
+              <option value="Annulee">Annulée</option>
+              <option value="Confirme">Confirmé (RDV)</option>
+              <option value="Reporte">Reporté (RDV)</option>
+              <option value="Annule">Annulé (RDV)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Du</label>
+            <input type="date" [ngModel]="filters().dateFrom" (ngModelChange)="setFrom($event)" />
+          </div>
+
+          <div class="field">
+            <label>Au</label>
+            <input type="date" [ngModel]="filters().dateTo" (ngModelChange)="setTo($event)" />
+          </div>
+
+          <div class="actions">
+            <button type="button" class="cta-btn-secondary" (click)="clearFilters()">Réinitialiser</button>
+          </div>
+        </div>
+      </div>
+
       @if (stats) {
         <div class="stats-grid">
           <div class="stat">
@@ -41,7 +91,6 @@
         </div>
       }
 
-      <!-- === Prochain RDV (si présent) === -->
       @if (prochainRdv) {
         <article class="card next-rdv">
           <header>
@@ -68,12 +117,11 @@
         </article>
       }
 
-      <!-- === Liste des demandes === -->
-      @if (demandes.length === 0) {
-        <p>Vous n’avez aucune demande pour le moment.</p>
+      @if (filteredDemandes().length === 0) {
+        <p>Aucune demande ne correspond à vos filtres.</p>
       } @else {
         <div class="list">
-          @for (d of demandes; track d.idDemande) {
+          @for (d of filteredDemandes(); track d.idDemande) {
             <article class="card">
               <header>
                 <strong>Demande #{{ d.idDemande }}</strong>
@@ -88,7 +136,6 @@
                 <span>{{ d.dateDemande | date:'dd/MM/yyyy HH:mm' }}</span>
               </div>
 
-              <!-- Services demandés + total estimatif -->
               @if (d.services?.length) {
                 <div class="services">
                   <div class="services-head">Services demandés</div>
@@ -105,6 +152,26 @@
                   <div class="total">
                     Total estimatif : <strong>{{ totalDemande(d) | number:'1.2-2' }} €</strong>
                   </div>
+                </div>
+              }
+
+              @if (isDraft(d)) {
+                <div class="actions">
+                  <button
+                    class="cta-btn"
+                    type="button"
+                    [disabled]="submittingId === d.idDemande"
+                    (click)="submitDraft(d)">
+                    {{ submittingId === d.idDemande ? 'Validation…' : 'Valider ma demande' }}
+                  </button>
+
+                  <button
+                    class="cta-btn-secondary"
+                    type="button"
+                    [disabled]="submittingId === d.idDemande"
+                    (click)="continueDraft()">
+                    Continuer ma demande
+                  </button>
                 </div>
               }
             </article>

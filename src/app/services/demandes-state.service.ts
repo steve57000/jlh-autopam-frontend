@@ -16,7 +16,6 @@ export class DemandesStateService {
   readonly refresh$ = new Subject<void>();
 
   async initDemande(): Promise<number> {
-    if (this.cacheId) return this.cacheId;
     const resp = await firstValueFrom(
       this.http.post<DemandeResponse>(`${this.api}/demandes/current`, {})
     );
@@ -29,6 +28,8 @@ export class DemandesStateService {
     const resp = await firstValueFrom(
       this.http.post<DemandeResponse>(`${this.api}/demandes/current`, {})
     );
+    // gardons l’ID cohérent dans le cache
+    this.cacheId = Number(resp.idDemande);
     return resp;
   }
 

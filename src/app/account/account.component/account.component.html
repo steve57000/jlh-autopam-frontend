@@ -1,31 +1,154 @@
 <section class="account">
-    <h2>Mon compte</h2>
+  <h2>Mon compte</h2>
 
-    <article class="card">
-      <h3>Changer mon mot de passe</h3>
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        <div>
-          <label>Ancien mot de passe</label>
-          <input type="password" formControlName="oldPassword" autocomplete="current-password" />
+  <!-- ====== Carte : Mes informations ====== -->
+  <article class="card">
+    <h3>Mes informations</h3>
+
+    @if (loading()) {
+      <p>Chargement…</p>
+    } @else {
+      <form [formGroup]="profileForm" (ngSubmit)="submitProfile()">
+        <div class="grid-2">
+          <div>
+            <label>Nom</label>
+            <input type="text" formControlName="nom" [readonly]="true" />
+          </div>
+          <div>
+            <label>Prénom</label>
+            <input type="text" formControlName="prenom" [readonly]="true" />
+          </div>
         </div>
 
         <div>
-          <label>Nouveau mot de passe</label>
-          <input type="password" formControlName="newPassword" autocomplete="new-password" />
+          <label>Email</label>
+          <input type="email" formControlName="email" [readonly]="true" />
         </div>
 
-        <div>
-          <label>Confirmer le nouveau mot de passe</label>
-          <input type="password" formControlName="confirmPassword" autocomplete="new-password" />
+        <div class="grid-2">
+          <div>
+            <label>Téléphone</label>
+            <input type="text"
+                   formControlName="telephone"
+                   [class.invalid]="f.telephone.touched && f.telephone.invalid" />
+            <!-- Priorité au message serveur -->
+            @if (f.telephone.errors?.['server']) {
+              <small class="field-error">{{ f.telephone.errors?.['server'] }}</small>
+            } @else if (f.telephone.touched && f.telephone.errors?.['pattern']) {
+              <small class="field-error">Format attendu : 0X XX XX XX XX</small>
+            }
+          </div>
+
+          <div>
+            <label>Immatriculation</label>
+            <input type="text"
+                   formControlName="immatriculation"
+                   placeholder="AA-123-AA"
+                   [class.invalid]="f.immatriculation.touched && f.immatriculation.invalid" />
+            @if (f.immatriculation.errors?.['server']) {
+              <small class="field-error">{{ f.immatriculation.errors?.['server'] }}</small>
+            } @else if (f.immatriculation.touched && f.immatriculation.errors?.['pattern']) {
+              <small class="field-error">Format attendu : AA-123-AA</small>
+            }
+          </div>
         </div>
+
+        <fieldset class="addr">
+          <legend>Adresse postale</legend>
+
+          <div>
+            <label>Adresse (ligne 1)</label>
+            <input type="text" formControlName="adresse_ligne1" />
+          </div>
+
+          <div>
+            <label>Complément (ligne 2)</label>
+            <input type="text" formControlName="adresse_ligne2" />
+          </div>
+
+          <div class="grid-2">
+            <div>
+              <label>Code postal</label>
+              <input type="text"
+                     formControlName="adresse_codePostal"
+                     [class.invalid]="f.adresse_codePostal.touched && f.adresse_codePostal.invalid" />
+              @if (f.adresse_codePostal.errors?.['server']) {
+                <small class="field-error">{{ f.adresse_codePostal.errors?.['server'] }}</small>
+              } @else if (f.adresse_codePostal.touched && f.adresse_codePostal.errors?.['pattern']) {
+                <small class="field-error">Doit contenir 5 chiffres (ex: 75001)</small>
+              }
+            </div>
+
+            <div>
+              <label>Ville</label>
+              <input type="text" formControlName="adresse_ville" />
+            </div>
+          </div>
+        </fieldset>
 
         <div class="row">
-          <button type="submit" [disabled]="loading">Mettre à jour</button>
-          <a routerLink="/reset-password">Mot de passe oublié ?</a>
+          <button class="cta-btn" type="submit" [disabled]="saving()">
+            {{ saving() ? 'Enregistrement…' : 'Enregistrer' }}
+          </button>
         </div>
-
-        @if (msg) { <div class="notice success">{{ msg }}</div> }
-        @if (err) { <div class="notice error">{{ err }}</div> }
       </form>
-    </article>
+    }
+  </article>
+
+  <!-- ====== Carte : Mot de passe ====== -->
+  <article class="card">
+    <h3>Changer mon mot de passe</h3>
+
+    <form [formGroup]="pwdForm" (ngSubmit)="submitPassword()">
+      <div>
+        <label>Ancien mot de passe</label>
+        <input type="password"
+               formControlName="oldPassword"
+               autocomplete="current-password"
+               [class.invalid]="fp.oldPassword.touched && fp.oldPassword.invalid" />
+        @if (fp.oldPassword.touched && fp.oldPassword.errors?.['required']) {
+          <small class="field-error">Ancien mot de passe requis</small>
+        }
+      </div>
+
+      <div>
+        <label>Nouveau mot de passe</label>
+        <input type="password"
+               formControlName="newPassword"
+               autocomplete="new-password"
+               [class.invalid]="fp.newPassword.touched && fp.newPassword.invalid" />
+        @if (fp.newPassword.touched) {
+          @if (fp.newPassword.errors?.['required']) {
+            <small class="field-error">Nouveau mot de passe requis</small>
+          }
+          @if (fp.newPassword.errors?.['minlength']) {
+            <small class="field-error">Au moins 6 caractères</small>
+          }
+        }
+      </div>
+
+      <div>
+        <label>Confirmer le nouveau mot de passe</label>
+        <input type="password"
+               formControlName="confirmPassword"
+               autocomplete="new-password"
+               [class.invalid]="fp.confirmPassword.touched && (fp.confirmPassword.invalid || pwdForm.errors?.['mismatch'])" />
+        @if (fp.confirmPassword.touched) {
+          @if (fp.confirmPassword.errors?.['required']) {
+            <small class="field-error">Confirmation requise</small>
+          }
+          @if (pwdForm.errors?.['mismatch']) {
+            <small class="field-error">La confirmation ne correspond pas</small>
+          }
+        }
+      </div>
+
+      <div class="row">
+        <button class="cta-btn" type="submit" [disabled]="pwdSaving()">
+          {{ pwdSaving() ? 'Mise à jour…' : 'Mettre à jour' }}
+        </button>
+        <a routerLink="/reset-password" class="cta-btn-secondary">Mot de passe oublié ?</a>
+      </div>
+    </form>
+  </article>
 </section>

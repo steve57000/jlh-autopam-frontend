@@ -1,63 +1,61 @@
 .client-dashboard {
-  //padding: 40px 20px;
-
-  .container-max {
-    flex-direction: column;
-  }
+  .container-max { flex-direction: column; }
   .header {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 3rem;
-    gap: 1rem;
+    display: flex; flex-wrap: wrap;
+    justify-content: space-between; align-items: center;
+    margin-bottom: 2rem; gap: 1rem;
+    h2 { margin: 0; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 1rem; }
+  }
 
-    h2 {
-      margin: 0;
+  /* ====== Filtres ====== */
+  .filters {
+    margin-bottom: 1rem;
+    background: #fff; border: 1px solid #e9ecef; border-radius: .5rem;
+    padding: .75rem;
+
+    .row {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr .8fr .7fr .7fr auto;
+      gap: .75rem;
+      align-items: end;
     }
 
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
+    .field {
+      display: grid; gap: .25rem;
+      label { font-size: .85rem; color: #6c757d; }
+      input[type="search"], input[type="date"], select {
+        width: 100%;
+        border: 1px solid #dee2e6; border-radius: .5rem;
+        padding: .5rem .6rem; background: #fff;
+      }
     }
   }
 
   .stats-grid {
-    display:grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap:.75rem;
-    margin-bottom:1rem;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: .75rem; margin-bottom: 1rem;
   }
-
   .stat {
-    background:#f8f9fa;
-    border-radius:.5rem;
-    padding:.75rem;
-    text-align:center;
-
+    background:#f8f9fa; border-radius:.5rem; padding:.75rem; text-align:center;
     .stat-kpi { font-size:1.4rem; font-weight:700; }
     .stat-label { font-size:.9rem; color:#6c757d; }
   }
 
-  article {
-    position: relative;
-
-    .actions {
-      position: absolute;
-      right: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-  }
+  article { position: relative; }
   .list { display:grid; gap:.75rem; }
-  .card { border:1px solid #e9ecef; border-radius:.5rem; padding:.75rem; margin-bottom: .5rem; background:#fff; }
+  .card {
+    position: relative;
+    border:1px solid #e9ecef; border-radius:.5rem;
+    padding:.75rem; margin-bottom:.5rem; background:#fff;
+  }
   header { display:flex; align-items:center; gap:.5rem; justify-content:space-between; flex-wrap:wrap; margin-bottom:.5rem; }
   .chip.type { background:#eef; border-radius:999px; padding:.15rem .5rem; font-size:.85rem; }
   .badge { border-radius:.35rem; padding:.15rem .4rem; background:#dee2e6; }
   .badge.success { background:#d1e7dd; color:#0f5132; }
   .badge.warning { background:#fff3cd; color:#664d03; }
   .badge.danger  { background:#f8d7da; color:#842029; }
+  .badge.info    { background:#e7f3ff; color:#0b5ed7; }
   .row { display:grid; grid-template-columns: 140px 1fr; gap:.5rem; margin:.25rem 0; }
   .services { margin-top:.5rem; }
   .services-head { font-weight:600; margin-bottom:.25rem; }
@@ -65,5 +63,127 @@
   .services li { display:flex; justify-content:space-between; padding:.2rem 0; }
   .total { text-align:right; margin-top:.25rem; font-weight:600; }
   .next-rdv header { justify-content:flex-start; gap:.5rem; margin-bottom: .5rem; }
-  .actions { margin-top:.5rem; }
+  .actions { margin-top:.5rem; display: flex; gap: 1rem; }
+}
+
+.client-dashboard {
+  /* ====== Filtres ====== */
+  .filters {
+    margin-bottom: 1rem;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: .75rem;
+    padding: 1rem;
+
+    .row {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr .8fr .7fr .7fr auto;
+      gap: .85rem;
+      align-items: end;
+    }
+
+    .field {
+      display: grid;
+      gap: .35rem;
+
+      label {
+        font-size: .85rem;
+        color: #6c757d;
+        letter-spacing: .2px;
+      }
+
+      /* Base champs */
+      input[type="search"],
+      input[type="date"],
+      select {
+        width: 100%;
+        padding: .6rem .75rem;
+        border-radius: .6rem;
+        background: #fff;
+        border: 1px solid #dee2e6;
+        transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+        appearance: none; /* reset natif */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+
+        &:hover {
+          border-color: #cfd6dc;
+          background: #fcfcfc;
+        }
+
+        &:focus {
+          outline: none;
+          border-color: #4d868d;               /* $color-secondary */
+          box-shadow: 0 0 0 3px rgba(77,134,141,.18);
+          background: #fff;
+        }
+
+        &::placeholder {
+          color: #9aa4ad;
+        }
+      }
+
+      /* ====== Select custom arrow ====== */
+      select {
+        /* espace pour l’icône */
+        padding-right: 2.2rem;
+        cursor: pointer;
+
+        /* flèche en SVG (compatible dark text sur fond clair) */
+        background-image:
+          url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23404040' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right .6rem center;
+        background-size: 18px;
+
+        /* Firefox ajuste différemment l’icône -> petit padding pour l’aligner */
+        @-moz-document url-prefix() {
+          background-position: right .5rem center;
+        }
+
+        /* Safari/iOS : neutraliser l’icône native si besoin */
+        &::-ms-expand { display: none; } /* vieux Edge */
+      }
+
+      /* Input date : icône calendrier un peu plus alignée sur WebKit */
+      input[type="date"] {
+        &::-webkit-calendar-picker-indicator {
+          opacity: .8;
+          cursor: pointer;
+          transition: opacity .15s ease, transform .08s ease;
+        }
+        &:hover::-webkit-calendar-picker-indicator { opacity: 1; }
+        &:active::-webkit-calendar-picker-indicator { transform: scale(.96); }
+      }
+    }
+
+    /* Bouton réinitialiser */
+    .actions {
+      display: flex;
+      gap: .5rem;
+      align-items: end;
+    }
+
+    /* Responsive petit écran : empilement harmonieux */
+    @media (max-width: 900px) {
+      .row { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .row { grid-template-columns: 1fr; }
+      .actions { justify-content: flex-start; }
+    }
+  }
+}
+
+/* petit polish visuel des badges/chips existants pour matcher la zone filtres */
+.client-dashboard {
+  .chip.type {
+    background: #eef5f7;
+    color: #3d6b70;
+  }
+  .badge.info {
+    background: #e8f3ff;
+    color: #0b5ed7;
+  }
 }

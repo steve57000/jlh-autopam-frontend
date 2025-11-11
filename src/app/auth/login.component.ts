@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, Validators, ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import {Router, ActivatedRoute, RouterLink} from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import {SubmitButtonComponent} from '../shared/submit-button/submit-button.component'; // ✅ ajuste l'import vers le bon chemin
+import {SubmitButtonComponent} from '../shared/submit-button/submit-button.component';
 
 @Component({
   selector: 'app-login',

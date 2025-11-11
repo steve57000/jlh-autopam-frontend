@@ -14,6 +14,7 @@ import {
   withInterceptorsFromDi
 } from '@angular/common/http';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import {provideAnimations} from '@angular/platform-browser/animations';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -39,6 +40,9 @@ export const appConfig: ApplicationConfig = {
 
     // Locale
     { provide: LOCALE_ID, useValue: 'fr-FR' },
+
+    // Active les animations côté client
+    provideAnimations(),
 
     // Petit helper debug (attention côté SSR)
     {

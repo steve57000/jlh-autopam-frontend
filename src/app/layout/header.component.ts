@@ -39,12 +39,12 @@ export class HeaderComponent implements OnInit {
 
   toggleMenu() {
     this.menuOpen = !this.menuOpen;
-    document.body.style.overflow = this.menuOpen ? 'hidden' : '';
+    document.body.classList.toggle('menu-open', this.menuOpen);
   }
 
   closeMenu() {
     this.menuOpen = false;
-    document.body.style.overflow = '';
+    document.body.classList.remove('menu-open');
   }
 
   logout() {

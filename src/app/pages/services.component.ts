@@ -1,4 +1,3 @@
-// src/app/pages/services.component.ts
 import {Component, OnDestroy, OnInit, Inject, PLATFORM_ID, inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { takeUntil } from 'rxjs/operators';
@@ -13,6 +12,7 @@ import { AuthService } from '../services/auth.service';
 import { DemandesStateService } from '../services/demandes-state.service';
 import { DemandesServiceService } from '../services/demandes-services.service';
 import { DemandeResponse } from '../services/client-dashboard.service';
+import { ToastService} from '../shared/toast/toast.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import {Router} from '@angular/router';
@@ -34,7 +34,6 @@ export class ServicesComponent implements OnInit, OnDestroy {
   private sub?: Subscription;
   private router = inject(Router);
 
-  // Optionnels : si tu veux créer un RDV immédiatement à la validation
   selectedCreneauId?: number | null;
   assignedAdminId?: number | null;
 
@@ -44,6 +43,7 @@ export class ServicesComponent implements OnInit, OnDestroy {
     private state: DemandesStateService,
     private ds: DemandesServiceService,
     private http: HttpClient,
+    private toast: ToastService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -54,7 +54,6 @@ export class ServicesComponent implements OnInit, OnDestroy {
       await this.refreshDraft();
     }
 
-    // ✅ SSR-safe : on écoute l’event interne plutôt que `document`
     this.state.refresh$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.refreshDraft());
@@ -74,7 +73,6 @@ export class ServicesComponent implements OnInit, OnDestroy {
     return svc.idService as number;
   }
 
-  /** Recharge la demande Brouillon (ou null si vide) */
   async refreshDraft() {
     try {
       const q = await this.state.loadDraft();
@@ -85,18 +83,27 @@ export class ServicesComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Retrait d’une ligne demandé depuis l’encart */
   async onRemoveLine(ev: { idDemande: number; idService: number }) {
-    await firstValueFrom(this.ds.deleteLine(ev.idDemande, ev.idService));
-    await this.refreshDraft();
+    try {
+      await firstValueFrom(this.ds.deleteLine(ev.idDemande, ev.idService));
+      await this.refreshDraft();
+
+      if (!this.draft) {
+        // Plus aucune ligne → on repart à zéro côté front
+        this.state.resetCache();
+        this.state.notifyRefresh();
+      }
+
+      this.toast.info('Ligne retirée de votre demande');
+    } catch {
+      this.toast.error('Impossible de retirer ce service pour le moment.');
+    }
   }
 
-  /** Helper pour convertir une string du <select> en TypeCode (évite `as` dans le template) */
   castType(v: string): TypeCode {
     return v === 'RendezVous' ? 'RendezVous' : 'Devis';
   }
 
-  /** Bouton "Valider ma demande" */
   async onSubmitDemand(payload: { type: TypeCode; immatriculation?: string | null }) {
     if (!this.draft?.idDemande) return;
 
@@ -104,7 +111,6 @@ export class ServicesComponent implements OnInit, OnDestroy {
     const api = environment.apiBaseUrl;
 
     try {
-      // 1) immat override éventuelle
       const immat = (payload.immatriculation || '').trim();
       if (immat.length > 0) {
         await firstValueFrom(
@@ -112,12 +118,10 @@ export class ServicesComponent implements OnInit, OnDestroy {
         );
       }
 
-      // 2) type choisi (Devis|RendezVous)
       await firstValueFrom(
         this.http.patch<void>(`${api}/demandes/${id}/type`, { codeType: payload.type })
       );
 
-      // 3) (Optionnel) création RDV immédiate si tu veux le faire ici
       if (payload.type === 'RendezVous' && this.selectedCreneauId && this.assignedAdminId) {
         await firstValueFrom(
           this.http.post(`${api}/rendezvous`, {
@@ -129,17 +133,17 @@ export class ServicesComponent implements OnInit, OnDestroy {
         );
       }
 
-      // 4) soumission : Brouillon -> En_attente
       await firstValueFrom(this.http.patch<void>(`${api}/demandes/${id}/submit`, {}));
+      this.toast.success('Demande envoyée avec succès !');
 
-      // 5) on nettoie l’état local
       this.state.resetCache();
       this.draft = null;
 
-      // Redirection:
       await this.router.navigate(['/dashboard'], { replaceUrl: true });
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      const msg = e?.error?.message || e?.message || 'Envoi impossible';
+      this.toast.error('Échec de l’envoi', msg);
+      await this.refreshDraft();
     }
   }
 }

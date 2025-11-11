@@ -10,6 +10,8 @@ import { IntroAccueilComponent } from '../features/intro-accueil.component';
 import { SectionCarousselComponent } from '../features/section-caroussel.component';
 import {MetiersPictosComponent} from '../features/metiers-pictos.component';
 
+import { BrandsComponent } from '../shared/brands/brands.component';
+
 @Component({
   selector: 'app-home',
   templateUrl: 'home.component.html',
@@ -19,7 +21,8 @@ import {MetiersPictosComponent} from '../features/metiers-pictos.component';
     PromotionsSliderComponent,
     IntroAccueilComponent,
     SectionCarousselComponent,
-    MetiersPictosComponent
+    MetiersPictosComponent,
+    BrandsComponent
   ]
 })
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {

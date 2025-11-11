@@ -1,75 +1,13 @@
+@use "sass:color";
 @use './variables' as v;
 
-/// Remplissage centré + inset-shadow sur le bouton
-/// @param $hover-bg  couleur ou dégradé de remplissage (v.$btn-hover-bg)
-/// @param $duration  durée de l’animation (ex. .4s)
-/// @param $inset     box-shadow inset (ex. inset 0 2px 4px rgba(0,0,0,0.2))
-@mixin hover-fill-center($hover-bg, $duration: .4s, $inset: -2px -3px 4px 0 rgba(#000000, 0.75)) {
-  position: relative;
-  overflow: hidden;
-  transition: all $duration ease-in-out;
-  z-index: 0;                // crée un contexte de pile
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: $hover-bg;
-    transform: scaleX(0);
-    transform-origin: center center;
-    transition: all $duration ease-in-out;
-    z-index: -1;             // derrière le bouton (et son shadow)
-  }
-
-  // au hover on déploie le fill *puis* on ajoute l’inset shadow
-  &:hover {
-    box-shadow: none;
-  }
-  &:hover::before {
-    transform: scaleX(1);
-    border-radius: v.$border-radius-small;
-    box-shadow: inset v.$shadow-btn-hover;
-  }
-}
-
-@mixin hover-fill-center-secondary($hover-bg, $duration: .4s, $inset: -2px -3px 4px 0 rgba(#000000, 0.75)) {
-  position: relative;
-  overflow: hidden;
-  transition: all $duration ease-in-out;
-  z-index: 0;                // crée un contexte de pile
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: v.$btn-hover-bg-secondary;
-    transform: scaleX(0);
-    transform-origin: center center;
-    transition: all $duration ease-in-out;
-    z-index: -1;             // derrière le bouton (et son shadow)
-  }
-
-  // au hover on déploie le fill *puis* on ajoute l’inset shadow
-  &:hover {
-    box-shadow: none;
-  }
-  &:hover::before {
-    transform: scaleX(1);
-    border-radius: v.$border-radius-small;
-    box-shadow: inset v.$shadow-btn-hover;
-  }
-}
-
-/// Texte “remplissable” du centre vers les bords
-/// @param $base-color   Couleur de texte au repos (ex : v.$color-quaternary)
-/// @param $fill-color   Couleur de texte au hover (ex : v.$color-primary)
-/// @param $duration     Durée de l’animation (ex : .4s)
+/* ========= Text helpers ========= */
 @mixin text-fill-center($base-color, $fill-color, $duration: .4s) {
   display: inline-block;
   background-image:
     linear-gradient(to right, $fill-color 0%, $fill-color 100%),
     linear-gradient(to right, $base-color  0%, $base-color  100%);
-  background-repeat: no-repeat, no-repeat;
+  background-repeat: no-repeat;
   background-position: left center, left center;
   background-size: 0 100%, 100% 100%;
   -webkit-background-clip: text;
@@ -78,30 +16,123 @@
   transition: background-size $duration ease-in-out;
 }
 
-/// @param $base-color    Couleur de texte au repos
-/// @param $fill-gradient Gradient (radial ou linéaire) à appliquer au remplissage
-/// @param $duration      Durée de l’animation
-@mixin text-fill-center-with-gradient(
-  $base-color,
-  $fill-gradient,
-  $duration: .4s
-) {
+@mixin text-fill-center-with-gradient($base-color, $fill-gradient, $duration: .4s) {
   display: inline-block;
   color: transparent;
-
-  // Premier layer = gradient de remplissage, second layer = couleur de base
   background-image:
     #{$fill-gradient},
     linear-gradient(to right, $base-color 0%, $base-color 100%);
-  background-repeat: no-repeat, no-repeat;
+  background-repeat: no-repeat;
   background-position: center center;
-  // Utiliser % pour éviter les artefacts de sous-pixel
   background-size: 0 100%, 100% 100%;
-
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-
   transition: background-size $duration ease-in-out;
-  backface-visibility: hidden; // améliore le rendu
+  backface-visibility: hidden;
+}
+
+/* ========= Focus ring (fix color.scale %) ========= */
+@mixin focus-ring($color, $spread: 6px) {
+  outline: none;
+  /* -45% (et pas -0.45) pour diminuer l’alpha avec le nouveau sass:color */
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 $spread color.scale($color, $alpha: -45%),
+    v.$shadow-btn;
+
+  @media (forced-colors: active) {
+    outline: 1px solid $color;
+    box-shadow: none;
+  }
+}
+
+/* ========= Hover fill (ne couvre plus le texte, respecte la bordure) =========
+   - inset: 1px pour ne pas “dépasser” la bordure 3D
+   - l’inset-shadow passe désormais sur le bouton lui-même, pas sur ::before
+*/
+@mixin hover-fill-center($hover-bg, $duration: .3s) {
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+  transition: background $duration ease-in-out, box-shadow $duration ease-in-out;
+
+  &::before{
+    content:'';
+    position:absolute;
+    inset: 1px;               /* respecte la bordure */
+    background: $hover-bg;
+    transform: scaleX(0);
+    transform-origin:center;
+    transition: transform $duration ease-in-out;
+    z-index: -1;              /* derrière le contenu → le texte reste visible */
+    border-radius: calc(#{v.$border-radius-small} - 1px);
+    box-shadow: inset -1px -2px 5px rgba(0, 0, 0, 0.64);
+  }
+
+  &:hover::before { transform: scaleX(1); }
+  &:hover {
+    /* “inset” visuel sur le bouton, pas sur le pseudo */
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.25), 0 0 0 rgba(0,0,0,0);
+    border-color: transparent;
+  }
+}
+
+/* Variante secondaire */
+@mixin hover-fill-center-secondary($hover-bg, $duration: .4s) {
+  @include hover-fill-center($hover-bg, $duration);
+}
+
+/* ========= Bordures “chrome” 3D (remplace mix() global par color.mix) ========= */
+@mixin chrome-borders($base) {
+  border: 1px solid color.mix(#fff, $base, 55%);
+  border-right-color:  color.mix(#000, $base, 35%);
+  border-bottom-color: color.mix(#000, $base, 45%);
+  border-left-color:   color.mix(#fff, $base, 35%);
+}
+
+@mixin chrome-borders-pressed($base) {
+  border: 1px solid color.mix(#000, $base, 45%);
+  border-right-color:  color.mix(#fff, $base, 35%);
+  border-bottom-color: color.mix(#fff, $base, 45%);
+  border-left-color:   color.mix(#000, $base, 35%);
+}
+
+/* ========= Press depth (appui réaliste) ========= */
+@mixin press-depth($press-translate: 3px) {
+  & {
+    transition: transform .06s ease,
+    box-shadow .12s ease,
+    filter .12s ease;
+  }
+
+  &:hover { filter: brightness(1.02); }
+
+  &:focus-visible { @include focus-ring(v.$color-secondary, 4px); }
+
+  &:active,
+  &[aria-pressed="true"],
+  &.is-active {
+    transform: translateY($press-translate);
+    box-shadow:
+      0 1px 2px rgba(0,0,0,.22),
+      inset 0 3px 8px rgba(0,0,0,.28);
+  }
+}
+
+/* ========= Skin complet 3D ========= */
+@mixin btn-3d-chrome($base) {
+  @include chrome-borders($base);
+
+  &:focus-visible { @include focus-ring($base, 8px); }
+
+  &:active,
+  &[aria-pressed="true"],
+  &.is-active {
+    @include chrome-borders-pressed($base);
+    transform: translateY(2px);
+    box-shadow:
+      0 1px 2px rgba(0,0,0,.22),
+      inset 0 3px 8px rgba(0,0,0,.28);
+  }
 }
