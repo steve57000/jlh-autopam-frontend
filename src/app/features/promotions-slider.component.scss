@@ -1,8 +1,9 @@
 @use '../../styles/variables' as variables;
 
 .promo-section {
-  margin: 2rem auto;
+  margin: clamp(2rem, 5vw, 4rem) auto;
   flex-direction: column;
+  padding: 0 clamp(1rem, 5vw, 2rem);
   h2 {
     margin-bottom: 1.2rem;
     font-family: variables.$font-title;
@@ -17,7 +18,7 @@
     box-shadow: 0 2px 20px 0 rgba(64,64,64,0.15);
     margin: 0 auto;
     background: #fff;
-    max-width: 720px;
+    max-width: min(100%, 960px);
   }
   .slider {
     display: flex;
@@ -28,7 +29,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 1.5rem;
+    padding: clamp(1rem, 3vw, 1.75rem);
     background: #fff;
     border-radius: variables.$border-radius-high;
     box-shadow: 0 2px 12px 0 rgba(64,64,64,0.12);
@@ -39,12 +40,12 @@
     align-items: center;
     border-radius: variables.$border-radius-high;
     overflow: hidden;
-    width: 650px;
+    width: min(640px, calc(100vw - 4rem));
     background: #fff;
   }
   .promo-img {
-    width: 90%;
-    height: 70vh;
+    width: min(540px, 100%);
+    height: clamp(220px, 45vw, 420px);
     object-fit: contain;
     border-radius: variables.$border-radius-high variables.$border-radius-high 0 0;
   }
@@ -90,8 +91,8 @@
     color: #fff;
     border: none;
     border-radius: 50%;
-    width: 40px;      // Taille du bouton (adapter si besoin)
-    height: 40px;
+    width: clamp(40px, 6vw, 52px);      // Taille du bouton (adapter si besoin)
+    height: clamp(40px, 6vw, 52px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -100,8 +101,8 @@
     z-index: 2;
     outline: none;
 
-    &.left { left: 0.8rem; }
-    &.right { right: 0.8rem; }
+    &.left { left: clamp(0.5rem, 2vw, 1rem); }
+    &.right { right: clamp(0.5rem, 2vw, 1rem); }
 
     &:focus-visible {
       outline: 2px solid variables.$color-tertiary;
@@ -109,7 +110,7 @@
     }
 
     mat-icon {
-      font-size: 1.8rem;     // Taille idéale pour le cercle
+      font-size: clamp(1.5rem, 3vw, 2rem);     // Taille idéale pour le cercle
       line-height: 1;        // Pas d’espace vertical
       width: 1em;
       height: 1em;
@@ -142,6 +143,18 @@
   }
 }
 
+@media (max-width: 900px) {
+  .promo-section {
+    .promo-card {
+      width: min(520px, calc(100vw - 3rem));
+    }
+
+    .promo-img {
+      height: clamp(220px, 52vw, 360px);
+    }
+  }
+}
+
 @media (max-width: 600px) {
   .promo-section {
     .slider-wrapper {
@@ -152,16 +165,32 @@
       }
     }
     .promo-card {
-      width: 100vw;
+      width: min(100%, calc(100vw - 2rem));
       min-width: 0;
       border-radius: 0;
     }
     .promo-img {
       width: 80%;
-      height: 60vh;
+      height: clamp(200px, 60vw, 320px);
     }
     .slide {
       padding: 0.3rem;
+    }
+  }
+}
+
+@media (min-width: 1280px) {
+  .promo-section {
+    .slider-wrapper {
+      max-width: min(1100px, 100%);
+    }
+
+    .promo-card {
+      width: min(720px, calc(100vw - 6rem));
+    }
+
+    .promo-img {
+      height: clamp(260px, 30vw, 460px);
     }
   }
 }
