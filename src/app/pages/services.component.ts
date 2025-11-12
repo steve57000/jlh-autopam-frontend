@@ -149,17 +149,21 @@ export class ServicesComponent implements OnInit, OnDestroy {
         }));
         const hasServices = services.length > 0;
 
-        await firstValueFrom(
-          this.ds.updateDemande(
-            id,
-            {
-              ...(fallback.codeType ? { codeType: fallback.codeType } : {}),
-              ...('immatriculation' in fallback ? { immatriculation: fallback.immatriculation ?? null } : {}),
-              ...(hasServices ? { services } : {}),
-            },
-            { silentError: true }
-          )
-        );
+        try {
+          await firstValueFrom(
+            this.ds.updateDemande(
+              id,
+              {
+                ...(fallback.codeType ? { codeType: fallback.codeType } : {}),
+                ...('immatriculation' in fallback ? { immatriculation: fallback.immatriculation ?? null } : {}),
+                ...(hasServices ? { services } : {}),
+              },
+              { silentError: true }
+            )
+          );
+        } catch (updateErr) {
+          console.warn('Demande fallback update failed, proceeding with submit', updateErr);
+        }
       }
 
       if (payload.type === 'RendezVous' && this.selectedCreneauId && this.assignedAdminId) {
