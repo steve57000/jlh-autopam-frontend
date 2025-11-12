@@ -1,5 +1,5 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
-import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -80,11 +80,13 @@ export class AdminLayoutComponent {
 
   private observeRouteTitle() {
     const updateTitle = () => {
-      let current: ActivatedRoute | null = this.route;
-      while (current?.firstChild) {
-        current = current.firstChild;
+      let snapshot: ActivatedRouteSnapshot | null = this.route.snapshot;
+
+      while (snapshot?.firstChild) {
+        snapshot = snapshot.firstChild;
       }
-      const dataTitle = current?.snapshot.data?.['title'];
+
+      const dataTitle = snapshot?.data?.['title'];
       this.pageTitle.set(dataTitle ?? 'Administration');
     };
 
