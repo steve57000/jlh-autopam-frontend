@@ -12,10 +12,26 @@ export const adminRoutes: Routes = [
     component: AdminLayoutComponent,
     canActivate: [AdminGuard],
     children: [
-      { path: '',           component: AdminDashboardComponent },
-      { path: 'services',   component: AdminServicesComponent },
-      { path: 'demandes',   component: AdminDemandesComponent },
-      { path: 'promotions', component: AdminPromotionsComponent },
+      {
+        path: '',
+        component: AdminDashboardComponent,
+        data: { title: 'Tableau de bord' },
+      },
+      {
+        path: 'services',
+        component: AdminServicesComponent,
+        data: { title: 'Gestion des services' },
+      },
+      {
+        path: 'demandes',
+        component: AdminDemandesComponent,
+        data: { title: 'Demandes clients' },
+      },
+      {
+        path: 'promotions',
+        component: AdminPromotionsComponent,
+        data: { title: 'Promotions' },
+      },
     ],
   },
 ];

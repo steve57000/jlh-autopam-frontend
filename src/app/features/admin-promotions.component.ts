@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -11,11 +12,13 @@ import {
   PromotionResponse,
   PromotionRequest
 } from '../modeles/promotion.model';
+import { ToastService } from '../shared/toast/toast.service';
 
 @Component({
   selector: 'admin-promotions',
   standalone: true,
   imports: [
+    CommonModule,
     ReactiveFormsModule,
     DatePipe,
     NgOptimizedImage
@@ -28,10 +31,6 @@ export class AdminPromotionsComponent implements OnInit {
   loading = false;
   errorMsg = '';
 
-  // toast
-  toastMsg = '';
-  toastType: 'success' | 'error' = 'success';
-
   // modal création/édition
   showModal = false;
   editingPromo: PromotionResponse | null = null;
@@ -43,6 +42,8 @@ export class AdminPromotionsComponent implements OnInit {
   // formulaire dates (on gère le fichier à part)
   form: FormGroup;
   selectedFile: File | null = null;
+
+  private readonly toast = inject(ToastService);
 
   constructor(
     private fb: FormBuilder,
@@ -69,7 +70,7 @@ export class AdminPromotionsComponent implements OnInit {
       error: err => {
         this.errorMsg = 'Erreur chargement : ' + (err.error?.message || err.message);
         this.loading = false;
-        this.showToast(this.errorMsg, 'error');
+        this.toast.error('Impossible de charger les promotions.', err.error?.message || err.message);
       }
     });
   }
@@ -117,17 +118,13 @@ export class AdminPromotionsComponent implements OnInit {
 
     obs$.subscribe({
       next: _ => {
-        this.showToast(
-          this.editingPromo ? 'Promo modifiée !' : 'Promo créée !',
-          'success'
-        );
+        this.toast.success(this.editingPromo ? 'Promotion mise à jour.' : 'Promotion créée.');
         this.closeModal();
         this.loadAll();
       },
       error: _ => {
-        this.showToast(
-          'Erreur ' + (this.editingPromo ? 'modification' : 'création'),
-          'error'
+        this.toast.error(
+          `Erreur ${this.editingPromo ? 'lors de la modification' : 'lors de la création'} de la promotion.`
         );
       }
     });
@@ -144,12 +141,12 @@ export class AdminPromotionsComponent implements OnInit {
     if (!this.promoToDelete) return;
     this.promoSrv.deletePromo(this.promoToDelete.idPromotion).subscribe({
       next: () => {
-        this.showToast('Promo supprimée !', 'success');
+        this.toast.success('Promotion supprimée.');
         this.promotions = this.promotions.filter(x => x.idPromotion !== this.promoToDelete!.idPromotion);
         this.cancelDelete();
       },
       error: () => {
-        this.showToast('Erreur suppression', 'error');
+        this.toast.error('Erreur lors de la suppression de la promotion.');
         this.cancelDelete();
       }
     });
@@ -168,9 +165,4 @@ export class AdminPromotionsComponent implements OnInit {
     this.form.reset();
   }
 
-  private showToast(msg: string, type: 'success'|'error') {
-    this.toastMsg  = msg;
-    this.toastType = type;
-    setTimeout(() => this.toastMsg = '', 3000);
-  }
 }
