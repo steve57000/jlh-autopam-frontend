@@ -1,86 +1,85 @@
-<div class="services-section">
-  <h2>Services proposés</h2>
-  <button class="cta-btn" (click)="openAjoutService()">+ Ajouter un service</button>
+<section class="services-section">
+  <header class="services-section__header">
+    <div>
+      <h2 class="services-section__title">Catalogue des services</h2>
+      <p class="services-section__lead">Ajoutez, mettez à jour ou archivez les prestations proposées aux clients.</p>
+    </div>
+    <button class="cta-btn" type="button" (click)="openAjoutService()">Ajouter un service</button>
+  </header>
 
   @if (loading) {
-    <div>Chargement...</div>
+    <p class="services-section__status">Chargement…</p>
   }
   @if (errorMsg) {
-    <div class="error-msg">{{ errorMsg }}</div>
+    <p class="services-section__status services-section__status--error">{{ errorMsg }}</p>
   }
 
-  <div class="services-grid">
+  <div class="services-grid" role="list">
     @for (service of services; track service.idService; let i = $index) {
-      <div class="service-card">
-        <h3>{{ service.libelle }}</h3>
-        <p>{{ service.description }}</p>
-        <div><strong>Prix :</strong> {{ service.prixUnitaire }} €</div>
-        <div class="actions">
-          <button class="btn" (click)="openEditService(service)">Modifier</button>
-          <button class="secondary-btn" (click)="confirmDeletion(service)">Supprimer</button>
+      <article class="service-card" role="listitem">
+        <h3 class="service-card__title">{{ service.libelle }}</h3>
+        <p class="service-card__description">{{ service.description || 'Pas de description fournie.' }}</p>
+        <div class="service-card__meta">
+          <span class="service-card__price-label">Tarif</span>
+          <span class="service-card__price">{{ service.prixUnitaire | number:'1.2-2' }} €</span>
         </div>
-      </div>
+        <div class="service-card__actions">
+          <button type="button" class="service-card__btn service-card__btn--edit" (click)="openEditService(service)">Modifier</button>
+          <button type="button" class="service-card__btn service-card__btn--delete" (click)="confirmDeletion(service)">Supprimer</button>
+        </div>
+      </article>
     }
   </div>
 
-  <!-- Modale ajout/édition -->
+  @if (!loading && !services.length) {
+    <p class="services-section__status services-section__status--muted">Aucun service n’est encore enregistré.</p>
+  }
+
   @if (showModal) {
-    <div class="modal-bg">
-      <div class="modal-card">
-        <h3>{{ editingService ? 'Modifier' : 'Ajouter' }} un service</h3>
-        <form [formGroup]="form" (ngSubmit)="submitForm()">
+    <div class="modal-bg" role="presentation">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="service-modal-title">
+        <div class="modal-card__header">
+          <h3 id="service-modal-title">{{ editingService ? 'Modifier' : 'Ajouter' }} un service</h3>
+          <button type="button" class="modal-card__close" aria-label="Fermer la fenêtre" (click)="closeModal()">×</button>
+        </div>
+        <form [formGroup]="form" (ngSubmit)="submitForm()" novalidate>
           <div class="field">
-            <label>Libellé</label>
-            <input formControlName="libelle" maxlength="100" required />
+            <label for="service-libelle">Libellé</label>
+            <input id="service-libelle" formControlName="libelle" maxlength="100" required />
             @if (form.controls['libelle'].invalid && form.controls['libelle'].touched) {
-              <div class="field-error">
-                Le libellé est requis (max 100 caractères).
-              </div>
+              <div class="field__error">Le libellé est requis (max. 100 caractères).</div>
             }
           </div>
           <div class="field">
-            <label>Description</label>
-            <textarea formControlName="description" rows="3" maxlength="2000"></textarea>
+            <label for="service-description">Description</label>
+            <textarea id="service-description" formControlName="description" rows="3" maxlength="2000" placeholder="Décrivez la prestation et ses spécificités"></textarea>
           </div>
           <div class="field">
-            <label>Prix unitaire (€)</label>
-            <input formControlName="prixUnitaire" type="number" step="0.01" min="0" required />
+            <label for="service-prix">Prix unitaire (€)</label>
+            <input id="service-prix" formControlName="prixUnitaire" type="number" step="0.01" min="0" required />
             @if (form.controls['prixUnitaire'].invalid && form.controls['prixUnitaire'].touched) {
-              <div class="field-error">
-                Prix unitaire requis (format : 0.00).
-              </div>
+              <div class="field__error">Indiquez un prix au format 0,00.</div>
             }
           </div>
           <div class="modal-actions">
             <button class="cta-btn" type="submit" [disabled]="form.invalid">Enregistrer</button>
-            <button class="secondary-btn" type="button" (click)="closeModal()">Annuler</button>
+            <button class="modal-actions__cancel" type="button" (click)="closeModal()">Annuler</button>
           </div>
         </form>
       </div>
     </div>
   }
 
-  <!-- Modale de confirmation de suppression -->
   @if (showDeleteConfirm) {
-    <div class="modal-bg">
-      <div class="modal-card confirm">
-        <p>Êtes-vous sûr de vouloir supprimer « {{ serviceToDelete?.libelle }} » ?</p>
+    <div class="modal-bg" role="presentation">
+      <div class="modal-card modal-card--confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-delete-title">
+        <h3 id="confirm-delete-title">Confirmer la suppression</h3>
+        <p>Supprimer « {{ serviceToDelete?.libelle }} » définitivement ?</p>
         <div class="modal-actions">
-          <button class="cta-btn" (click)="deleteConfirmed()">
-            Oui, supprimer
-          </button>
-          <button class="cta-btn" (click)="cancelDeletion()">
-              Annuler
-          </button>
+          <button class="service-card__btn service-card__btn--delete" type="button" (click)="deleteConfirmed()">Supprimer</button>
+          <button class="modal-actions__cancel" type="button" (click)="cancelDeletion()">Annuler</button>
         </div>
       </div>
     </div>
   }
-
-  <!-- Toast notification -->
-  @if (toastMsg) {
-    <div class="toast" [class.success]="toastType === 'success'" [class.error]="toastType === 'error'">
-      {{ toastMsg }}
-    </div>
-  }
-</div>
+</section>
