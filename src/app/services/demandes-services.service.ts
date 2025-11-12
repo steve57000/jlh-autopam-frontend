@@ -94,6 +94,7 @@ export class DemandesServiceService {
     payload: {
       codeType?: DemandeWithServices['code_type'];
       codeStatut?: DemandeWithServices['code_statut'];
+      immatriculation?: string | null;
       services?: Array<{
         libelle?: string;
         idService: number;
@@ -102,7 +103,14 @@ export class DemandesServiceService {
       }>;
     }
   ) {
-    return this.http.put<DemandeWithServices>(`${this.apiBase}/demandes/${id}`, payload);
+    const body: Record<string, unknown> = {};
+
+    if (payload.codeType) body['codeType'] = payload.codeType;
+    if (payload.codeStatut) body['codeStatut'] = payload.codeStatut;
+    if ('immatriculation' in payload) body['immatriculation'] = payload.immatriculation;
+    if (payload.services) body['services'] = payload.services;
+
+    return this.http.put<DemandeWithServices>(`${this.apiBase}/demandes/${id}`, body);
   }
 
   delete(id: number) {
