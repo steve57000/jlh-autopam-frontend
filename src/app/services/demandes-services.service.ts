@@ -95,6 +95,7 @@ export class DemandesServiceService {
       codeType?: DemandeWithServices['code_type'];
       codeStatut?: DemandeWithServices['code_statut'];
       services?: Array<{
+        libelle?: string;
         idService: number;
         quantite: number;
         prixUnitaire?: number | null;

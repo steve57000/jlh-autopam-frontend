@@ -3,6 +3,10 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+interface RequestOptions {
+  silentError?: boolean;
+}
+
 // Types déjà utilisés côté composant
 export interface DemandeServiceDto {
   idService: number;
@@ -39,16 +43,25 @@ export class ClientDashboardService {
   constructor(private http: HttpClient) {
   }
 
-  getMyDemandes(): Observable<DemandeResponse[]> {
-    return this.http.get<DemandeResponse[]>(`${this.base}/mes-demandes`);
+  private buildOptions(options?: RequestOptions) {
+    if (options?.silentError) {
+      return {
+        headers: new HttpHeaders({ 'X-Skip-Error-Toast': '1' })
+      };
+    }
+    return {};
   }
 
-  getMyStats(): Observable<ClientStatsDto> {
-    return this.http.get<ClientStatsDto>(`${this.base}/mes-demandes/stats`);
+  getMyDemandes(options?: RequestOptions): Observable<DemandeResponse[]> {
+    return this.http.get<DemandeResponse[]>(`${this.base}/mes-demandes`, this.buildOptions(options));
   }
 
-  getProchainRdv(): Observable<ProchainRdvDto | null> {
-    return this.http.get<ProchainRdvDto | null>(`${this.base}/mes-demandes/prochain-rdv`);
+  getMyStats(options?: RequestOptions): Observable<ClientStatsDto> {
+    return this.http.get<ClientStatsDto>(`${this.base}/mes-demandes/stats`, this.buildOptions(options));
+  }
+
+  getProchainRdv(options?: RequestOptions): Observable<ProchainRdvDto | null> {
+    return this.http.get<ProchainRdvDto | null>(`${this.base}/mes-demandes/prochain-rdv`, this.buildOptions(options));
   }
 
   getProchainRdvIcs() {

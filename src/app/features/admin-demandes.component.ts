@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { DemandesServiceService } from '../services/demandes-services.service';
 import { DemandeWithServices, ServiceItem } from '../modeles/demande.model';
 import {FormsModule} from '@angular/forms';
+import { ToastService } from '../shared/toast/toast.service';
 
 @Component({
   selector: 'admin-demandes',
@@ -13,6 +14,7 @@ import {FormsModule} from '@angular/forms';
 })
 export class AdminDemandesComponent implements OnInit, OnDestroy {
   private api = inject(DemandesServiceService);
+  private readonly toast = inject(ToastService);
 
   // Données
   loading = signal(true);
@@ -97,6 +99,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       error: (e: unknown) => {
         this.error.set('Impossible de charger les demandes');
         this.loading.set(false);
+        this.toast.error('Échec du chargement des demandes.', e instanceof Error ? e.message : undefined);
       }
     });
   }
@@ -196,6 +199,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       codeType: draft.code_type,
       codeStatut: draft.code_statut,
       services: draft.services.map(s => ({
+        libelle: s.libelle,
         idService: s.id_service,
         quantite: s.quantite,
         prixUnitaire: s.prix_unitaire ?? null
@@ -213,11 +217,13 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
         this.saving.set(false);
         this.feedback.set('Demande mise à jour avec succès.');
         this.feedbackType.set('success');
+        this.toast.success('Demande mise à jour avec succès.');
       },
       error: () => {
         this.saving.set(false);
         this.feedback.set('Échec de la mise à jour de la demande.');
         this.feedbackType.set('error');
+        this.toast.error('Échec de la mise à jour de la demande.');
       }
     });
   }
@@ -225,26 +231,42 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   marquerTraitee(d: any) {
     if (d.code_statut === 'Traitee') return;
     const id = this.getDemandeId(d);
-    if (id == null) return alert('ID demande introuvable');
+    if (id == null) {
+      this.toast.error('Demande introuvable.', 'Identifiant manquant.');
+      return;
+    }
 
     this.api.setStatut(id, 'Traitee').subscribe({
-      next: () => this.demandes.update(list =>
-        list.map(x => this.getDemandeId(x) === id ? { ...x, code_statut: 'Traitee' } : x)
-      ),
-      error: () => alert('Échec de la mise à jour du statut')
+      next: () => {
+        this.demandes.update(list =>
+          list.map(x => this.getDemandeId(x) === id ? { ...x, code_statut: 'Traitee' } : x)
+        );
+        this.toast.success('Demande marquée comme traitée.');
+      },
+      error: () => {
+        this.toast.error('Échec de la mise à jour du statut.');
+      }
     });
   }
 
   supprimer(d: any) {
     const id = this.getDemandeId(d);
-    if (id == null) return alert('ID demande introuvable');
+    if (id == null) {
+      this.toast.error('Demande introuvable.', 'Identifiant manquant.');
+      return;
+    }
     if (!confirm('Supprimer définitivement cette demande ?')) return;
 
     this.api.delete(id).subscribe({
       next: () => this.demandes.update(list =>
         list.filter(x => this.getDemandeId(x) !== id)
       ),
-      error: () => alert('Échec de la suppression')
+      complete: () => {
+        this.toast.success('Demande supprimée.');
+      },
+      error: () => {
+        this.toast.error('Échec de la suppression de la demande.');
+      }
     });
   }
 

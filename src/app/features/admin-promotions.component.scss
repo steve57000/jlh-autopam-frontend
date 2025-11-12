@@ -1,169 +1,272 @@
+@use 'sass:color';
 @use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
 
-.admin-promos-section {
-  padding: 3rem 2rem;
+.admin-promos {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
 
-  h2 {
-    margin-bottom: 2rem;
-    font-size: 1.5rem;
-  }
-
-  .cta-btn {
-    margin-bottom: 1rem;
-  }
-
-  .grid {
-    display: grid;
-    /* sur desktop : 3 colonnes flexibles, puis 2 et enfin 1 */
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1rem;
-    justify-items: center;
-    margin: 2rem 0;
-  }
-
-  .card {
+  &__header {
     display: flex;
-    flex-direction: column;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: v.$shadow-small-light;
-    width: 100%;
-    max-width: 320px;
-    overflow: hidden;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.84);
+    border-radius: v.$border-radius-high;
+    padding: 1.5rem 1.75rem;
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+  }
+
+  &__title {
+    margin: 0;
+    font-family: v.$font-title;
+    font-size: clamp(1.25rem, 1.6vw, 1.5rem);
+    color: v.$color-secondary;
+  }
+
+  &__lead {
+    margin: 0.5rem 0 0;
+    font-size: 1rem;
+    color: rgba(64, 64, 64, 0.78);
+    max-width: 48ch;
+  }
+
+  &__status {
+    margin: 0;
+    font-weight: 600;
+    color: v.$color-secondary;
+
+    &--error {
+      color: v.$alert-color;
+    }
+
+    &--muted {
+      color: rgba(64, 64, 64, 0.6);
+      font-weight: 500;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+.promo-card {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(238,243,245,0.9) 100%);
+  border-radius: v.$border-radius-high;
+  overflow: hidden;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+
+  &__media {
+    margin: 0;
+    background: color.scale(v.$color-secondary, $lightness: 30%);
 
     img {
+      display: block;
       width: 100%;
-      /* hauteur responsive selon ratio et breakpoints */
       height: auto;
-      aspect-ratio: 16/9;
-      object-fit: contain;
-      border-bottom: 1px solid #eee;
-    }
-
-    .promo-details {
-      padding: 0.75rem;
-      font-size: .9rem;
-      line-height: 1.4;
-    }
-
-    .actions {
-      display: flex;
-      gap: .5rem;
-      padding: .75rem;
-      /* pousse les boutons en bas si besoin */
-      margin-top: auto;
-    }
-    .actions button {
-      flex: 1;
-      font-size: .9rem;
+      object-fit: cover;
     }
   }
 
-  .modal-bg {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
+  &__content {
+    padding: 1.25rem 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__dates {
+    margin: 0;
+    font-weight: 600;
+    color: v.$color-secondary;
+  }
+
+  &__description {
+    margin: 0;
+    font-size: 0.95rem;
+    color: rgba(64, 64, 64, 0.78);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem 1.5rem;
+    flex-wrap: wrap;
+  }
+}
+
+.promo-card__btn {
+  flex: 1;
+  min-width: 140px;
+  padding: 0.55rem 1rem;
+  border-radius: v.$border-radius-small;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+
+  &:focus-visible {
+    @include m.focus-ring(v.$color-secondary, 5px);
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+  }
+}
+
+.promo-card__btn--edit {
+  background: linear-gradient(180deg, color.scale(v.$color-secondary, $lightness: 6%) 0%, color.scale(v.$color-secondary, $lightness: -6%) 100%);
+  color: v.$color-quaternary;
+  box-shadow: 0 6px 16px rgba(77, 134, 141, 0.28);
+}
+
+.promo-card__btn--delete {
+  background: v.$btn-delete-gradient;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(226, 0, 68, 0.32);
+}
+
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(17, 27, 40, 0.55);
+  backdrop-filter: blur(3px);
+  z-index: 1001;
+  padding: 1.5rem;
+}
+
+.promo-modal {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: v.$border-radius-high;
+  padding: 2rem;
+  box-shadow: v.$shadow-elev;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  &__header {
     display: flex;
     align-items: center;
-    justify-content: center;
-    z-index: 1000;
+    justify-content: space-between;
+    gap: 1rem;
+  }
 
-    .modal {
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 8px;
-      width: 90%;
-      max-width: 360px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  &__close {
+    border: none;
+    background: transparent;
+    font-size: 1.75rem;
+    line-height: 1;
+    cursor: pointer;
+    color: v.$color-secondary;
 
-      &.confirm-modal {
-        text-align: center;
-      }
+    &:hover,
+    &:focus-visible {
+      color: v.$color-tertiary;
+    }
+  }
 
-      h3 {
-        margin-top: 0;
-        font-size: 1.25rem;
-      }
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-weight: 600;
+    color: v.$color-primary;
 
-      form {
-        display: flex;
-        flex-direction: column;
-        gap: .75rem;
+    input,
+    textarea {
+      border-radius: v.$border-radius-small;
+      border: 1px solid rgba(64, 64, 64, 0.22);
+      padding: 0.65rem 0.75rem;
+      font-size: 1rem;
+      font-family: v.$font-body;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
 
-        label {
-          font-weight: 600;
-        }
-
-        input[type="file"],
-        input[type="date"],
-        input[type="text"] {
-          padding: .5rem;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          width: 100%;
-        }
-
-        .error {
-          color: red;
-          font-size: .875rem;
-        }
-      }
-
-      .modal-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: .5rem;
-        margin-top: 1rem;
+      &:focus {
+        border-color: v.$color-secondary;
+        box-shadow: 0 0 0 4px color.scale(v.$color-secondary, $alpha: -70%);
+        outline: none;
       }
     }
   }
 
-  .toast {
-    position: fixed;
-    bottom: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: .8rem 1.2rem;
-    border-radius: 4px;
-    color: white;
-    &.success { background: green; }
-    &.error   { background: red; }
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
   }
 
-  // --------------------------------
-  // MEDIA QUERIES
-  // --------------------------------
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 
-  @media (max-width: 1200px) {
-    .grid {
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    .cta-btn {
+      min-width: 160px;
     }
   }
 
-  @media (max-width: 768px) {
-    .grid {
-      grid-template-columns: 1fr 1fr;
-    }
-    .card img {
-      aspect-ratio: 4/3;
+  &__cancel {
+    padding: 0.55rem 1rem;
+    border-radius: v.$border-radius-small;
+    border: 1px solid rgba(64, 64, 64, 0.2);
+    background: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    color: v.$color-primary;
+    transition: background 0.2s ease, color 0.2s ease;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(64, 64, 64, 0.06);
+      color: v.$color-secondary;
     }
   }
 
-  @media (max-width: 480px) {
-    .grid {
-      grid-template-columns: 1fr;
+  &__error {
+    font-size: 0.85rem;
+    color: v.$alert-color;
+    font-weight: 500;
+  }
+
+  &--confirm {
+    max-width: 420px;
+    text-align: center;
+    gap: 1rem;
+
+    .promo-modal__actions {
+      justify-content: center;
     }
-    .card {
-      max-width: none;
+
+    .promo-card__btn,
+    .promo-modal__cancel {
+      flex: 0 0 auto;
+      min-width: 150px;
     }
-    .card img {
-      aspect-ratio: 16/9;
-    }
-    .modal-actions {
-      flex-direction: column-reverse;
-    }
-    .modal-actions button {
-      width: 100%;
-    }
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-promos__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .promo-card__actions {
+    flex-direction: column;
+  }
+
+  .promo-modal {
+    padding: 1.75rem 1.25rem;
   }
 }
