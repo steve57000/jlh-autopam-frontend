@@ -199,6 +199,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       codeType: draft.code_type,
       codeStatut: draft.code_statut,
       services: draft.services.map(s => ({
+        libelle: s.libelle,
         idService: s.id_service,
         quantite: s.quantite,
         prixUnitaire: s.prix_unitaire ?? null
