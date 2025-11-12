@@ -159,8 +159,12 @@ export class AdminDemandesComponent implements OnInit {
         const num = Number(value);
         svc.quantite = Number.isFinite(num) && num > 0 ? Math.round(num) : 1;
       } else {
-        const num = value === '' || value == null ? null : Number(value);
-        svc.prix_unitaire = Number.isFinite(num) ? Number(num.toFixed(2)) : undefined;
+        const rawValue = value === '' || value == null ? null : Number(value);
+        if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+          svc.prix_unitaire = Number(rawValue.toFixed(2));
+        } else {
+          svc.prix_unitaire = undefined;
+        }
       }
     });
   }
@@ -290,7 +294,7 @@ export class AdminDemandesComponent implements OnInit {
       const id = toNumber(raw?.id_service ?? raw?.idService ?? raw?.id?.idService, -1);
       const quantity = Math.max(1, toNumber(raw?.quantite, 1));
       const priceValue = raw?.prix_unitaire ?? raw?.prixUnitaire ?? null;
-      const price = priceValue === null || priceValue === '' || priceValue === undefined
+      const priceRaw = priceValue === null || priceValue === '' || priceValue === undefined
         ? undefined
         : Number(priceValue);
 
@@ -298,7 +302,9 @@ export class AdminDemandesComponent implements OnInit {
         id_service: id,
         libelle: String(raw?.libelle ?? ''),
         quantite: quantity,
-        prix_unitaire: Number.isFinite(price) ? Number(price.toFixed(2)) : undefined
+        prix_unitaire: typeof priceRaw === 'number' && Number.isFinite(priceRaw)
+          ? Number(priceRaw.toFixed(2))
+          : undefined
       } satisfies ServiceItem;
     });
   }
