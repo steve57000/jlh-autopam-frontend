@@ -1,13 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ServicesService } from '../services/services.service';
 import { ServiceDto } from '../modeles/service.model';
+import { ToastService } from '../shared/toast/toast.service';
 
 @Component({
   selector: 'admin-services',
   templateUrl: './admin-services.component.html',
   styleUrls: ['./admin-services.component.scss'],
   imports: [
+    CommonModule,
     ReactiveFormsModule,
   ],
   standalone: true
@@ -17,8 +20,6 @@ export class AdminServicesComponent implements OnInit {
   editingService: ServiceDto | null = null;
   form: FormGroup;
   showModal = false;
-  toastMsg = '';
-  toastType: 'success' | 'error' = 'success';
 
   loading = false;
   errorMsg = '';
@@ -26,6 +27,8 @@ export class AdminServicesComponent implements OnInit {
   // États pour la modale de confirmation
   showDeleteConfirm = false;
   serviceToDelete: ServiceDto | null = null;
+
+  private readonly toast = inject(ToastService);
 
   constructor(private srv: ServicesService, private fb: FormBuilder) {
     this.form = this.fb.group({
@@ -49,7 +52,7 @@ export class AdminServicesComponent implements OnInit {
       error: err => {
         this.errorMsg = 'Erreur de chargement : ' + (err.error?.message || err.message);
         this.loading = false;
-        this.showToast(this.errorMsg, 'error');
+        this.toast.error('Impossible de charger les services.', err.error?.message || err.message);
       }
     });
   }
@@ -83,10 +86,11 @@ export class AdminServicesComponent implements OnInit {
     }
 
     const { libelle, description, prixUnitaire } = this.form.value;
+    const prixValue = typeof prixUnitaire === 'number' ? prixUnitaire : Number(prixUnitaire);
     const body = {
       libelle,
       description,
-      prixUnitaire: parseFloat(prixUnitaire)
+      prixUnitaire: prixValue
     };
 
     if (this.editingService?.idService) {
@@ -94,19 +98,19 @@ export class AdminServicesComponent implements OnInit {
         next: updated => {
           const idx = this.services.findIndex(s => s.idService === updated.idService);
           if (idx !== -1) this.services[idx] = updated;
-          this.showToast('Service modifié avec succès !', 'success');
+          this.toast.success('Service modifié avec succès !');
           this.closeModal();
         },
-        error: () => this.showToast("Erreur lors de la modification.", 'error')
+        error: err => this.toast.error('Erreur lors de la modification.', err.error?.message || err.message)
       });
     } else {
       this.srv.create(body).subscribe({
         next: created => {
           this.services.push(created);
-          this.showToast('Service ajouté !', 'success');
+          this.toast.success('Service ajouté avec succès !');
           this.closeModal();
         },
-        error: () => this.showToast("Erreur lors de l'ajout.", 'error')
+        error: err => this.toast.error("Erreur lors de l'ajout.", err.error?.message || err.message)
       });
     }
   }
@@ -130,16 +134,10 @@ export class AdminServicesComponent implements OnInit {
     this.srv.delete(id).subscribe({
       next: () => {
         this.services = this.services.filter(s => s.idService !== id);
-        this.showToast('Service supprimé !', 'success');
+        this.toast.success('Service supprimé.');
         this.cancelDeletion();
       },
-      error: () => this.showToast("Erreur lors de la suppression.", 'error')
+      error: err => this.toast.error('Erreur lors de la suppression.', err.error?.message || err.message)
     });
-  }
-
-  showToast(msg: string, type: 'success' | 'error') {
-    this.toastMsg = msg;
-    this.toastType = type;
-    setTimeout(() => this.toastMsg = '', 2500);
   }
 }
