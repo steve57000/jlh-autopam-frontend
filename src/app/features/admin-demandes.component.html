@@ -1,21 +1,26 @@
 <div class="demandes-section">
-  <h2>Demandes</h2>
+  <div class="section-header">
+    <h2>Demandes</h2>
+    @if (feedback()) {
+      <p class="feedback" [class.feedback--error]="feedbackType()==='error'">{{ feedback() }}</p>
+    }
+  </div>
 
-  <div class="filters">
-    <label>
-      Type
+  <form class="filters" (submit)="$event.preventDefault()">
+    <label class="filters__field">
+      <span>Type</span>
       <select [ngModel]="type()" (ngModelChange)="type.set($event)">
         @for (t of types; track t) { <option [value]="t">{{ t }}</option> }
       </select>
     </label>
-    <label>
-      Statut
+    <label class="filters__field">
+      <span>Statut</span>
       <select [ngModel]="statut()" (ngModelChange)="statut.set($event)">
         @for (s of statuts; track s) { <option [value]="s">{{ s }}</option> }
       </select>
     </label>
-    <label>
-      Recherche
+    <label class="filters__field filters__field--wide">
+      <span>Recherche</span>
       <input
         type="search"
         [value]="q()"
@@ -23,77 +28,165 @@
         placeholder="nom, email, service…"
       />
     </label>
-    <label>
-      Du
+    <label class="filters__field">
+      <span>Du</span>
       <input
         type="date"
         [value]="dateFrom() ?? ''"
         (change)="dateFrom.set(($any($event.target)).value || null)"
       />
     </label>
-    <label>
-      Au
+    <label class="filters__field">
+      <span>Au</span>
       <input
         type="date"
         [value]="dateTo() ?? ''"
         (change)="dateTo.set(($any($event.target)).value || null)"
       />
     </label>
-    <button type="button" (click)="reload()">↻ Actualiser</button>
-  </div>
+    <div class="filters__actions">
+      <button type="button" class="btn" (click)="reload()">↻ Actualiser</button>
+      <button type="button" class="btn btn-ghost" (click)="type.set('Tous'); statut.set('Tous'); q.set(''); dateFrom.set(null); dateTo.set(null);">Réinitialiser</button>
+    </div>
+  </form>
 
   @if (loading()) {
     <p>Chargement…</p>
   } @else if (error()) {
     <p class="error">{{ error() }}</p>
   } @else {
-    <table>
-      <thead>
-      <tr>
-        <th>#</th>
-        <th>Type</th>
-        <th>Client</th>
-        <th>Email</th>
-        <th>Date</th>
-        <th>Services</th>
-        <th>Statut</th>
-        <th>Action</th>
-      </tr>
-      </thead>
-      <tbody>
-        @for (d of filtered(); let i = $index; track (getDemandeId(d) ?? i)) {
+    <div class="demandes-content">
+      <div class="table-wrapper">
+        <table>
+          <thead>
           <tr>
-            <td>{{ getDemandeId(d) }}</td>
-            <td>
-              <span class="badge type-{{ d.code_type }}">
-                {{ d.type_libelle || d.code_type }}
-              </span>
-            </td>
-            <td>{{ d.client?.nom }} {{ d.client?.prenom }}</td>
-            <td>{{ d.client?.email }}</td>
-            <td>{{ d.date_demande | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td>
-              @for (s of d.services; let j = $index; track getServiceKey(s)) {
-                <span class="chip">
-            {{ s.libelle }}
-                  @if (s.quantite) { <small>×{{ s.quantite }}</small> }
-          </span>
-              }
-            </td>
-            <td>
-              <span class="badge statut-{{ d.code_statut }}">
-                {{ d.statut_libelle || d.code_statut }}
-              </span>
-            </td>
-            <td class="actions">
-              <button (click)="marquerTraitee(d)" [disabled]="d.code_statut==='Traitee'">Traiter</button>
-              <button class="danger" (click)="supprimer(d)">Supprimer</button>
-            </td>
+            <th>#</th>
+            <th>Type</th>
+            <th>Client</th>
+            <th>Email</th>
+            <th>Date</th>
+            <th>Services</th>
+            <th>Statut</th>
+            <th>Actions</th>
           </tr>
-        }
-      </tbody>
-    </table>
+          </thead>
+          <tbody>
+            @for (d of filtered(); let i = $index; track (getDemandeId(d) ?? i)) {
+              <tr>
+                <td>{{ getDemandeId(d) }}</td>
+                <td>
+                  <span class="badge type-{{ d.code_type }}">
+                    {{ d.type_libelle || d.code_type }}
+                  </span>
+                </td>
+                <td>{{ d.client?.nom }} {{ d.client?.prenom }}</td>
+                <td>{{ d.client?.email }}</td>
+                <td>{{ d.date_demande | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  @for (s of d.services; let j = $index; track getServiceKey(s)) {
+                    <span class="chip">
+                      {{ s.libelle }}
+                      @if (s.quantite) { <small>×{{ s.quantite }}</small> }
+                    </span>
+                  }
+                </td>
+                <td>
+                  <span class="badge statut-{{ d.code_statut }}">
+                    {{ d.statut_libelle || d.code_statut }}
+                  </span>
+                </td>
+                <td class="actions">
+                  <button type="button" (click)="openDetails(d)">Voir / Modifier</button>
+                  <button type="button" (click)="marquerTraitee(d)" [disabled]="d.code_statut==='Traitee'">Traiter</button>
+                  <button type="button" class="danger" (click)="supprimer(d)">Supprimer</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
 
-    @if (!filtered().length) { <p>Aucun résultat avec ces filtres.</p> }
+        @if (!filtered().length) { <p class="empty">Aucun résultat avec ces filtres.</p> }
+      </div>
+
+      <aside class="details-panel" [class.open]="selectedDemande()">
+        @if (selectedDemande() && editDraft(); as draft) {
+          <header class="details-panel__header">
+            <div>
+              <h3>Demande #{{ getDemandeId(draft) }}</h3>
+              <p class="details-panel__date">Créée le {{ draft.date_demande | date:'dd/MM/yyyy à HH:mm' }}</p>
+            </div>
+            <button type="button" class="btn-close" (click)="closeDetails()" aria-label="Fermer la fiche">×</button>
+          </header>
+
+          <section class="details-block">
+            <h4>Client</h4>
+            <p>{{ draft.client?.nom }} {{ draft.client?.prenom }}</p>
+            <p class="muted">{{ draft.client?.email }}</p>
+          </section>
+
+          <section class="details-block details-grid">
+            <label>
+              <span>Type de demande</span>
+              <select [ngModel]="draft.code_type" (ngModelChange)="setDraftType($event)">
+                @for (t of types; track t) {
+                  @if (t !== 'Tous') {
+                    <option [value]="t">{{ t }}</option>
+                  }
+                }
+              </select>
+            </label>
+            <label>
+              <span>Statut</span>
+              <select [ngModel]="draft.code_statut" (ngModelChange)="setDraftStatut($event)">
+                @for (s of statuts; track s) {
+                  @if (s !== 'Tous') {
+                    <option [value]="s">{{ s }}</option>
+                  }
+                }
+              </select>
+            </label>
+          </section>
+
+          <section class="details-block">
+            <h4>Services inclus</h4>
+            <table class="services-table">
+              <thead>
+              <tr>
+                <th>Libellé</th>
+                <th>Quantité</th>
+                <th>Prix unitaire (€)</th>
+              </tr>
+              </thead>
+              <tbody>
+              @for (service of draft.services; let i = $index; track getServiceKey(service)) {
+                <tr>
+                  <td>
+                    <input type="text" [ngModel]="service.libelle" (ngModelChange)="updateServiceField(i, 'libelle', $event)" />
+                  </td>
+                  <td>
+                    <input type="number" min="1" [ngModel]="service.quantite" (ngModelChange)="updateServiceField(i, 'quantite', $event)" />
+                  </td>
+                  <td>
+                    <input type="number" step="0.01" [ngModel]="service.prix_unitaire ?? ''" (ngModelChange)="updateServiceField(i, 'prix_unitaire', $event)" />
+                  </td>
+                </tr>
+              }
+              </tbody>
+            </table>
+          </section>
+
+          <div class="details-actions">
+            <button type="button" class="btn" (click)="saveChanges()" [disabled]="saving() || !hasChanges()">
+              @if (saving()) { Sauvegarde… } @else { Enregistrer les modifications }
+            </button>
+            <button type="button" class="btn btn-ghost" (click)="resetDraft()" [disabled]="saving() || !hasChanges()">Réinitialiser</button>
+          </div>
+        } @else {
+          <div class="details-empty">
+            <p>Sélectionnez une demande pour consulter ou modifier les détails.</p>
+          </div>
+        }
+      </aside>
+    </div>
   }
 </div>
