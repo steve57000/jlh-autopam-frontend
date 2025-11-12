@@ -125,10 +125,7 @@
 }
 
 .demandes-content {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
-  gap: clamp(1rem, 3vw, 1.75rem);
-  align-items: start;
+  display: block;
 }
 
 .table-wrapper {
@@ -239,26 +236,63 @@ thead th {
   color: #5a6475;
 }
 
-.details-panel {
-  position: sticky;
-  top: 1rem;
-  background: #ffffff;
-  border-radius: 1rem;
-  border: 1px solid #e1e7f0;
-  box-shadow: 0 16px 32px rgba(26, 38, 58, 0.1);
-  padding: clamp(1rem, 2vw, 1.5rem);
-  display: none;
-  flex-direction: column;
-  gap: 1rem;
-  max-height: calc(100vh - 2rem);
-  overflow-y: auto;
+.details-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+  z-index: 1100;
 
   &.open {
-    display: flex;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
   }
 }
 
-.details-panel__header {
+.details-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(3px);
+  z-index: -1;
+}
+
+.details-modal__dialog {
+  position: relative;
+  z-index: 1;
+  background: #ffffff;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(224, 230, 242, 0.85);
+  box-shadow: 0 28px 60px rgba(25, 39, 62, 0.18);
+  padding: clamp(1.25rem, 2vw, 2rem);
+  width: min(980px, 94vw);
+  max-height: min(92vh, 880px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2.2vw, 1.5rem);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.details-modal__header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -269,7 +303,7 @@ thead th {
     font-size: 1.1rem;
   }
 
-  .details-panel__date {
+  .details-modal__date {
     margin: 0.25rem 0 0;
     font-size: 0.85rem;
     color: #6b7285;
@@ -389,29 +423,6 @@ thead th {
   gap: 0.5rem;
 }
 
-.details-empty {
-  text-align: center;
-  color: #677189;
-  padding: 2rem 1rem;
-}
-
-@media (max-width: 1100px) {
-  .demandes-content {
-    grid-template-columns: 1fr;
-  }
-
-  .details-panel {
-    position: relative;
-    top: 0;
-    max-height: none;
-    display: none;
-
-    &.open {
-      display: flex;
-    }
-  }
-}
-
 @media (max-width: 720px) {
   .filters {
     grid-template-columns: 1fr;
@@ -439,7 +450,27 @@ thead th {
     align-items: stretch;
   }
 
-  .details-panel {
-    padding: 1rem;
+  .details-modal {
+    padding: 0;
+  }
+
+  .details-modal__dialog {
+    width: 100vw;
+    max-height: none;
+    height: 100vh;
+    border-radius: 0;
+    padding: clamp(1rem, 5vw, 1.5rem);
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(32px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }

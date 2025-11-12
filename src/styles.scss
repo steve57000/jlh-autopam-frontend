@@ -31,6 +31,10 @@ body {
   margin: 0;
 }
 
+body.admin-modal-open {
+  overflow: hidden;
+}
+
 h1, h2, h3 { font-family: v.$font-title; }
 h4, h5, h6 { font-family: v.$font-subtitle; }
 

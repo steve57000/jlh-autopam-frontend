@@ -108,85 +108,92 @@
         @if (!filtered().length) { <p class="empty">Aucun résultat avec ces filtres.</p> }
       </div>
 
-      <aside class="details-panel" [class.open]="selectedDemande()">
-        @if (selectedDemande() && editDraft(); as draft) {
-          <header class="details-panel__header">
-            <div>
-              <h3>Demande #{{ getDemandeId(draft) }}</h3>
-              <p class="details-panel__date">Créée le {{ draft.date_demande | date:'dd/MM/yyyy à HH:mm' }}</p>
-            </div>
-            <button type="button" class="btn-close" (click)="closeDetails()" aria-label="Fermer la fiche">×</button>
-          </header>
-
-          <section class="details-block">
-            <h4>Client</h4>
-            <p>{{ draft.client?.nom }} {{ draft.client?.prenom }}</p>
-            <p class="muted">{{ draft.client?.email }}</p>
-          </section>
-
-          <section class="details-block details-grid">
-            <label>
-              <span>Type de demande</span>
-              <select [ngModel]="draft.code_type" (ngModelChange)="setDraftType($event)">
-                @for (t of types; track t) {
-                  @if (t !== 'Tous') {
-                    <option [value]="t">{{ t }}</option>
-                  }
-                }
-              </select>
-            </label>
-            <label>
-              <span>Statut</span>
-              <select [ngModel]="draft.code_statut" (ngModelChange)="setDraftStatut($event)">
-                @for (s of statuts; track s) {
-                  @if (s !== 'Tous') {
-                    <option [value]="s">{{ s }}</option>
-                  }
-                }
-              </select>
-            </label>
-          </section>
-
-          <section class="details-block">
-            <h4>Services inclus</h4>
-            <table class="services-table">
-              <thead>
-              <tr>
-                <th>Libellé</th>
-                <th>Quantité</th>
-                <th>Prix unitaire (€)</th>
-              </tr>
-              </thead>
-              <tbody>
-              @for (service of draft.services; let i = $index; track getServiceKey(service)) {
-                <tr>
-                  <td>
-                    <input type="text" [ngModel]="service.libelle" (ngModelChange)="updateServiceField(i, 'libelle', $event)" />
-                  </td>
-                  <td>
-                    <input type="number" min="1" [ngModel]="service.quantite" (ngModelChange)="updateServiceField(i, 'quantite', $event)" />
-                  </td>
-                  <td>
-                    <input type="number" step="0.01" [ngModel]="service.prix_unitaire ?? ''" (ngModelChange)="updateServiceField(i, 'prix_unitaire', $event)" />
-                  </td>
-                </tr>
-              }
-              </tbody>
-            </table>
-          </section>
-
-          <div class="details-actions">
-            <button type="button" class="btn" (click)="saveChanges()" [disabled]="saving() || !hasChanges()">
-              @if (saving()) { Sauvegarde… } @else { Enregistrer les modifications }
-            </button>
-            <button type="button" class="btn btn-ghost" (click)="resetDraft()" [disabled]="saving() || !hasChanges()">Réinitialiser</button>
-          </div>
-        } @else {
-          <div class="details-empty">
-            <p>Sélectionnez une demande pour consulter ou modifier les détails.</p>
-          </div>
-        }
-      </aside>
     </div>
   }
 </div>
+
+@if (selectedDemande()) {
+  <div class="details-modal" [class.open]="selectedDemande()">
+    <div class="details-modal__backdrop" (click)="closeDetails()" aria-hidden="true"></div>
+    @if (editDraft(); as draft) {
+      <section
+        class="details-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-labelledby]="'demande-dialog-title-' + getDemandeId(draft)"
+      >
+        <header class="details-modal__header">
+          <div>
+            <h3 id="demande-dialog-title-{{ getDemandeId(draft) }}">Demande #{{ getDemandeId(draft) }}</h3>
+            <p class="details-modal__date">Créée le {{ draft.date_demande | date:'dd/MM/yyyy à HH:mm' }}</p>
+          </div>
+          <button type="button" class="btn-close" (click)="closeDetails()" aria-label="Fermer la fiche">×</button>
+        </header>
+
+        <section class="details-block">
+          <h4>Client</h4>
+          <p>{{ draft.client?.nom }} {{ draft.client?.prenom }}</p>
+          <p class="muted">{{ draft.client?.email }}</p>
+        </section>
+
+        <section class="details-block details-grid">
+          <label>
+            <span>Type de demande</span>
+            <select [ngModel]="draft.code_type" (ngModelChange)="setDraftType($event)">
+              @for (t of types; track t) {
+                @if (t !== 'Tous') {
+                  <option [value]="t">{{ t }}</option>
+                }
+              }
+            </select>
+          </label>
+          <label>
+            <span>Statut</span>
+            <select [ngModel]="draft.code_statut" (ngModelChange)="setDraftStatut($event)">
+              @for (s of statuts; track s) {
+                @if (s !== 'Tous') {
+                  <option [value]="s">{{ s }}</option>
+                }
+              }
+            </select>
+          </label>
+        </section>
+
+        <section class="details-block">
+          <h4>Services inclus</h4>
+          <table class="services-table">
+            <thead>
+            <tr>
+              <th>Libellé</th>
+              <th>Quantité</th>
+              <th>Prix unitaire (€)</th>
+            </tr>
+            </thead>
+            <tbody>
+            @for (service of draft.services; let i = $index; track getServiceKey(service)) {
+              <tr>
+                <td>
+                  <input type="text" [ngModel]="service.libelle" (ngModelChange)="updateServiceField(i, 'libelle', $event)" />
+                </td>
+                <td>
+                  <input type="number" min="1" [ngModel]="service.quantite" (ngModelChange)="updateServiceField(i, 'quantite', $event)" />
+                </td>
+                <td>
+                  <input type="number" step="0.01" [ngModel]="service.prix_unitaire ?? ''" (ngModelChange)="updateServiceField(i, 'prix_unitaire', $event)" />
+                </td>
+              </tr>
+            }
+            </tbody>
+          </table>
+        </section>
+
+        <div class="details-actions">
+          <button type="button" class="btn" (click)="saveChanges()" [disabled]="saving() || !hasChanges()">
+            @if (saving()) { Sauvegarde… } @else { Enregistrer les modifications }
+          </button>
+          <button type="button" class="btn btn-ghost" (click)="resetDraft()" [disabled]="saving() || !hasChanges()">Réinitialiser</button>
+        </div>
+      </section>
+    }
+  </div>
+}

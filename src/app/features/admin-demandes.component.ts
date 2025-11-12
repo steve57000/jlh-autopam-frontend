@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { DemandesServiceService } from '../services/demandes-services.service';
 import { DemandeWithServices, ServiceItem } from '../modeles/demande.model';
@@ -11,7 +11,7 @@ import {FormsModule} from '@angular/forms';
   imports: [DatePipe, FormsModule],
   standalone: true
 })
-export class AdminDemandesComponent implements OnInit {
+export class AdminDemandesComponent implements OnInit, OnDestroy {
   private api = inject(DemandesServiceService);
 
   // Données
@@ -123,14 +123,20 @@ export class AdminDemandesComponent implements OnInit {
     this.original.set(this.clone(selected));
     this.feedback.set(null);
     this.feedbackType.set(null);
+    this.setBodyScrollLock(true);
   }
 
   closeDetails() {
+    if (this.selectedId() == null) {
+      return;
+    }
+
     this.selectedId.set(null);
     this.draft.set(null);
     this.original.set(null);
     this.feedback.set(null);
     this.feedbackType.set(null);
+    this.setBodyScrollLock(false);
   }
 
   updateDraft(mutator: (draft: DemandeWithServices) => void) {
@@ -307,5 +313,23 @@ export class AdminDemandesComponent implements OnInit {
           : undefined
       } satisfies ServiceItem;
     });
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.closeDetails();
+  }
+
+  ngOnDestroy() {
+    this.setBodyScrollLock(false);
+  }
+
+  private setBodyScrollLock(lock: boolean) {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const className = 'admin-modal-open';
+    document.body.classList[lock ? 'add' : 'remove'](className);
   }
 }
