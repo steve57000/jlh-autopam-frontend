@@ -4,28 +4,31 @@
   [class.menu-collapsed]="!menuOpen"
   [class.is-mobile]="isMobileView"
 >
-
-  <!-- Bouton burger -->
-  <button
-    class="menu-toggle"
-    type="button"
-    (click)="toggleMenu()"
-    [attr.aria-expanded]="menuOpen"
-    [attr.aria-label]="menuOpen ? 'Replier le menu' : 'Déplier le menu'"
-  >
-    <svg [class.open]="menuOpen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="chevron" aria-hidden="true">
-      <path d="M9.29 6.71a1 1 0 011.42 0L16 12l-5.29 5.29a1 1 0 11-1.42-1.42L13.17 12l-3.88-3.88a1 1 0 010-1.41z"/>
-    </svg>
-    <span class="menu-toggle__label">{{ menuOpen ? 'Replier' : 'Menu' }}</span>
-  </button>
-
-  <!-- Nav admin (optionnellement conditionnée) -->
   @if (isAuth) {
     <nav
       class="admin-nav"
       [class.open]="menuOpen"
       [attr.aria-hidden]="!menuOpen && !isMobileView ? 'true' : null"
+      [attr.id]="navId"
     >
+      <div class="nav-header">
+        <div class="nav-header__titles">
+          <span class="nav-header__subtitle">Espace</span>
+          <span class="nav-header__title">Administration</span>
+        </div>
+        <button
+          type="button"
+          class="nav-header__collapse"
+          (click)="collapseMenu()"
+          [attr.aria-controls]="navId"
+          [attr.aria-expanded]="menuOpen"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14.71 6.71a1 1 0 00-1.42 0L8 12l5.29 5.29a1 1 0 101.42-1.42L10.83 12l3.88-3.88a1 1 0 000-1.41z"/>
+          </svg>
+          <span>Replier</span>
+        </button>
+      </div>
       <ul>
         <li><a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="closeMenu()">Dashboard</a></li>
         <li><a routerLink="/admin/demandes" routerLinkActive="active" (click)="closeMenu()">Demandes</a></li>
@@ -33,18 +36,38 @@
         <li><a routerLink="/admin/promotions" routerLinkActive="active" (click)="closeMenu()">Promotions</a></li>
       </ul>
       <div class="nav-bottom">
-        <a routerLink="/" class="retour-site" target="_blank" rel="noopener">← Retour au site</a>
-        <button class="cta-btn" (click)="logout(); closeMenu()">Déconnexion</button>
+        <a routerLink="/" class="retour-site">← Retour au site</a>
+        <button class="cta-btn" (click)="logout(); collapseMenu()">Déconnexion</button>
       </div>
     </nav>
 
     @if (isMobileView && menuOpen) {
-      <div class="overlay" (click)="closeMenu()"></div>
+      <div class="overlay" (click)="collapseMenu()"></div>
     }
   }
 
-  <!-- Contenu -->
   <main class="admin-content">
-    <router-outlet></router-outlet>
+    <header class="content-header">
+      @if (!menuOpen) {
+        <button
+          type="button"
+          class="content-header__toggle"
+          (click)="openMenu()"
+          [attr.aria-controls]="navId"
+          [attr.aria-expanded]="menuOpen"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9.29 6.71a1 1 0 011.42 0L16 12l-5.29 5.29a1 1 0 11-1.42-1.42L13.17 12l-3.88-3.88a1 1 0 010-1.41z"/>
+          </svg>
+          <span>Menu</span>
+        </button>
+      }
+      <h1 class="content-header__title">{{ pageTitle() }}</h1>
+    </header>
+    <section class="content-area">
+      <router-outlet></router-outlet>
+    </section>
   </main>
+
+  <app-toast-container></app-toast-container>
 </div>
