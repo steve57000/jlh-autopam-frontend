@@ -113,8 +113,8 @@ export class ServicesComponent implements OnInit, OnDestroy {
 
     const fallback: { codeType?: TypeCode; immatriculation?: string | null } = {};
 
+    const immat = (payload.immatriculation || '').trim();
     try {
-      const immat = (payload.immatriculation || '').trim();
       if (immat.length > 0) {
         try {
           await firstValueFrom(
@@ -176,16 +176,22 @@ export class ServicesComponent implements OnInit, OnDestroy {
       await firstValueFrom(
         this.http.patch<void>(`${api}/demandes/${id}/submit`, {}, skipErrorOptions)
       );
-      this.toast.success('Demande envoyée avec succès !');
-
-      this.state.resetCache();
-      this.draft = null;
-
-      await this.router.navigate(['/dashboard'], { replaceUrl: true });
     } catch (e: any) {
       const msg = e?.error?.message || e?.message || 'Envoi impossible';
       this.toast.error('Échec de l’envoi', msg);
       await this.refreshDraft();
+      return;
+    }
+
+    this.toast.success('Demande envoyée avec succès !');
+
+    this.state.resetCache();
+    this.draft = null;
+
+    try {
+      await this.router.navigate(['/dashboard'], { replaceUrl: true });
+    } catch (navErr) {
+      console.warn('Navigation after demande submission failed', navErr);
     }
   }
 }
