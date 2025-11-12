@@ -160,7 +160,7 @@ export class AdminDemandesComponent implements OnInit {
         svc.quantite = Number.isFinite(num) && num > 0 ? Math.round(num) : 1;
       } else {
         const num = value === '' || value == null ? null : Number(value);
-        svc.prix_unitaire = Number.isFinite(num) ? Number(num.toFixed(2)) : undefined;
+        svc.prix_unitaire = Number.isFinite(num) ? Number(num?.toFixed(2)) : undefined;
       }
     });
   }
@@ -298,7 +298,7 @@ export class AdminDemandesComponent implements OnInit {
         id_service: id,
         libelle: String(raw?.libelle ?? ''),
         quantite: quantity,
-        prix_unitaire: Number.isFinite(price) ? Number(price.toFixed(2)) : undefined
+        prix_unitaire: Number.isFinite(price) ? Number(price?.toFixed(2)) : undefined
       } satisfies ServiceItem;
     });
   }
