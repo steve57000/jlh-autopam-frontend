@@ -31,6 +31,10 @@ body {
   margin: 0;
 }
 
+body.admin-modal-open {
+  overflow: hidden;
+}
+
 h1, h2, h3 { font-family: v.$font-title; }
 h4, h5, h6 { font-family: v.$font-subtitle; }
 
@@ -136,7 +140,26 @@ a.cta-btn-secondary { text-align: center; }
 .container-max {
   display: flex; flex-direction: row;
   max-width: 1480px; width: 100%; height: 100%;
-  padding: 1.5rem 1.5rem; margin: 0 auto;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+@media (max-width: 1024px) {
+  .container-max {
+    padding-inline: clamp(1rem, 5vw, 1.75rem);
+  }
+}
+
+@media (max-width: 640px) {
+  .container-max {
+    padding: clamp(0.75rem, 5vw, 1.25rem);
+  }
+}
+
+@media (min-width: 1600px) {
+  .container-max {
+    max-width: 1680px;
+  }
 }
 
 

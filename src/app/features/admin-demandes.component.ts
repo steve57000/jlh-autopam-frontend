@@ -1,7 +1,7 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { DemandesServiceService } from '../services/demandes-services.service';
-import { DemandeWithServices } from '../modeles/demande.model';
+import { DemandeWithServices, ServiceItem } from '../modeles/demande.model';
 import {FormsModule} from '@angular/forms';
 
 @Component({
@@ -11,13 +11,16 @@ import {FormsModule} from '@angular/forms';
   imports: [DatePipe, FormsModule],
   standalone: true
 })
-export class AdminDemandesComponent implements OnInit {
+export class AdminDemandesComponent implements OnInit, OnDestroy {
   private api = inject(DemandesServiceService);
 
   // Données
   loading = signal(true);
   error = signal<string | null>(null);
   demandes = signal<DemandeWithServices[]>([]);
+  saving = signal(false);
+  feedback = signal<string | null>(null);
+  feedbackType = signal<'success' | 'error' | null>(null);
 
   // Filtres
   type = signal<'Tous'|'Devis'|'Service'|'RendezVous'>('Tous');
@@ -25,6 +28,11 @@ export class AdminDemandesComponent implements OnInit {
   q = signal('');
   dateFrom = signal<string | null>(null); // 'YYYY-MM-DD'
   dateTo = signal<string | null>(null);
+
+  // Détails / édition
+  selectedId = signal<number | null>(null);
+  private draft = signal<DemandeWithServices | null>(null);
+  private original = signal<DemandeWithServices | null>(null);
 
   // Liste des types/statuts pour le template
   readonly types = ['Tous','Devis','Service','RendezVous'] as const;
@@ -60,6 +68,21 @@ export class AdminDemandesComponent implements OnInit {
     }).sort((a,b) => new Date(b.date_demande).getTime() - new Date(a.date_demande).getTime());
   });
 
+  readonly selectedDemande = computed<DemandeWithServices | null>(() => {
+    const id = this.selectedId();
+    if (id == null) return null;
+    return this.demandes().find(d => this.getDemandeId(d) === id) ?? null;
+  });
+
+  readonly editDraft = computed(() => this.draft());
+
+  readonly hasChanges = computed(() => {
+    const current = this.draft();
+    const baseline = this.original();
+    if (!current || !baseline) return false;
+    return JSON.stringify(this.normalize(baseline)) !== JSON.stringify(this.normalize(current));
+  });
+
   ngOnInit() {
     this.reload();
   }
@@ -89,6 +112,116 @@ export class AdminDemandesComponent implements OnInit {
     return `${did}-${sid}`;
   }
 
+  openDetails(d: DemandeWithServices) {
+    const id = this.getDemandeId(d);
+    if (id == null) return;
+    const selected = this.demandes().find(item => this.getDemandeId(item) === id);
+    if (!selected) return;
+    const clone = this.clone(selected);
+    this.selectedId.set(id);
+    this.draft.set(clone);
+    this.original.set(this.clone(selected));
+    this.feedback.set(null);
+    this.feedbackType.set(null);
+    this.setBodyScrollLock(true);
+  }
+
+  closeDetails() {
+    if (this.selectedId() == null) {
+      return;
+    }
+
+    this.selectedId.set(null);
+    this.draft.set(null);
+    this.original.set(null);
+    this.feedback.set(null);
+    this.feedbackType.set(null);
+    this.setBodyScrollLock(false);
+  }
+
+  updateDraft(mutator: (draft: DemandeWithServices) => void) {
+    const current = this.draft();
+    if (!current) return;
+    const copy = this.clone(current);
+    mutator(copy);
+    this.draft.set(copy);
+  }
+
+  setDraftType(value: DemandeWithServices['code_type']) {
+    this.updateDraft(d => { d.code_type = value; });
+  }
+
+  setDraftStatut(value: DemandeWithServices['code_statut']) {
+    this.updateDraft(d => { d.code_statut = value; });
+  }
+
+  updateServiceField(index: number, field: 'quantite'|'prix_unitaire'|'libelle', value: string | number | null) {
+    this.updateDraft(d => {
+      const svc = d.services[index];
+      if (!svc) return;
+      if (field === 'libelle') {
+        svc.libelle = String(value ?? '');
+      } else if (field === 'quantite') {
+        const num = Number(value);
+        svc.quantite = Number.isFinite(num) && num > 0 ? Math.round(num) : 1;
+      } else {
+        const rawValue = value === '' || value == null ? null : Number(value);
+        if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+          svc.prix_unitaire = Number(rawValue.toFixed(2));
+        } else {
+          svc.prix_unitaire = undefined;
+        }
+      }
+    });
+  }
+
+  resetDraft() {
+    const original = this.original();
+    if (!original) return;
+    this.draft.set(this.clone(original));
+    this.feedback.set(null);
+    this.feedbackType.set(null);
+  }
+
+  saveChanges() {
+    const id = this.selectedId();
+    const draft = this.draft();
+    if (id == null || !draft || this.saving()) return;
+
+    this.saving.set(true);
+    this.feedback.set(null);
+    this.feedbackType.set(null);
+
+    const payload = {
+      codeType: draft.code_type,
+      codeStatut: draft.code_statut,
+      services: draft.services.map(s => ({
+        idService: s.id_service,
+        quantite: s.quantite,
+        prixUnitaire: s.prix_unitaire ?? null
+      }))
+    };
+
+    this.api.updateDemande(id, payload).subscribe({
+      next: updated => {
+        const merged = this.mergeDraftWithResponse(draft, updated);
+        this.demandes.update(list =>
+          list.map(item => this.getDemandeId(item) === id ? merged : item)
+        );
+        this.original.set(this.clone(merged));
+        this.draft.set(this.clone(merged));
+        this.saving.set(false);
+        this.feedback.set('Demande mise à jour avec succès.');
+        this.feedbackType.set('success');
+      },
+      error: () => {
+        this.saving.set(false);
+        this.feedback.set('Échec de la mise à jour de la demande.');
+        this.feedbackType.set('error');
+      }
+    });
+  }
+
   marquerTraitee(d: any) {
     if (d.code_statut === 'Traitee') return;
     const id = this.getDemandeId(d);
@@ -113,5 +246,90 @@ export class AdminDemandesComponent implements OnInit {
       ),
       error: () => alert('Échec de la suppression')
     });
+  }
+
+  private clone(d: DemandeWithServices): DemandeWithServices {
+    return {
+      ...d,
+      services: d.services.map(s => ({ ...s }))
+    };
+  }
+
+  private mergeDraftWithResponse(
+    base: DemandeWithServices,
+    response?: DemandeWithServices | null
+  ): DemandeWithServices {
+    if (!response) {
+      return this.clone(base);
+    }
+
+    const services = response.services?.length
+      ? this.normalizeServicesFromApi(response.services as any[])
+      : base.services;
+
+    return this.clone({
+      ...base,
+      ...response,
+      services
+    } as DemandeWithServices);
+  }
+
+  private normalize(d: DemandeWithServices) {
+    const sorted = [...d.services].sort((a, b) => a.id_service - b.id_service);
+    return {
+      ...d,
+      services: sorted.map(s => ({
+        id_service: s.id_service,
+        libelle: s.libelle,
+        quantite: s.quantite,
+        prix_unitaire: s.prix_unitaire ?? null
+      }))
+    };
+  }
+
+  private normalizeServicesFromApi(rows: any[]): ServiceItem[] {
+    if (!Array.isArray(rows)) {
+      return [];
+    }
+    return rows.map((raw: any) => {
+      const toNumber = (value: any, fallback: number) => {
+        const n = Number(value);
+        return Number.isFinite(n) ? n : fallback;
+      };
+
+      const id = toNumber(raw?.id_service ?? raw?.idService ?? raw?.id?.idService, -1);
+      const quantity = Math.max(1, toNumber(raw?.quantite, 1));
+      const priceValue = raw?.prix_unitaire ?? raw?.prixUnitaire ?? null;
+      const priceRaw = priceValue === null || priceValue === '' || priceValue === undefined
+        ? undefined
+        : Number(priceValue);
+
+      return {
+        id_service: id,
+        libelle: String(raw?.libelle ?? ''),
+        quantite: quantity,
+        prix_unitaire: typeof priceRaw === 'number' && Number.isFinite(priceRaw)
+          ? Number(priceRaw.toFixed(2))
+          : undefined
+      } satisfies ServiceItem;
+    });
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    this.closeDetails();
+  }
+
+  ngOnDestroy() {
+    this.setBodyScrollLock(false);
+  }
+
+  private setBodyScrollLock(lock: boolean) {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const className = 'admin-modal-open';
+    document.body.classList[lock ? 'add' : 'remove'](className);
   }
 }

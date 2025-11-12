@@ -89,6 +89,21 @@ export class DemandesServiceService {
     return this.http.put<void>(`${this.apiBase}/demandes/${id}`, { codeStatut: newStatut });
   }
 
+  updateDemande(
+    id: number,
+    payload: {
+      codeType?: DemandeWithServices['code_type'];
+      codeStatut?: DemandeWithServices['code_statut'];
+      services?: Array<{
+        idService: number;
+        quantite: number;
+        prixUnitaire?: number | null;
+      }>;
+    }
+  ) {
+    return this.http.put<DemandeWithServices>(`${this.apiBase}/demandes/${id}`, payload);
+  }
+
   delete(id: number) {
     return this.http.delete<void>(`${this.apiBase}/demandes/${id}`);
   }

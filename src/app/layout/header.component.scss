@@ -6,11 +6,13 @@
   color: variables.$color-primary;
   height: 100px;
   max-width: 100%;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-inline: clamp(1rem, 3vw, 2.5rem);
   border-bottom: 1px solid variables.$color-primary;
-  box-shadow: 0 4px 8px rgba(variables.$color-primary, 45%) ;
+  box-shadow: 0 4px 8px rgba(variables.$color-primary, 45%);
   z-index: 100;
 
   .container-max {
@@ -34,7 +36,7 @@
       img {
         max-width: 100%;
         height: auto;
-        width: 245px;
+        width: clamp(180px, 18vw, 245px);
         transition: width 0.2s, filter 0.2s;
         filter: brightness(1.1);
         display: block;
@@ -81,12 +83,18 @@
       &:hover span{
         background: variables.$color-secondary;
       }
+
+      &:focus-visible {
+        outline: 2px solid variables.$color-tertiary;
+        outline-offset: 3px;
+      }
     }
 
     nav {
       display: flex;
-      gap: 1.5rem;
+      gap: clamp(0.75rem, 2vw, 1.5rem);
       align-items: center;
+      justify-content: flex-end;
 
       a {
         justify-content: center;
@@ -102,17 +110,55 @@
           color: variables.$color-secondary;
           text-decoration: underline 6px variables.$color-secondary;
         }
+
+        &:focus-visible {
+          outline: 2px solid variables.$color-secondary;
+          outline-offset: 4px;
+          border-radius: variables.$border-radius-small;
+        }
       }
     }
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .header .container-max .logo,
+  .header .container-max .logo img,
+  .header .container-max nav a {
+    transition: none;
+  }
+}
+
 // Logo responsive
 @media (max-width: 1200px) {
-  .logo img { width: 180px; }
+  .header {
+    height: 92px;
+  }
+  .logo img { width: clamp(160px, 16vw, 200px); }
 }
 @media (max-width: 900px) {
-  .logo img { width: 180px; }
+  .header {
+    height: 88px;
+  }
+  .logo img { width: clamp(150px, 22vw, 190px); }
+}
+
+@media (max-width: 1024px) {
+  .header {
+    .container-max {
+      gap: clamp(0.5rem, 2vw, 1.5rem);
+
+      nav {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        row-gap: 0.75rem;
+
+        a {
+          font-size: clamp(0.85rem, 1.8vw, 1rem);
+        }
+      }
+    }
+  }
 }
 
 // MENU BURGER RESPONSIVE
@@ -155,7 +201,7 @@
         background: variables.$color-quaternary;
         flex-direction: column;
         align-items: center;
-        padding: 0;
+        padding: clamp(5rem, 18vh, 12rem) clamp(1.5rem, 6vw, 3rem) clamp(3rem, 8vh, 5rem);
 
         /* état fermé */
         transform: translateX(100%);
@@ -166,6 +212,7 @@
         pointer-events: none;        /* bloquer les clics */
         will-change: transform;      /* perf */
         backface-visibility: hidden; /* évite des artefacts sur GPU */
+        overflow-y: auto;
 
         &.open {
           display: flex;
@@ -178,7 +225,7 @@
 
         a {
           margin: 0.9rem 0;
-          font-size: 2rem;
+          font-size: clamp(1.5rem, 4vw, 2rem);
           color: variables.$color-primary;
           font-family: variables.$font-subtitle;
         }
@@ -215,7 +262,7 @@
     }
 
     &.menu-open .container-max nav {
-      padding-top: 300px; // égale à la hauteur du logo+header
+      padding-top: clamp(16rem, 36vh, 24rem); // égale à la hauteur du logo+header
     }
   }
 }

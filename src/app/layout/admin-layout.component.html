@@ -1,15 +1,31 @@
-<div class="admin-layout" [class.menu-open]="menuOpen">
+<div
+  class="admin-layout"
+  [class.menu-open]="menuOpen"
+  [class.menu-collapsed]="!menuOpen"
+  [class.is-mobile]="isMobileView"
+>
 
   <!-- Bouton burger -->
-  <button class="menu-toggle" (click)="toggleMenu()" aria-label="Toggle menu">
+  <button
+    class="menu-toggle"
+    type="button"
+    (click)="toggleMenu()"
+    [attr.aria-expanded]="menuOpen"
+    [attr.aria-label]="menuOpen ? 'Replier le menu' : 'Déplier le menu'"
+  >
     <svg [class.open]="menuOpen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="chevron" aria-hidden="true">
       <path d="M9.29 6.71a1 1 0 011.42 0L16 12l-5.29 5.29a1 1 0 11-1.42-1.42L13.17 12l-3.88-3.88a1 1 0 010-1.41z"/>
     </svg>
+    <span class="menu-toggle__label">{{ menuOpen ? 'Replier' : 'Menu' }}</span>
   </button>
 
   <!-- Nav admin (optionnellement conditionnée) -->
   @if (isAuth) {
-    <nav class="admin-nav" [class.open]="menuOpen">
+    <nav
+      class="admin-nav"
+      [class.open]="menuOpen"
+      [attr.aria-hidden]="!menuOpen && !isMobileView ? 'true' : null"
+    >
       <ul>
         <li><a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="closeMenu()">Dashboard</a></li>
         <li><a routerLink="/admin/demandes" routerLinkActive="active" (click)="closeMenu()">Demandes</a></li>
@@ -22,7 +38,7 @@
       </div>
     </nav>
 
-    @if (menuOpen) {
+    @if (isMobileView && menuOpen) {
       <div class="overlay" (click)="closeMenu()"></div>
     }
   }
