@@ -34,6 +34,12 @@ type AnyStatutOrAll =
   | 'Brouillon' | 'En_attente' | 'Traitee' | 'Annulee'
   | 'Confirme' | 'Reporte' | 'Annule';
 
+interface RefreshOptions {
+  silent?: boolean;
+  delayMs?: number;
+  retries?: number;
+}
+
 interface FilterState {
   q: string;
   type: AnyTypeOrAll;
@@ -128,29 +134,49 @@ export class ClientDashboardComponent implements OnInit {
   // ===========================
   // Chargements
   // ===========================
-  refresh() {
-    this.loading = true;
-    this.error = '';
+  refresh(options: RefreshOptions = {}) {
+    const { silent = false, delayMs = 0, retries = 0 } = options;
+    if (delayMs > 0) {
+      setTimeout(() => this.refresh({ silent, retries }), delayMs);
+      return;
+    }
 
-    this.srv.getMyDemandes().subscribe({
+    this.loading = true;
+    if (!silent) {
+      this.error = '';
+    }
+
+    const httpOptions = { silentError: silent } as const;
+
+    this.srv.getMyDemandes(httpOptions).subscribe({
       next: list => {
-        // on garde la liste brute; l’affichage passe par filteredDemandes()
         this.demandes = list ?? [];
       },
-      error: err => this.error = err?.error?.message || err.message || 'Erreur de chargement des demandes'
+      error: err => {
+        if (!silent) {
+          this.error = err?.error?.message || err.message || 'Erreur de chargement des demandes';
+        } else if (retries > 0) {
+          this.refresh({ silent: true, retries: retries - 1, delayMs: 600 });
+        }
+      }
     });
 
-    this.srv.getMyStats().subscribe({
+    this.srv.getMyStats(httpOptions).subscribe({
       next: s => { this.stats = s; },
-      error: err => this.error ||= err?.error?.message || err.message || 'Erreur de chargement des statistiques'
+      error: err => {
+        if (!silent) {
+          this.error ||= err?.error?.message || err.message || 'Erreur de chargement des statistiques';
+        }
+      }
     });
 
-    this.srv.getProchainRdv().subscribe({
+    this.srv.getProchainRdv(httpOptions).subscribe({
       next: rdv => { this.prochainRdv = rdv || null; },
       error: err => {
-        if (err.status !== 204) {
+        if (err.status !== 204 && !silent) {
           this.error ||= err?.error?.message || err.message || 'Erreur de chargement du prochain RDV';
         }
+        this.loading = false;
       },
       complete: () => { this.loading = false; }
     });
@@ -196,7 +222,7 @@ export class ClientDashboardComponent implements OnInit {
     try {
       await firstValueFrom(this.http.patch<void>(`${this.api}/demandes/${d.idDemande}/submit`, {}));
       this.toast.success('Demande envoyée avec succès !');
-      this.refresh();
+      this.refresh({ silent: true, delayMs: 400, retries: 2 });
     } catch (e: any) {
       const msg = e?.error?.message || e?.message || 'Validation impossible';
       this.toast.error('Échec de l’envoi', msg);
