@@ -75,7 +75,7 @@ export class ServicesComponent implements OnInit, OnDestroy {
 
   async refreshDraft() {
     try {
-      const q = await this.state.loadDraft();
+      const q = await this.state.loadDraft({ silent: true });
       const lines = Array.isArray(q?.services) ? q.services.length : 0;
       this.draft = lines > 0 ? q : null;
     } catch {
@@ -150,11 +150,15 @@ export class ServicesComponent implements OnInit, OnDestroy {
         const hasServices = services.length > 0;
 
         await firstValueFrom(
-          this.ds.updateDemande(id, {
-            ...(fallback.codeType ? { codeType: fallback.codeType } : {}),
-            ...('immatriculation' in fallback ? { immatriculation: fallback.immatriculation ?? null } : {}),
-            ...(hasServices ? { services } : {}),
-          })
+          this.ds.updateDemande(
+            id,
+            {
+              ...(fallback.codeType ? { codeType: fallback.codeType } : {}),
+              ...('immatriculation' in fallback ? { immatriculation: fallback.immatriculation ?? null } : {}),
+              ...(hasServices ? { services } : {}),
+            },
+            { silentError: true }
+          )
         );
       }
 

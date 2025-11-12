@@ -1,6 +1,6 @@
 // src/app/services/demandes-services.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
@@ -101,7 +101,8 @@ export class DemandesServiceService {
         quantite: number;
         prixUnitaire?: number | null;
       }>;
-    }
+    },
+    options?: { silentError?: boolean }
   ) {
     const body: Record<string, unknown> = {};
 
@@ -110,7 +111,17 @@ export class DemandesServiceService {
     if ('immatriculation' in payload) body['immatriculation'] = payload.immatriculation;
     if (payload.services) body['services'] = payload.services;
 
-    return this.http.put<DemandeWithServices>(`${this.apiBase}/demandes/${id}`, body);
+    const headers = options?.silentError
+      ? new HttpHeaders({ 'X-Skip-Error-Toast': '1' })
+      : undefined;
+
+    const httpOptions = headers ? { headers } : undefined;
+
+    return this.http.put<DemandeWithServices>(
+      `${this.apiBase}/demandes/${id}`,
+      body,
+      httpOptions
+    );
   }
 
   delete(id: number) {
