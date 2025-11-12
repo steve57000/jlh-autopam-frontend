@@ -1,6 +1,6 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { DOCUMENT, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
-import { Component, HostBinding, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, HostBinding, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -16,11 +16,13 @@ import { AuthService } from '../services/auth.service';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, OnDestroy {
   menuOpen = false;
   loggedIn = false;
   role: string | null = null;
   isMobileMenu = false;
+  private mediaQueryList: MediaQueryList | null = null;
+  private mediaQueryListener?: (event: MediaQueryListEvent) => void;
 
   private readonly mobileQuery = '(max-width: 719px)';
   private readonly isBrowser: boolean;
@@ -39,6 +41,10 @@ export class HeaderComponent implements OnInit {
     @Inject(PLATFORM_ID) platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
+    if (this.isBrowser && typeof window !== 'undefined') {
+      this.mediaQueryList = window.matchMedia(this.mobileQuery);
+      this.isMobileMenu = this.mediaQueryList.matches;
+    }
   }
 
   ngOnInit() {
@@ -56,13 +62,26 @@ export class HeaderComponent implements OnInit {
           this.setMenuState(false);
         }
       });
+
+    if (this.mediaQueryList) {
+      this.mediaQueryListener = (event: MediaQueryListEvent) => {
+        this.isMobileMenu = event.matches;
+        if (!event.matches) {
+          this.setMenuState(false);
+        }
+      };
+      this.mediaQueryList.addEventListener('change', this.mediaQueryListener);
+    }
   }
 
   toggleMenu() {
-    if (!this.isMobileMenu) {
-      return;
-    }
     this.setMenuState(!this.menuOpen);
+  }
+
+  ngOnDestroy() {
+    if (this.mediaQueryList && this.mediaQueryListener) {
+      this.mediaQueryList.removeEventListener('change', this.mediaQueryListener);
+    }
   }
 
   closeMenu() {
