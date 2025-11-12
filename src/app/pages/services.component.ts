@@ -13,7 +13,7 @@ import { DemandesStateService } from '../services/demandes-state.service';
 import { DemandesServiceService } from '../services/demandes-services.service';
 import { DemandeResponse } from '../services/client-dashboard.service';
 import { ToastService} from '../shared/toast/toast.service';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import {Router} from '@angular/router';
 
@@ -109,18 +109,54 @@ export class ServicesComponent implements OnInit, OnDestroy {
 
     const id = this.draft.idDemande;
     const api = environment.apiBaseUrl;
+    const skipErrorOptions = { headers: new HttpHeaders({ 'X-Skip-Error-Toast': '1' }) };
+
+    const fallback: { codeType?: TypeCode; immatriculation?: string | null } = {};
 
     try {
       const immat = (payload.immatriculation || '').trim();
       if (immat.length > 0) {
-        await firstValueFrom(
-          this.http.patch<void>(`${api}/demandes/${id}/immatriculation`, { immatriculation: immat })
-        );
+        try {
+          await firstValueFrom(
+            this.http.patch<void>(
+              `${api}/demandes/${id}/immatriculation`,
+              { immatriculation: immat },
+              skipErrorOptions
+            )
+          );
+        } catch {
+          fallback.immatriculation = immat;
+        }
       }
 
-      await firstValueFrom(
-        this.http.patch<void>(`${api}/demandes/${id}/type`, { codeType: payload.type })
-      );
+      try {
+        await firstValueFrom(
+          this.http.patch<void>(
+            `${api}/demandes/${id}/type`,
+            { codeType: payload.type },
+            skipErrorOptions
+          )
+        );
+      } catch {
+        fallback.codeType = payload.type;
+      }
+
+      if (fallback.codeType || 'immatriculation' in fallback) {
+        const services = (this.draft?.services ?? []).map(s => ({
+          idService: s.idService,
+          quantite: s.quantite,
+          prixUnitaire: s.prixUnitaire ?? null,
+        }));
+        const hasServices = services.length > 0;
+
+        await firstValueFrom(
+          this.ds.updateDemande(id, {
+            ...(fallback.codeType ? { codeType: fallback.codeType } : {}),
+            ...('immatriculation' in fallback ? { immatriculation: fallback.immatriculation ?? null } : {}),
+            ...(hasServices ? { services } : {}),
+          })
+        );
+      }
 
       if (payload.type === 'RendezVous' && this.selectedCreneauId && this.assignedAdminId) {
         await firstValueFrom(
@@ -129,11 +165,13 @@ export class ServicesComponent implements OnInit, OnDestroy {
             creneauId: this.selectedCreneauId,
             administrateurId: this.assignedAdminId,
             codeStatut: 'Confirme'
-          })
+          }, skipErrorOptions)
         );
       }
 
-      await firstValueFrom(this.http.patch<void>(`${api}/demandes/${id}/submit`, {}));
+      await firstValueFrom(
+        this.http.patch<void>(`${api}/demandes/${id}/submit`, {}, skipErrorOptions)
+      );
       this.toast.success('Demande envoyée avec succès !');
 
       this.state.resetCache();
