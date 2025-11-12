@@ -1,6 +1,6 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { DOCUMENT, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
-import { Component, HostBinding, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, DestroyRef, HostBinding, Inject, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -23,6 +23,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isMobileMenu = false;
   private mediaQueryList: MediaQueryList | null = null;
   private mediaQueryListener?: (event: MediaQueryListEvent) => void;
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly mobileQuery = '(max-width: 719px)';
   private readonly isBrowser: boolean;
@@ -48,14 +49,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.auth.authState().pipe(takeUntilDestroyed()).subscribe(isAuth => {
+    this.auth.authState().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(isAuth => {
       this.loggedIn = isAuth;
       this.role     = isAuth ? this.auth.getUserRole() : null;
     });
 
     this.breakpointObserver
       .observe(this.mobileQuery)
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(state => {
         this.isMobileMenu = state.matches;
         if (!this.isMobileMenu && this.menuOpen) {
