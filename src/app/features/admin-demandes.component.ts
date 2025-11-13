@@ -195,6 +195,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.feedback.set(null);
     this.feedbackType.set(null);
 
+    const client = this.normalizeClientForUpdate(draft.client);
+
     const payload = {
       codeType: draft.code_type,
       codeStatut: draft.code_statut,
@@ -203,7 +205,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
         idService: s.id_service,
         quantite: s.quantite,
         prixUnitaire: s.prix_unitaire ?? null
-      }))
+      })),
+      ...(client ? { client } : {})
     };
 
     this.api.updateDemande(id, payload).subscribe({
@@ -271,8 +274,11 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   }
 
   private clone(d: DemandeWithServices): DemandeWithServices {
+    const trimmedClient = this.trimClientStrings(d.client);
+
     return {
       ...d,
+      client: trimmedClient ? { ...trimmedClient } : undefined,
       services: d.services.map(s => ({ ...s }))
     };
   }
@@ -298,8 +304,11 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
 
   private normalize(d: DemandeWithServices) {
     const sorted = [...d.services].sort((a, b) => a.id_service - b.id_service);
+    const trimmedClient = this.trimClientStrings(d.client);
+
     return {
       ...d,
+      client: trimmedClient,
       services: sorted.map(s => ({
         id_service: s.id_service,
         libelle: s.libelle,
@@ -335,6 +344,44 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
           : undefined
       } satisfies ServiceItem;
     });
+  }
+
+  private trimClientStrings(client: DemandeWithServices['client'] | undefined) {
+    if (!client) return undefined;
+
+    const trimOrNull = (value: string | null | undefined) => {
+      if (value == null) {
+        return null;
+      }
+      const trimmed = String(value).trim();
+      return trimmed.length ? trimmed : null;
+    };
+
+    return {
+      ...client,
+      telephone: trimOrNull(client.telephone ?? null),
+      immatriculation: trimOrNull(client.immatriculation ?? null),
+      adresseLigne1: trimOrNull(client.adresseLigne1 ?? null),
+      adresseLigne2: trimOrNull(client.adresseLigne2 ?? null),
+      adresseCodePostal: trimOrNull(client.adresseCodePostal ?? null),
+      adresseVille: trimOrNull(client.adresseVille ?? null)
+    };
+  }
+
+  private normalizeClientForUpdate(client: DemandeWithServices['client'] | undefined) {
+    const trimmed = this.trimClientStrings(client);
+    if (!trimmed) {
+      return undefined;
+    }
+
+    return {
+      telephone: trimmed.telephone ?? null,
+      immatriculation: trimmed.immatriculation ?? null,
+      adresseLigne1: trimmed.adresseLigne1 ?? null,
+      adresseLigne2: trimmed.adresseLigne2 ?? null,
+      adresseCodePostal: trimmed.adresseCodePostal ?? null,
+      adresseVille: trimmed.adresseVille ?? null
+    };
   }
 
   @HostListener('document:keydown.escape')
