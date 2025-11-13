@@ -210,13 +210,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.feedback.set(null);
     this.feedbackType.set(null);
 
-    const client = draft.client ?? {};
-    const trimOrEmpty = (value: unknown) => {
-      if (value === null || value === undefined) {
-        return '';
-      }
-      return String(value).trim();
-    };
+    const client = this.normalizeClientForUpdate(draft.client);
 
     const payload = {
       codeType: draft.code_type,
@@ -232,7 +226,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
         idService: s.id_service,
         quantite: s.quantite,
         prixUnitaire: s.prix_unitaire ?? null
-      }))
+      })),
+      ...(client ? { client } : {})
     };
 
     this.api.updateDemande(id, payload).subscribe({
@@ -300,9 +295,11 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   }
 
   private clone(d: DemandeWithServices): DemandeWithServices {
+    const trimmedClient = this.trimClientStrings(d.client);
+
     return {
       ...d,
-      client: d.client ? { ...d.client } : undefined,
+      client: trimmedClient ? { ...trimmedClient } : undefined,
       services: d.services.map(s => ({ ...s }))
     };
   }
@@ -331,20 +328,11 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
 
   private normalize(d: DemandeWithServices) {
     const sorted = [...d.services].sort((a, b) => a.id_service - b.id_service);
-    const client = d.client
-      ? {
-        ...d.client,
-        telephone: d.client.telephone ?? null,
-        immatriculation: d.client.immatriculation ?? null,
-        adresseLigne1: d.client.adresseLigne1 ?? null,
-        adresseLigne2: d.client.adresseLigne2 ?? null,
-        adresseCodePostal: d.client.adresseCodePostal ?? null,
-        adresseVille: d.client.adresseVille ?? null
-      }
-      : undefined;
+    const trimmedClient = this.trimClientStrings(d.client);
+
     return {
       ...d,
-      client,
+      client: trimmedClient,
       services: sorted.map(s => ({
         id_service: s.id_service,
         libelle: s.libelle,
@@ -386,46 +374,42 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     });
   }
 
-  private mergeClient(
-    base: DemandeWithServices['client'] | undefined,
-    raw: any
-  ): DemandeWithServices['client'] | undefined {
-    if (!base && !raw) {
+  private trimClientStrings(client: DemandeWithServices['client'] | undefined) {
+    if (!client) return undefined;
+
+    const trimOrNull = (value: string | null | undefined) => {
+      if (value == null) {
+        return null;
+      }
+      const trimmed = String(value).trim();
+      return trimmed.length ? trimmed : null;
+    };
+
+    return {
+      ...client,
+      telephone: trimOrNull(client.telephone ?? null),
+      immatriculation: trimOrNull(client.immatriculation ?? null),
+      adresseLigne1: trimOrNull(client.adresseLigne1 ?? null),
+      adresseLigne2: trimOrNull(client.adresseLigne2 ?? null),
+      adresseCodePostal: trimOrNull(client.adresseCodePostal ?? null),
+      adresseVille: trimOrNull(client.adresseVille ?? null)
+    };
+  }
+
+  private normalizeClientForUpdate(client: DemandeWithServices['client'] | undefined) {
+    const trimmed = this.trimClientStrings(client);
+    if (!trimmed) {
       return undefined;
     }
 
-    const merged: any = base ? { ...base } : {};
-
-    if (raw) {
-      const toNumber = (value: any, fallback: number | null = null) => {
-        const n = Number(value);
-        return Number.isFinite(n) ? n : fallback;
-      };
-      const toNullableString = (value: any) => {
-        if (value === null || value === undefined) return null;
-        const s = String(value).trim();
-        return s.length ? s : null;
-      };
-
-      const rawId = raw.id_client ?? raw.idClient;
-      const id = toNumber(rawId, merged.id_client ?? null);
-      if (id != null) {
-        merged.id_client = id;
-      }
-      if (typeof raw.nom === 'string') merged.nom = raw.nom;
-      if (typeof raw.prenom === 'string') merged.prenom = raw.prenom;
-      if (typeof raw.email === 'string') merged.email = raw.email;
-      const tel = raw.telephone ?? raw.phone;
-      merged.telephone = toNullableString(tel) ?? merged.telephone ?? null;
-      const immat = raw.immatriculation ?? raw.plate;
-      merged.immatriculation = toNullableString(immat) ?? merged.immatriculation ?? null;
-      merged.adresseLigne1 = toNullableString(raw.adresseLigne1) ?? merged.adresseLigne1 ?? null;
-      merged.adresseLigne2 = toNullableString(raw.adresseLigne2) ?? merged.adresseLigne2 ?? null;
-      merged.adresseCodePostal = toNullableString(raw.adresseCodePostal) ?? merged.adresseCodePostal ?? null;
-      merged.adresseVille = toNullableString(raw.adresseVille) ?? merged.adresseVille ?? null;
-    }
-
-    return merged;
+    return {
+      telephone: trimmed.telephone ?? null,
+      immatriculation: trimmed.immatriculation ?? null,
+      adresseLigne1: trimmed.adresseLigne1 ?? null,
+      adresseLigne2: trimmed.adresseLigne2 ?? null,
+      adresseCodePostal: trimmed.adresseCodePostal ?? null,
+      adresseVille: trimmed.adresseVille ?? null
+    };
   }
 
   @HostListener('document:keydown.escape')

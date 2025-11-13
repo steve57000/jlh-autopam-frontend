@@ -109,6 +109,14 @@ export class DemandesServiceService {
       codeType?: DemandeWithServices['code_type'];
       codeStatut?: DemandeWithServices['code_statut'];
       immatriculation?: string | null;
+      client?: {
+        telephone?: string | null;
+        immatriculation?: string | null;
+        adresseLigne1?: string | null;
+        adresseLigne2?: string | null;
+        adresseCodePostal?: string | null;
+        adresseVille?: string | null;
+      };
       services?: Array<{
         libelle?: string;
         idService: number;
@@ -124,6 +132,7 @@ export class DemandesServiceService {
     if (payload.codeStatut) body['codeStatut'] = payload.codeStatut;
     if ('immatriculation' in payload) body['immatriculation'] = payload.immatriculation;
     if (payload.services) body['services'] = payload.services;
+    if (payload.client) body['client'] = payload.client;
 
     const headers = options?.silentError
       ? new HttpHeaders({ 'X-Skip-Error-Toast': '1' })
