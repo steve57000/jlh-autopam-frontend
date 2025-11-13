@@ -195,6 +195,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.feedback.set(null);
     this.feedbackType.set(null);
 
+    const client = this.normalizeClientForUpdate(draft.client);
+
     const payload = {
       codeType: draft.code_type,
       codeStatut: draft.code_statut,
@@ -203,7 +205,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
         idService: s.id_service,
         quantite: s.quantite,
         prixUnitaire: s.prix_unitaire ?? null
-      }))
+      })),
+      ...(client ? { client } : {})
     };
 
     this.api.updateDemande(id, payload).subscribe({
@@ -271,8 +274,11 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   }
 
   private clone(d: DemandeWithServices): DemandeWithServices {
+    const trimmedClient = this.trimClientStrings(d.client);
+
     return {
       ...d,
+      client: trimmedClient ? { ...trimmedClient } : undefined,
       services: d.services.map(s => ({ ...s }))
     };
   }
@@ -298,8 +304,11 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
 
   private normalize(d: DemandeWithServices) {
     const sorted = [...d.services].sort((a, b) => a.id_service - b.id_service);
+    const trimmedClient = this.trimClientStrings(d.client);
+
     return {
       ...d,
+      client: trimmedClient,
       services: sorted.map(s => ({
         id_service: s.id_service,
         libelle: s.libelle,
@@ -335,6 +344,76 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
           : undefined
       } satisfies ServiceItem;
     });
+  }
+
+  private trimClientStrings(
+    client: DemandeWithServices['client'] | undefined
+  ): NonNullable<DemandeWithServices['client']> | undefined {
+    if (!client) {
+      return undefined;
+    }
+
+    const base = { ...client } as NonNullable<DemandeWithServices['client']>;
+
+    return {
+      ...base,
+      telephone: this.trimOrNull(base.telephone),
+      immatriculation: this.trimOrNull(base.immatriculation),
+      adresseLigne1: this.trimOrNull(base.adresseLigne1),
+      adresseLigne2: this.trimOrNull(base.adresseLigne2),
+      adresseCodePostal: this.trimOrNull(base.adresseCodePostal),
+      adresseVille: this.trimOrNull(base.adresseVille)
+    };
+  }
+
+  private normalizeClientForUpdate(
+    client: DemandeWithServices['client'] | undefined
+  ): {
+    telephone?: string | null;
+    immatriculation?: string | null;
+    adresseLigne1?: string | null;
+    adresseLigne2?: string | null;
+    adresseCodePostal?: string | null;
+    adresseVille?: string | null;
+  } | undefined {
+    const trimmed = this.trimClientStrings(client);
+    if (!trimmed) {
+      return undefined;
+    }
+
+    return {
+      telephone: trimmed.telephone ?? null,
+      immatriculation: trimmed.immatriculation ?? null,
+      adresseLigne1: trimmed.adresseLigne1 ?? null,
+      adresseLigne2: trimmed.adresseLigne2 ?? null,
+      adresseCodePostal: trimmed.adresseCodePostal ?? null,
+      adresseVille: trimmed.adresseVille ?? null
+    };
+  }
+
+  private trimOrNull(value: string | null | undefined): string | null {
+    if (value == null) {
+      return null;
+    }
+
+    const trimmed = String(value).trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  trimOrEmpty(value: string | null | undefined): string {
+    return this.trimOrNull(value) ?? '';
+  }
+
+  // Compatibilité : certaines sections du template utilisent encore mergeClient pour combiner
+  // les informations du client. On conserve une implémentation sûre ici pour éviter les erreurs
+  // lors de la compilation stricte.
+  mergeClient(
+    current: DemandeWithServices['client'] | undefined,
+    updates: Partial<NonNullable<DemandeWithServices['client']>>
+  ): NonNullable<DemandeWithServices['client']> {
+    const base = this.trimClientStrings(current) ?? ({} as NonNullable<DemandeWithServices['client']>);
+    const merged = { ...base, ...updates };
+    return this.trimClientStrings(merged) ?? merged;
   }
 
   @HostListener('document:keydown.escape')
