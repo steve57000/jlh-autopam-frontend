@@ -158,6 +158,17 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.updateDraft(d => { d.code_statut = value; });
   }
 
+  updateClientField(
+    field: 'telephone' | 'immatriculation' | 'adresseLigne1' | 'adresseLigne2' | 'adresseCodePostal' | 'adresseVille',
+    value: string | null
+  ) {
+    this.updateDraft(d => {
+      if (!d.client) return;
+      const normalized = value == null ? null : String(value);
+      (d.client as any)[field] = normalized && normalized.trim().length > 0 ? normalized.trim() : null;
+    });
+  }
+
   updateServiceField(index: number, field: 'quantite'|'prix_unitaire'|'libelle', value: string | number | null) {
     this.updateDraft(d => {
       const svc = d.services[index];
@@ -166,7 +177,11 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
         svc.libelle = String(value ?? '');
       } else if (field === 'quantite') {
         const num = Number(value);
-        svc.quantite = Number.isFinite(num) && num > 0 ? Math.round(num) : 1;
+        let qty = Number.isFinite(num) && num > 0 ? Math.round(num) : 1;
+        if (svc.quantite_max && qty > svc.quantite_max) {
+          qty = svc.quantite_max;
+        }
+        svc.quantite = qty;
       } else {
         const rawValue = value === '' || value == null ? null : Number(value);
         if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
@@ -200,6 +215,12 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     const payload = {
       codeType: draft.code_type,
       codeStatut: draft.code_statut,
+      immatriculation: client?.immatriculation ?? null,
+      telephone: this.trimOrEmpty(client?.telephone),
+      adresseLigne1: this.trimOrEmpty(client?.adresseLigne1),
+      adresseLigne2: this.trimOrEmpty(client?.adresseLigne2),
+      adresseCodePostal: this.trimOrEmpty(client?.adresseCodePostal),
+      adresseVille: this.trimOrEmpty(client?.adresseVille),
       services: draft.services.map(s => ({
         libelle: s.libelle,
         idService: s.id_service,
@@ -295,9 +316,12 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       ? this.normalizeServicesFromApi(response.services as any[])
       : base.services;
 
+    const client = this.mergeClient(base.client, (response as any)?.client);
+
     return this.clone({
       ...base,
       ...response,
+      client: client ?? undefined,
       services
     } as DemandeWithServices);
   }
@@ -313,7 +337,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
         id_service: s.id_service,
         libelle: s.libelle,
         quantite: s.quantite,
-        prix_unitaire: s.prix_unitaire ?? null
+        prix_unitaire: s.prix_unitaire ?? null,
+        quantite_max: s.quantite_max ?? null
       }))
     };
   }
@@ -334,6 +359,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       const priceRaw = priceValue === null || priceValue === '' || priceValue === undefined
         ? undefined
         : Number(priceValue);
+      const maxValue = raw?.quantite_max ?? raw?.quantiteMax ?? null;
+      const maxQty = maxValue === null || maxValue === undefined ? undefined : toNumber(maxValue, NaN);
 
       return {
         id_service: id,
@@ -341,7 +368,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
         quantite: quantity,
         prix_unitaire: typeof priceRaw === 'number' && Number.isFinite(priceRaw)
           ? Number(priceRaw.toFixed(2))
-          : undefined
+          : undefined,
+        quantite_max: Number.isFinite(maxQty) ? Math.max(1, Math.round(<number>maxQty)) : undefined
       } satisfies ServiceItem;
     });
   }
