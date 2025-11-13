@@ -61,6 +61,8 @@ export class ServiceCardComponent {
       // Gestion “clean” des 403/409
       if (err?.status === 409) {
         this.toast.info('Ce service est déjà présent dans votre demande.');
+      } else if (err?.status === 400) {
+        this.toast.error('Quantité maximale atteinte pour ce service.');
       } else if (err?.status === 403) {
         this.toast.error("Action non autorisée. Réessayez après connexion.");
       } else {

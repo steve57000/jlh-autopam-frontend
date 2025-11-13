@@ -1,4 +1,3 @@
-// src/app/services/demandes-services.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -78,7 +77,8 @@ export class DemandesServiceService {
                 id_service: toNum(s?.idService) ?? -1,
                 libelle: String(s?.libelle ?? ''),
                 quantite: toNum(s?.quantite) ?? 1,
-                prix_unitaire: toNum(s?.prixUnitaire) ?? undefined
+                prix_unitaire: toNum(s?.prixUnitaire) ?? undefined,
+                quantite_max: toNum(s?.quantiteMax ?? s?.quantite_max) ?? undefined
               }))
               : [];
 

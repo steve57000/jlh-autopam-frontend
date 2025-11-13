@@ -9,6 +9,9 @@
 
   <h3 class="service-title">{{ service.libelle }}</h3>
   <p class="service-description">{{ service.description }}</p>
+  <p class="service-quantity" *ngIf="service.quantiteMax">
+    Quantité maximale par demande : <strong>{{ service.quantiteMax }}</strong>
+  </p>
 
   <ng-container *appHasRole="'CLIENT'">
     <button class="cta-btn" type="button" (click)="openConfirm()">
