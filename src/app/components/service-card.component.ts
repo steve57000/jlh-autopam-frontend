@@ -44,7 +44,7 @@ export class ServiceCardComponent {
       }
 
       // 1) crée/récupère le brouillon (attaché au CLIENT)
-      const idDemande = await this.demandeState.initDemande();
+      const idDemande = await this.demandeState.initDemande({ silent: true });
 
       // 2) ajout unique (409 si déjà présent)
       await firstValueFrom(this.dsSrv.addUnique({

@@ -19,6 +19,12 @@ export interface DemandeDto {
     nom: string;
     prenom?: string;
     email: string;
+    telephone?: string | null;
+    immatriculation?: string | null;
+    adresseLigne1?: string | null;
+    adresseLigne2?: string | null;
+    adresseCodePostal?: string | null;
+    adresseVille?: string | null;
   };
 }
 

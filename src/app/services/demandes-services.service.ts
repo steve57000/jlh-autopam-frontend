@@ -1,6 +1,6 @@
 // src/app/services/demandes-services.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
@@ -49,13 +49,27 @@ export class DemandesServiceService {
             const type_libelle = typeof d?.typeDemande?.libelle === 'string' ? d.typeDemande.libelle : undefined;
             const statut_libelle = typeof d?.statutDemande?.libelle === 'string' ? d.statutDemande.libelle : undefined;
 
+            const normalizeString = (value: unknown): string | null => {
+              if (value == null) {
+                return null;
+              }
+              const str = String(value).trim();
+              return str.length > 0 ? str : null;
+            };
+
             const c = d?.client;
             const client = (c && toNum(c.idClient) != null)
               ? {
                 id_client: toNum(c.idClient)!,
                 nom: String(c.nom ?? ''),
                 prenom: typeof c.prenom === 'string' ? c.prenom : undefined,
-                email: String(c.email ?? '')
+                email: String(c.email ?? ''),
+                telephone: normalizeString(c.telephone),
+                immatriculation: normalizeString(c.immatriculation),
+                adresseLigne1: normalizeString(c.adresseLigne1),
+                adresseLigne2: normalizeString(c.adresseLigne2),
+                adresseCodePostal: normalizeString(c.adresseCodePostal ?? c.adresse_codePostal),
+                adresseVille: normalizeString(c.adresseVille)
               }
               : undefined;
 
@@ -94,15 +108,34 @@ export class DemandesServiceService {
     payload: {
       codeType?: DemandeWithServices['code_type'];
       codeStatut?: DemandeWithServices['code_statut'];
+      immatriculation?: string | null;
       services?: Array<{
         libelle?: string;
         idService: number;
         quantite: number;
         prixUnitaire?: number | null;
       }>;
-    }
+    },
+    options?: { silentError?: boolean }
   ) {
-    return this.http.put<DemandeWithServices>(`${this.apiBase}/demandes/${id}`, payload);
+    const body: Record<string, unknown> = {};
+
+    if (payload.codeType) body['codeType'] = payload.codeType;
+    if (payload.codeStatut) body['codeStatut'] = payload.codeStatut;
+    if ('immatriculation' in payload) body['immatriculation'] = payload.immatriculation;
+    if (payload.services) body['services'] = payload.services;
+
+    const headers = options?.silentError
+      ? new HttpHeaders({ 'X-Skip-Error-Toast': '1' })
+      : undefined;
+
+    const httpOptions = headers ? { headers } : undefined;
+
+    return this.http.put<DemandeWithServices>(
+      `${this.apiBase}/demandes/${id}`,
+      body,
+      httpOptions
+    );
   }
 
   delete(id: number) {
