@@ -3,6 +3,7 @@ export interface ServiceItem {
   libelle: string;      // libellé du service (ex: "Vidange")
   quantite: number;
   prix_unitaire?: number;
+  quantite_max?: number;
 }
 
 export interface DemandeDto {

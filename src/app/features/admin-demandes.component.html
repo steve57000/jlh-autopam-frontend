@@ -138,6 +138,60 @@
 
         <section class="details-block details-grid">
           <label>
+            <span>Téléphone</span>
+            <input
+              type="tel"
+              [ngModel]="draft.client?.telephone ?? ''"
+              (ngModelChange)="updateClientField('telephone', $event)"
+            />
+          </label>
+          <label>
+            <span>Immatriculation</span>
+            <input
+              type="text"
+              [ngModel]="draft.client?.immatriculation ?? ''"
+              (ngModelChange)="updateClientField('immatriculation', $event)"
+            />
+          </label>
+        </section>
+
+        <section class="details-block details-grid">
+          <label>
+            <span>Adresse — ligne 1</span>
+            <input
+              type="text"
+              [ngModel]="draft.client?.adresseLigne1 ?? ''"
+              (ngModelChange)="updateClientField('adresseLigne1', $event)"
+            />
+          </label>
+          <label>
+            <span>Adresse — ligne 2</span>
+            <input
+              type="text"
+              [ngModel]="draft.client?.adresseLigne2 ?? ''"
+              (ngModelChange)="updateClientField('adresseLigne2', $event)"
+            />
+          </label>
+          <label>
+            <span>Code postal</span>
+            <input
+              type="text"
+              [ngModel]="draft.client?.adresseCodePostal ?? ''"
+              (ngModelChange)="updateClientField('adresseCodePostal', $event)"
+            />
+          </label>
+          <label>
+            <span>Ville</span>
+            <input
+              type="text"
+              [ngModel]="draft.client?.adresseVille ?? ''"
+              (ngModelChange)="updateClientField('adresseVille', $event)"
+            />
+          </label>
+        </section>
+
+        <section class="details-block details-grid">
+          <label>
             <span>Type de demande</span>
             <select [ngModel]="draft.code_type" (ngModelChange)="setDraftType($event)">
               @for (t of types; track t) {
@@ -166,6 +220,7 @@
             <tr>
               <th>Libellé</th>
               <th>Quantité</th>
+              <th>Qté max</th>
               <th>Prix unitaire (€)</th>
             </tr>
             </thead>
@@ -177,6 +232,9 @@
                 </td>
                 <td>
                   <input type="number" min="1" [ngModel]="service.quantite" (ngModelChange)="updateServiceField(i, 'quantite', $event)" />
+                </td>
+                <td>
+                  <span class="readonly">{{ service.quantite_max ?? '—' }}</span>
                 </td>
                 <td>
                   <input type="number" step="0.01" [ngModel]="service.prix_unitaire ?? ''" (ngModelChange)="updateServiceField(i, 'prix_unitaire', $event)" />
