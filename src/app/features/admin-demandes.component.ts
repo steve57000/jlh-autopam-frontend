@@ -210,7 +210,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.feedback.set(null);
     this.feedbackType.set(null);
 
-    const client = this.normalizeClientForUpdate(draft.client);
+    const client = this.buildClientPayload(draft.client);
 
     const payload = {
       codeType: draft.code_type,
@@ -394,7 +394,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     };
   }
 
-  private normalizeClientForUpdate(
+  private buildClientPayload(
     client: DemandeWithServices['client'] | undefined
   ): {
     telephone?: string | null;
@@ -409,14 +409,17 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       return undefined;
     }
 
-    return {
-      telephone: trimmed.telephone ?? null,
-      immatriculation: trimmed.immatriculation ?? null,
-      adresseLigne1: trimmed.adresseLigne1 ?? null,
-      adresseLigne2: trimmed.adresseLigne2 ?? null,
-      adresseCodePostal: trimmed.adresseCodePostal ?? null,
-      adresseVille: trimmed.adresseVille ?? null
+    const payload = {
+      telephone: this.trimOrNull(trimmed.telephone),
+      immatriculation: this.trimOrNull(trimmed.immatriculation),
+      adresseLigne1: this.trimOrNull(trimmed.adresseLigne1),
+      adresseLigne2: this.trimOrNull(trimmed.adresseLigne2),
+      adresseCodePostal: this.trimOrNull(trimmed.adresseCodePostal),
+      adresseVille: this.trimOrNull(trimmed.adresseVille)
     };
+
+    const hasData = Object.values(payload).some(value => value != null);
+    return hasData ? payload : undefined;
   }
 
   private trimOrNull(value: string | null | undefined): string | null {
