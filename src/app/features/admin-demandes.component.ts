@@ -215,12 +215,12 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     const payload = {
       codeType: draft.code_type,
       codeStatut: draft.code_statut,
-      immatriculation: client.immatriculation ?? null,
-      telephone: trimOrEmpty(client.telephone),
-      adresseLigne1: trimOrEmpty(client.adresseLigne1),
-      adresseLigne2: trimOrEmpty(client.adresseLigne2),
-      adresseCodePostal: trimOrEmpty(client.adresseCodePostal),
-      adresseVille: trimOrEmpty(client.adresseVille),
+      immatriculation: client?.immatriculation ?? null,
+      telephone: this.trimOrEmpty(client?.telephone),
+      adresseLigne1: this.trimOrEmpty(client?.adresseLigne1),
+      adresseLigne2: this.trimOrEmpty(client?.adresseLigne2),
+      adresseCodePostal: this.trimOrEmpty(client?.adresseCodePostal),
+      adresseVille: this.trimOrEmpty(client?.adresseVille),
       services: draft.services.map(s => ({
         libelle: s.libelle,
         idService: s.id_service,
@@ -369,7 +369,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
         prix_unitaire: typeof priceRaw === 'number' && Number.isFinite(priceRaw)
           ? Number(priceRaw.toFixed(2))
           : undefined,
-        quantite_max: Number.isFinite(maxQty) ? Math.max(1, Math.round(maxQty)) : undefined
+        quantite_max: Number.isFinite(maxQty) ? Math.max(1, Math.round(<number>maxQty)) : undefined
       } satisfies ServiceItem;
     });
   }
