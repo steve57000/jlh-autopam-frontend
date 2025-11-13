@@ -54,7 +54,13 @@ export class DemandesServiceService {
                 id_client: toNum(c.idClient)!,
                 nom: String(c.nom ?? ''),
                 prenom: typeof c.prenom === 'string' ? c.prenom : undefined,
-                email: String(c.email ?? '')
+                email: String(c.email ?? ''),
+                telephone: typeof c.telephone === 'string' ? c.telephone : undefined,
+                immatriculation: typeof c.immatriculation === 'string' ? c.immatriculation : undefined,
+                adresseLigne1: typeof c.adresseLigne1 === 'string' ? c.adresseLigne1 : null,
+                adresseLigne2: typeof c.adresseLigne2 === 'string' ? c.adresseLigne2 : null,
+                adresseCodePostal: typeof c.adresseCodePostal === 'string' ? c.adresseCodePostal : null,
+                adresseVille: typeof c.adresseVille === 'string' ? c.adresseVille : null
               }
               : undefined;
 
@@ -63,7 +69,8 @@ export class DemandesServiceService {
                 id_service: toNum(s?.idService) ?? -1,
                 libelle: String(s?.libelle ?? ''),
                 quantite: toNum(s?.quantite) ?? 1,
-                prix_unitaire: toNum(s?.prixUnitaire) ?? undefined
+                prix_unitaire: toNum(s?.prixUnitaire) ?? undefined,
+                quantite_max: toNum(s?.quantiteMax ?? s?.quantite_max) ?? undefined
               }))
               : [];
 
@@ -94,6 +101,11 @@ export class DemandesServiceService {
       codeType?: DemandeWithServices['code_type'];
       codeStatut?: DemandeWithServices['code_statut'];
       immatriculation?: string | null;
+      telephone?: string | null;
+      adresseLigne1?: string | null;
+      adresseLigne2?: string | null;
+      adresseCodePostal?: string | null;
+      adresseVille?: string | null;
       services?: Array<{
         libelle?: string;
         idService: number;
@@ -108,6 +120,11 @@ export class DemandesServiceService {
     if (payload.codeType) body['codeType'] = payload.codeType;
     if (payload.codeStatut) body['codeStatut'] = payload.codeStatut;
     if ('immatriculation' in payload) body['immatriculation'] = payload.immatriculation;
+    if ('telephone' in payload) body['telephone'] = payload.telephone;
+    if ('adresseLigne1' in payload) body['adresseLigne1'] = payload.adresseLigne1;
+    if ('adresseLigne2' in payload) body['adresseLigne2'] = payload.adresseLigne2;
+    if ('adresseCodePostal' in payload) body['adresseCodePostal'] = payload.adresseCodePostal;
+    if ('adresseVille' in payload) body['adresseVille'] = payload.adresseVille;
     if (payload.services) body['services'] = payload.services;
 
     const headers = options?.silentError

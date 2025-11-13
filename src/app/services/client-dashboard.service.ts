@@ -13,6 +13,7 @@ export interface DemandeServiceDto {
   libelle: string;
   prixUnitaire: number;
   quantite: number;
+  quantiteMax?: number;
 }
 export interface TypeDemandeDto { codeType: string; libelle?: string; }
 export interface StatutDemandeDto { codeStatut: string; libelle?: string; }

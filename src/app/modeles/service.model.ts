@@ -3,4 +3,5 @@ export interface ServiceDto {
   libelle: string;
   description?: string;
   prixUnitaire: number | string;
+  quantiteMax: number | string;
 }
