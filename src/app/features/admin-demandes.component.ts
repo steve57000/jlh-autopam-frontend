@@ -374,29 +374,36 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     });
   }
 
-  private trimClientStrings(client: DemandeWithServices['client'] | undefined) {
-    if (!client) return undefined;
+  private trimClientStrings(
+    client: DemandeWithServices['client'] | undefined
+  ): NonNullable<DemandeWithServices['client']> | undefined {
+    if (!client) {
+      return undefined;
+    }
 
-    const trimOrNull = (value: string | null | undefined) => {
-      if (value == null) {
-        return null;
-      }
-      const trimmed = String(value).trim();
-      return trimmed.length ? trimmed : null;
-    };
+    const base = { ...client } as NonNullable<DemandeWithServices['client']>;
 
     return {
-      ...client,
-      telephone: trimOrNull(client.telephone ?? null),
-      immatriculation: trimOrNull(client.immatriculation ?? null),
-      adresseLigne1: trimOrNull(client.adresseLigne1 ?? null),
-      adresseLigne2: trimOrNull(client.adresseLigne2 ?? null),
-      adresseCodePostal: trimOrNull(client.adresseCodePostal ?? null),
-      adresseVille: trimOrNull(client.adresseVille ?? null)
+      ...base,
+      telephone: this.trimOrNull(base.telephone),
+      immatriculation: this.trimOrNull(base.immatriculation),
+      adresseLigne1: this.trimOrNull(base.adresseLigne1),
+      adresseLigne2: this.trimOrNull(base.adresseLigne2),
+      adresseCodePostal: this.trimOrNull(base.adresseCodePostal),
+      adresseVille: this.trimOrNull(base.adresseVille)
     };
   }
 
-  private normalizeClientForUpdate(client: DemandeWithServices['client'] | undefined) {
+  private normalizeClientForUpdate(
+    client: DemandeWithServices['client'] | undefined
+  ): {
+    telephone?: string | null;
+    immatriculation?: string | null;
+    adresseLigne1?: string | null;
+    adresseLigne2?: string | null;
+    adresseCodePostal?: string | null;
+    adresseVille?: string | null;
+  } | undefined {
     const trimmed = this.trimClientStrings(client);
     if (!trimmed) {
       return undefined;
@@ -410,6 +417,31 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       adresseCodePostal: trimmed.adresseCodePostal ?? null,
       adresseVille: trimmed.adresseVille ?? null
     };
+  }
+
+  private trimOrNull(value: string | null | undefined): string | null {
+    if (value == null) {
+      return null;
+    }
+
+    const trimmed = String(value).trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  trimOrEmpty(value: string | null | undefined): string {
+    return this.trimOrNull(value) ?? '';
+  }
+
+  // Compatibilité : certaines sections du template utilisent encore mergeClient pour combiner
+  // les informations du client. On conserve une implémentation sûre ici pour éviter les erreurs
+  // lors de la compilation stricte.
+  mergeClient(
+    current: DemandeWithServices['client'] | undefined,
+    updates: Partial<NonNullable<DemandeWithServices['client']>>
+  ): NonNullable<DemandeWithServices['client']> {
+    const base = this.trimClientStrings(current) ?? ({} as NonNullable<DemandeWithServices['client']>);
+    const merged = { ...base, ...updates };
+    return this.trimClientStrings(merged) ?? merged;
   }
 
   @HostListener('document:keydown.escape')
