@@ -1,12 +1,13 @@
 @use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
 
 .carousel-section {
   width: 100%;
-  min-height: 520px;
-  padding: 44px 0;
+  padding-block: clamp(3rem, 7vw, 5rem);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: clamp(2rem, 4vw, 3rem);
 
   &.gradient {
     background: v.$linear-bg;
@@ -16,6 +17,7 @@
   }
   .container-max{
     flex-direction: column;
+    gap: clamp(1.5rem, 4vw, 2.5rem);
   }
   .carousel-title {
     font-family: v.$font-title;
@@ -23,6 +25,7 @@
     font-weight: 600;
     margin-left: 0;
     margin-top: 0;
+    @include m.fluid-text(1.75rem, 2.6rem);
   }
   &.white .carousel-title {
     color: v.$color-primary;
@@ -34,7 +37,7 @@
     justify-content: center;
     align-items: flex-start;
     position: relative;
-    min-height: 440px;
+    min-height: clamp(380px, 45vw, 460px);
   }
   .carousel-card {
     position: absolute;
@@ -43,7 +46,7 @@
     transform: translateX(-55%) scale(1);
     max-width: 500px;
     min-width: 280px;
-    min-height: 400px;
+    min-height: clamp(320px, 42vw, 420px);
     width: 100%;
     border-radius: v.$border-radius-high * 1.6;
     box-shadow: 0 14px 32px 0 rgba(33,50,54,0.22);
@@ -51,9 +54,10 @@
     z-index: 1;
     pointer-events: none;
     transition: all 0.35s cubic-bezier(.77,0,.18,1);
-    padding: 44px 38px 44px 38px;
+    padding: clamp(2rem, 3vw, 2.75rem);
     display: flex;
     flex-direction: column;
+    gap: 1rem;
 
     &.light {
       background: #fff;
@@ -83,7 +87,7 @@
   }
   .card-title {
     font-family: v.$font-title;
-    font-size: 1.13rem;
+    @include m.fluid-text(1rem, 1.35rem, 320, 1400);
     font-weight: 700;
     margin: 0 0 1.4rem 0;
     text-transform: uppercase;
@@ -91,8 +95,8 @@
   }
   .card-content {
     font-family: v.$font-body;
-    font-size: 1.06rem;
-    line-height: 1.5;
+    font-size: clamp(0.98rem, 0.94rem + 0.25vw, 1.1rem);
+    line-height: 1.6;
     margin: 0;
   }
   .carousel-dots {
@@ -118,34 +122,78 @@
   }
 }
 
-@media (max-width: 960px) {
+@include m.respond-to('tablet') {
   .carousel-section {
+    .carousel {
+      min-height: 360px;
+    }
+
     .carousel-card {
+      max-width: 460px;
       &.next {
-        transform: translateX(-35%) scale(0.89);
+        transform: translateX(-32%) scale(0.9);
       }
     }
   }
 }
 
-@media (max-width: 660px) {
+@include m.respond-to('tablet-sm') {
   .carousel-section {
-    padding: 0;
+    align-items: center;
+
+    .carousel-title {
+      text-align: center;
+    }
+
+    .carousel {
+      min-height: 340px;
+    }
+
     .carousel-card {
-      width: 320px;
-      padding: 16px;
+      width: clamp(280px, 70vw, 360px);
+      padding: clamp(1.5rem, 6vw, 2rem);
+      border-radius: v.$border-radius-high * 1.2;
+
       &.next {
-        transform: translateX(-40%) scale(0.89);
+        transform: translateX(-25%) scale(0.92);
+        opacity: 0.5;
       }
     }
   }
 }
 
-@media (max-width: 420px) {
+@include m.respond-to('mobile') {
   .carousel-section {
-    padding: 0;
+    padding-block: clamp(2.5rem, 10vw, 3.5rem);
+
+    .carousel {
+      min-height: 320px;
+    }
+
     .carousel-card {
-      width: 300px;
+      position: relative;
+      left: 0;
+      transform: none;
+      margin-inline: auto;
+      width: min(90vw, 320px);
+      opacity: 1;
+      pointer-events: auto;
+
+      &.next {
+        display: none;
+      }
+    }
+
+    .carousel-dots {
+      gap: 0.75rem;
+    }
+  }
+}
+
+@include m.respond-to('mobile-sm') {
+  .carousel-section {
+    .carousel-card {
+      width: min(92vw, 300px);
     }
   }
 }

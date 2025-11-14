@@ -1,5 +1,37 @@
-@use "sass:color";
+@use 'sass:color';
+@use 'sass:map';
 @use './variables' as v;
+
+/* ========= Breakpoints ========= */
+$breakpoints: (
+  'desktop-xl': 1600px,
+  'desktop': 1360px,
+  'laptop': 1200px,
+  'tablet': 992px,
+  'tablet-sm': 768px,
+  'mobile': 600px,
+  'mobile-sm': 420px,
+);
+
+@mixin respond-to($name) {
+  $size: map.get($breakpoints, $name);
+
+  @if $size {
+    @media (max-width: $size) {
+      @content;
+    }
+  } @else {
+    @warn 'Breakpoint `#{$name}` is not defined in `$breakpoints`.';
+  }
+}
+
+@mixin fluid-text($min, $max, $min-vw: 320, $max-vw: 1600) {
+  font-size: clamp(
+    #{$min},
+    calc(#{$min} + (#{$max - $min}) * ((100vw - #{$min-vw}px) / #{($max-vw - $min-vw)})),
+    #{$max}
+  );
+}
 
 /* ========= Text helpers ========= */
 @mixin text-fill-center($base-color, $fill-color, $duration: .4s) {
