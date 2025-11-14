@@ -44,7 +44,7 @@ a {
   color: v.$color-secondary;
   text-decoration: none;
   transition: color v.$transition-fast;
-  &:hover:not(.cta-btn-secondary) { color: v.$color-tertiary; }
+  &:hover:not(.cta-btn):not(.cta-btn-secondary) { color: v.$color-tertiary; }
 }
 
 a.cta-btn-secondary { text-align: center; }
