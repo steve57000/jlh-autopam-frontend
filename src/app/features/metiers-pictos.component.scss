@@ -53,13 +53,47 @@
       flex-direction: column;
       align-items: center;
 
+      .picto-button {
+        border: none;
+        background: linear-gradient(180deg, rgba(v.$color-secondary, .12), rgba(v.$color-primary, .08));
+        border-radius: 20px;
+        padding: 1.8rem 1rem 1.6rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+        transition: transform .35s ease, box-shadow .35s ease, background .35s ease;
+        text-decoration: none;
+
+        &:hover,
+        &:focus-visible {
+          transform: translateY(-8px);
+          box-shadow: 0 16px 30px rgba(0,0,0,0.28);
+          background: linear-gradient(180deg, rgba(v.$color-secondary, .18), rgba(v.$color-tertiary, .14));
+        }
+
+        &:focus-visible {
+          outline: 3px solid rgba(v.$color-secondary, .55);
+          outline-offset: 4px;
+        }
+      }
+
       .picto-img {
         width: 82px;
         height: 82px;
-        margin-bottom: .9rem;
+        margin-bottom: 0;
         border-radius: 50%;
         box-shadow: 0 5px 10px rgba(0,0,0,0.45);
         background: v.$color-secondary;
+        transition: transform .3s ease, box-shadow .3s ease;
+      }
+
+      .picto-button:hover .picto-img,
+      .picto-button:focus-visible .picto-img {
+        transform: scale(1.05);
+        box-shadow: 0 12px 22px rgba(0,0,0,0.35);
       }
 
       .picto-label {
@@ -72,6 +106,97 @@
         letter-spacing: .01em;
       }
     }
+  }
+}
+
+.services-cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 3rem;
+}
+
+.service-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+
+  .service-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .6);
+    backdrop-filter: blur(2px);
+  }
+
+  .service-modal__dialog {
+    position: relative;
+    background: #fff;
+    border-radius: 22px;
+    padding: 2.6rem 2.2rem 2.8rem;
+    max-width: 520px;
+    width: min(92vw, 520px);
+    box-shadow: v.$shadow-elev;
+    border-top: 6px solid v.$color-secondary;
+    text-align: center;
+    outline: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .service-modal__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    border: none;
+    background: transparent;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    color: v.$color-primary;
+    transition: color .2s ease;
+
+    &:hover,
+    &:focus-visible {
+      color: v.$color-tertiary;
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(v.$color-secondary, .6);
+      outline-offset: 3px;
+    }
+  }
+
+  .service-modal__icon {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    box-shadow: 0 10px 18px rgba(0,0,0,0.25);
+    background: v.$color-secondary;
+    padding: .65rem;
+  }
+
+  .service-modal__title {
+    font-family: v.$font-title;
+    color: v.$color-secondary;
+    font-size: 1.8rem;
+    margin: .4rem 0 0;
+  }
+
+  .service-modal__description {
+    font-family: v.$font-body;
+    color: v.$color-primary;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .service-modal__cta {
+    margin-top: .5rem;
   }
 }
 
@@ -91,9 +216,12 @@
         grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
         gap: 2.3rem 1rem;
       }
+      .picto-button {
+        padding: 1.4rem .75rem 1.3rem;
+      }
       .picto-img {
-        width: 60px;
-        height: 60px;
+        width: 64px;
+        height: 64px;
       }
       .picto-label {
         font-size: .97rem;
@@ -109,6 +237,23 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 2rem .8rem;
       }
+    }
+  }
+
+  .service-modal {
+    padding: 1rem;
+
+    .service-modal__dialog {
+      padding: 2rem 1.4rem 2.2rem;
+      gap: .85rem;
+    }
+
+    .service-modal__title {
+      font-size: 1.5rem;
+    }
+
+    .service-modal__description {
+      font-size: .95rem;
     }
   }
 }

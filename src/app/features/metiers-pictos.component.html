@@ -4,17 +4,62 @@
     <div class="pictos-wrapper" appInViewport>
       @for (item of items; track item.img) {
         <div class="picto-bloc">
-          <img
-            [ngSrc]="item.img"
-            [alt]="item.label"
-            class="picto-img"
-            width="150"
-            height="150"
-            loading="lazy"
-          />
-          <div class="picto-label">{{ item.label }}</div>
+          <button
+            type="button"
+            class="picto-button"
+            (click)="openModal(item, $event)"
+            [attr.aria-label]="'En savoir plus sur ' + item.label"
+            aria-haspopup="dialog"
+          >
+            <img
+              [ngSrc]="item.img"
+              [alt]="item.label"
+              class="picto-img"
+              width="150"
+              height="150"
+              loading="lazy"
+            />
+            <div class="picto-label">{{ item.label }}</div>
+          </button>
         </div>
       }
     </div>
+    <div class="services-cta" appInViewport>
+      <a class="cta-btn" routerLink="/services">Découvrir tous nos services</a>
+    </div>
   </div>
+  @if (selectedItem; as active) {
+    <div class="service-modal">
+      <div class="service-modal__backdrop" (click)="closeModal()" aria-hidden="true"></div>
+      <div
+        #dialogElement
+        class="service-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="service-modal-title"
+        aria-describedby="service-modal-description"
+        tabindex="-1"
+      >
+        <button
+          type="button"
+          class="service-modal__close"
+          (click)="closeModal()"
+          aria-label="Fermer la fenêtre"
+        >
+          ×
+        </button>
+        <img
+          [ngSrc]="active.img"
+          [alt]="active.label"
+          width="150"
+          height="150"
+          class="service-modal__icon"
+          loading="lazy"
+        />
+        <h3 id="service-modal-title" class="service-modal__title">{{ active.label }}</h3>
+        <p id="service-modal-description" class="service-modal__description">{{ active.description }}</p>
+        <a class="cta-btn service-modal__cta" routerLink="/services">Voir tous nos services</a>
+      </div>
+    </div>
+  }
 </section>
