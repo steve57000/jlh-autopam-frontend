@@ -1,8 +1,29 @@
-.app-promotions-slider {
-  width: 100%;
-}
+@use '../../styles/mixins' as m;
+@use '../../styles/variables' as v;
 
 .container-main {
   display: flex;
   flex-direction: column;
+  gap: clamp(3rem, 6vw, 6rem);
+  padding-bottom: clamp(3rem, 6vw, 6rem);
+  background: radial-gradient(circle at top right, rgba(#fff, 0.08), transparent 45%), v.$color-quaternary;
+
+  > * {
+    width: 100%;
+  }
+
+  app-promotions-slider {
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+
+.app-promotions-slider {
+  width: min(1200px, 100%);
+}
+
+@include m.respond-to('tablet') {
+  .container-main {
+    gap: clamp(2.5rem, 10vw, 5rem);
+  }
 }

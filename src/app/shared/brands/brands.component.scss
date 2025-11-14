@@ -1,16 +1,28 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
 .brands-section {
-  padding: clamp(24px, 4vw, 56px) 0;
-  background: #0d0d0f; // fond sombre (cohérent avec tes tons noirs)
-  color: #fff;
+  padding-block: clamp(3rem, 6vw, 4.5rem);
+  background: linear-gradient(180deg, rgba(#000, 0.85), rgba(#000, 0.92)),
+    v.$linear-bg;
+  color: v.$color-quaternary;
 
   .container {
     width: min(1200px, 92vw);
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.5rem, 4vw, 2.5rem);
   }
 
   .title {
-    font-size: clamp(1.25rem, 1.1rem + 1.5vw, 2rem);
-    margin: 0 0 16px;
+    margin: 0;
+    font-family: v.$font-title;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgba(#fff, 0.92);
+    @include m.fluid-text(1.6rem, 2.3rem, 320, 1400);
   }
 
   .rail-wrap {
@@ -19,51 +31,57 @@
 
   .rail {
     display: grid;
-    gap: 16px;
+    gap: clamp(0.75rem, 2vw, 1.25rem);
     align-items: center;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    background: rgba(#fff, 0.05);
+    border-radius: v.$border-radius-high * 1.3;
+    padding: clamp(1rem, 2vw, 1.75rem);
+    border: 1px solid rgba(#fff, 0.08);
+    box-shadow: inset 0 1px 0 rgba(#fff, 0.08);
 
-    /* Grands écrans : grille complète */
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    @include m.respond-to('tablet') {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
 
-    /* Visuel */
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 16px;
-    padding: clamp(8px, 1vw, 16px);
-
-    /* Petits écrans : passe en carrousel horizontal */
-    @media (max-width: 900px) {
+    @include m.respond-to('tablet-sm') {
       display: flex;
-      gap: 12px;
+      gap: clamp(0.75rem, 4vw, 1.25rem);
       overflow-x: auto;
       scroll-behavior: smooth;
       scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
-      padding: 12px 40px; /* pour laisser place aux chevrons */
+      padding: clamp(0.75rem, 5vw, 1.25rem) clamp(2.5rem, 6vw, 3rem);
+      scrollbar-width: none;
 
-      /* Masquer scrollbar (sans l’empêcher d’exister/accessibilité) */
-      scrollbar-width: none; /* Firefox */
-      &::-webkit-scrollbar { display: none; }
+      &::-webkit-scrollbar {
+        display: none;
+      }
     }
   }
 
   .brand-item {
-    height: 104px;
-    min-width: 140px;
-    padding: 8px 8px;
-    background: rgb(255, 255, 255);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
+    height: clamp(90px, 12vw, 110px);
+    min-width: 150px;
+    padding: clamp(0.6rem, 2vw, 1rem);
+    background: #fff;
+    border-radius: v.$border-radius-high;
+    border: 1px solid rgba(#fff, 0.16);
     display: grid;
     place-items: center;
     scroll-snap-align: start;
-    align-content: center;
-    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 30px rgba(#000, 0.25);
+    }
 
     img {
       max-height: 100%;
       max-width: 100%;
-      object-fit: cover;
-      filter: brightness(1) contrast(1.05);
+      object-fit: contain;
+      filter: brightness(1) contrast(1.08);
     }
   }
 
@@ -73,37 +91,49 @@
     translate: 0 -50%;
     width: 36px;
     height: 36px;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.25);
-    background: rgba(0,0,0,0.45);
+    border-radius: 50%;
+    border: 1px solid rgba(#fff, 0.25);
+    background: rgba(#000, 0.55);
     color: #fff;
-    font-size: 32px;
+    font-size: 28px;
     line-height: 1;
     display: grid;
     place-items: center;
     cursor: pointer;
     user-select: none;
-    transition: transform .15s ease, background .15s ease, opacity .2s ease;
+    transition: transform 0.15s ease, background 0.15s ease, opacity 0.2s ease;
     z-index: 1;
 
-    &:hover { transform: translateY(-50%) scale(1.06); }
-    &:active { transform: translateY(-50%) scale(0.98); }
+    &:hover {
+      transform: translateY(-50%) scale(1.08);
+    }
 
-    &--left { left: 8px; }
-    &--right { right: 8px; }
+    &:active {
+      transform: translateY(-50%) scale(0.96);
+    }
 
-    /* Masquer les chevrons quand on est en grille (desktop) */
+    &--left {
+      left: clamp(0.5rem, 2vw, 1.25rem);
+    }
+
+    &--right {
+      right: clamp(0.5rem, 2vw, 1.25rem);
+    }
+
     @media (min-width: 901px) {
       display: none;
     }
   }
 
-  /* Texte seulement pour lecteurs d’écran */
   .sr-only {
     position: absolute;
-    width: 1px; height: 1px;
-    padding: 0; margin: -1px;
-    overflow: hidden; clip: rect(0, 0, 0, 0);
-    white-space: nowrap; border: 0;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 }
