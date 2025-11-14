@@ -1,6 +1,6 @@
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, Inject, PLATFORM_ID } from '@angular/core';
 import { PromotionModel } from '../modeles/promotion.model';
-import {DatePipe, NgOptimizedImage} from '@angular/common';
+import {DatePipe, NgOptimizedImage, isPlatformBrowser} from '@angular/common';
 
 import { MatIconModule } from '@angular/material/icon';
 
@@ -18,7 +18,9 @@ import { MatIconModule } from '@angular/material/icon';
 export class PromotionsSliderComponent implements OnInit, OnDestroy, OnChanges {
   @Input() promotions: PromotionModel[] = [];
   currentIndex = 0;
-  autoSlideInterval: any = null;
+  autoSlideInterval: ReturnType<typeof setInterval> | null = null;
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
   ngOnInit() {
     this.handlePromotionsChange(this.promotions);
@@ -51,7 +53,11 @@ export class PromotionsSliderComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   goTo(index: number) {
-    this.currentIndex = index;
+    if (!this.promotions?.length) {
+      return;
+    }
+
+    this.currentIndex = Math.max(0, Math.min(index, this.promotions.length - 1));
   }
 
   getImageUrl(imageUrl: string): string {
@@ -59,23 +65,30 @@ export class PromotionsSliderComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private handlePromotionsChange(promotions: PromotionModel[]) {
-    if (promotions?.length > 1) {
-      this.startAutoSlide();
+    if (!promotions?.length) {
+      this.stopAutoSlide();
+      this.currentIndex = 0;
+      return;
+    }
+
+    if (this.currentIndex >= promotions.length) {
+      this.currentIndex = 0;
+    }
+
+    if (promotions.length > 1) {
+      this.restartAutoSlide();
     } else {
       this.stopAutoSlide();
     }
-
-    if (!promotions?.length) {
-      this.currentIndex = 0;
-    } else if (this.currentIndex >= promotions.length) {
-      this.currentIndex = 0;
-    }
   }
 
-  private startAutoSlide() {
-    if (!this.autoSlideInterval) {
-      this.autoSlideInterval = setInterval(() => this.next(), 5000);
+  private restartAutoSlide() {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
     }
+
+    this.stopAutoSlide();
+    this.autoSlideInterval = setInterval(() => this.next(), 5000);
   }
 
   private stopAutoSlide() {
