@@ -1,0 +1,7 @@
+@use '../../styles/variables' as vars;
+
+.page--service-mecanique {
+  .page-card {
+    border: 1px solid rgba(vars.$color-secondary, 0.25);
+  }
+}

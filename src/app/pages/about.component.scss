@@ -1,0 +1,7 @@
+@use '../../styles/variables' as vars;
+
+.page--about {
+  .page-card {
+    border: 1px solid rgba(vars.$color-quaternary, 0.08);
+  }
+}

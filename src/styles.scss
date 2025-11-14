@@ -162,4 +162,171 @@ a.cta-btn-secondary { text-align: center; }
   }
 }
 
+/* -----------------------------------------------------
+   Layout générique pour les pages de contenu éditorial
+----------------------------------------------------- */
+
+.page {
+  background: v.$linear-bg;
+  color: v.$color-quaternary;
+  padding-block: clamp(3.5rem, 8vw, 6rem);
+}
+
+.page__container {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2rem, 5vw, 3.5rem);
+  width: 100%;
+}
+
+.page__intro {
+  display: grid;
+  gap: 1rem;
+  max-width: min(880px, 100%);
+}
+
+.page__eyebrow {
+  font-family: v.$font-subtitle;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: rgba(v.$color-quaternary, 0.7);
+}
+
+.page__lead {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  max-width: 720px;
+}
+
+.page__section {
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.page__section-title {
+  font-family: v.$font-title;
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  margin: 0;
+}
+
+.page__grid {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2rem);
+}
+
+.page__grid--two {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.page__grid--three {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.page-card {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: v.$border-radius-high;
+  box-shadow: v.$shadow-small-light;
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  display: grid;
+  gap: 0.75rem;
+  backdrop-filter: blur(12px);
+}
+
+.page-card__title {
+  font-family: v.$font-subtitle;
+  font-size: 1.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: v.$color-tertiary;
+  margin: 0;
+}
+
+.page-card__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.page-card__list li {
+  position: relative;
+  padding-left: 1.5rem;
+  line-height: 1.55;
+}
+
+.page-card__list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55rem;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  background: v.$color-tertiary;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+}
+
+.page__cta-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.page__highlight {
+  border-left: 4px solid v.$color-tertiary;
+  padding-left: 1rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  max-width: 760px;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding-block: clamp(2.5rem, 10vw, 4rem);
+  }
+
+  .page__cta-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.page--document {
+  background: linear-gradient(120deg, rgba(77, 134, 141, 0.85), rgba(64, 64, 64, 0.95));
+  color: v.$color-primary;
+
+  .page__intro {
+    color: v.$color-quaternary;
+  }
+
+  .document-card {
+    background: rgba(v.$color-quaternary, 0.95);
+    color: v.$color-primary;
+    border-radius: v.$border-radius-high;
+    padding: clamp(2rem, 5vw, 3rem);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .document-card h2 {
+    font-family: v.$font-title;
+    font-size: clamp(1.4rem, 3vw, 1.9rem);
+    color: v.$color-secondary;
+    margin: 0;
+  }
+
+  .document-card p {
+    margin: 0;
+    line-height: 1.8;
+  }
+
+  .document-card a {
+    color: v.$color-secondary;
+    text-decoration: underline;
+  }
+}
+
 

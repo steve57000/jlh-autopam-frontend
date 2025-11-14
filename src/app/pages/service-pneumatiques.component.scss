@@ -1,0 +1,7 @@
+@use '../../styles/variables' as vars;
+
+.page--service-pneumatiques {
+  .page-card {
+    border: 1px solid rgba(vars.$color-quaternary, 0.15);
+  }
+}
