@@ -1,0 +1,13 @@
+@use '../../styles/variables' as vars;
+
+.page--values {
+  .value-card {
+    border: 1px solid rgba(vars.$color-quaternary, 0.12);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 24px 45px rgba(0, 0, 0, 0.35);
+    }
+  }
+}

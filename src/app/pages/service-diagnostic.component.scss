@@ -1,0 +1,7 @@
+@use '../../styles/variables' as vars;
+
+.page--service-diagnostic {
+  .page-card {
+    border: 1px solid rgba(vars.$color-tertiary, 0.2);
+  }
+}

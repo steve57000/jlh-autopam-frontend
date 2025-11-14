@@ -1,0 +1,13 @@
+@use '../../styles/variables' as vars;
+
+.page--service {
+  .page-card {
+    border: 1px solid rgba(vars.$color-quaternary, 0.12);
+  }
+}
+
+.page--service-entretien {
+  .page__cta-group .cta-btn {
+    background: linear-gradient(120deg, vars.$color-tertiary, vars.$color-secondary);
+  }
+}
