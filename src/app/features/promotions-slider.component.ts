@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { PromotionModel } from '../modeles/promotion.model';
 import {DatePipe, NgOptimizedImage} from '@angular/common';
 
@@ -15,26 +15,38 @@ import { MatIconModule } from '@angular/material/icon';
   ],
   standalone: true
 })
-export class PromotionsSliderComponent implements OnInit, OnDestroy {
+export class PromotionsSliderComponent implements OnInit, OnDestroy, OnChanges {
   @Input() promotions: PromotionModel[] = [];
   currentIndex = 0;
-  autoSlideInterval: any;
+  autoSlideInterval: any = null;
 
   ngOnInit() {
-    if (this.promotions.length > 1) {
-      this.autoSlideInterval = setInterval(() => this.next(), 5000);
+    this.handlePromotionsChange(this.promotions);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['promotions']) {
+      this.handlePromotionsChange(changes['promotions'].currentValue || []);
     }
   }
 
   ngOnDestroy() {
-    if (this.autoSlideInterval) clearInterval(this.autoSlideInterval);
+    this.stopAutoSlide();
   }
 
   next() {
+    if (!this.promotions?.length) {
+      return;
+    }
+
     this.currentIndex = (this.currentIndex + 1) % this.promotions.length;
   }
 
   prev() {
+    if (!this.promotions?.length) {
+      return;
+    }
+
     this.currentIndex = (this.currentIndex - 1 + this.promotions.length) % this.promotions.length;
   }
 
@@ -46,4 +58,30 @@ export class PromotionsSliderComponent implements OnInit, OnDestroy {
     return imageUrl || '';
   }
 
+  private handlePromotionsChange(promotions: PromotionModel[]) {
+    if (promotions?.length > 1) {
+      this.startAutoSlide();
+    } else {
+      this.stopAutoSlide();
+    }
+
+    if (!promotions?.length) {
+      this.currentIndex = 0;
+    } else if (this.currentIndex >= promotions.length) {
+      this.currentIndex = 0;
+    }
+  }
+
+  private startAutoSlide() {
+    if (!this.autoSlideInterval) {
+      this.autoSlideInterval = setInterval(() => this.next(), 5000);
+    }
+  }
+
+  private stopAutoSlide() {
+    if (this.autoSlideInterval) {
+      clearInterval(this.autoSlideInterval);
+      this.autoSlideInterval = null;
+    }
+  }
 }
