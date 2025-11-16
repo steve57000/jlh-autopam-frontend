@@ -2,86 +2,17 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import type {
+  ClientSummaryDto,
+  DemandeDocumentDto,
+  DemandeResponse,
+  DemandeServiceDto,
+  DemandeTimelineEntryDto,
+  RendezVousSummary
+} from '../modeles/demande.model';
 
 interface RequestOptions {
   silentError?: boolean;
-}
-
-// Types déjà utilisés côté composant
-export interface DemandeServiceDto {
-  idService: number;
-  libelle: string;
-  prixUnitaire: number;
-  quantite: number;
-}
-export interface TypeDemandeDto { codeType: string; libelle?: string; }
-export interface StatutDemandeDto { codeStatut: string; libelle?: string; }
-
-export interface ClientSummaryDto {
-  idClient: number;
-  nom: string;
-  prenom?: string;
-  email: string;
-  telephone?: string | null;
-  immatriculation?: string | null;
-  vehiculeMarque?: string | null;
-  vehiculeModele?: string | null;
-  adresseLigne1?: string | null;
-  adresseLigne2?: string | null;
-  codePostal?: string | null;
-  ville?: string | null;
-}
-
-export interface DemandeDocumentDto {
-  idDocument?: number;
-  nom: string;
-  url: string;
-  tailleKo?: number;
-  visibleClient?: boolean;
-  mimeType?: string;
-  createdAt?: string;
-}
-
-export interface DemandeTimelineEntryDto {
-  id?: number;
-  type: string;
-  source?: string;
-  createdAt?: string;
-  createdBy?: string;
-  createdByRole?: string;
-  visibleClient?: boolean;
-  commentaire?: string;
-  montantValide?: number;
-  statut?: StatutDemandeDto;
-  document?: DemandeDocumentDto;
-  rendezVous?: RendezVousSummary;
-}
-
-export interface RendezVousSummary {
-  idRdv: number;
-  codeStatut: string;
-  libelleStatut?: string;
-  dateDebut: string;
-  dateFin: string;
-  creneau?: {
-    idCreneau: number;
-    dateDebut: string;
-    dateFin: string;
-    statut?: { codeStatut: string; libelle?: string };
-  };
-}
-
-export interface DemandeResponse {
-  idDemande: number;
-  dateDemande?: string;
-  dateSoumission?: string;
-  typeDemande?: TypeDemandeDto;
-  statutDemande?: StatutDemandeDto;
-  services?: DemandeServiceDto[];
-  client?: ClientSummaryDto;
-  documents?: DemandeDocumentDto[];
-  timeline?: DemandeTimelineEntryDto[];
-  rendezVous?: RendezVousSummary | null;
 }
 
 export interface ClientStatsDto {
@@ -144,3 +75,12 @@ export class ClientDashboardService {
     });
   }
 }
+
+export type {
+  DemandeResponse,
+  DemandeServiceDto,
+  ClientSummaryDto,
+  DemandeDocumentDto,
+  DemandeTimelineEntryDto,
+  RendezVousSummary
+} from '../modeles/demande.model';
