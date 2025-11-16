@@ -11,7 +11,7 @@ export interface ServiceItem {
 export interface DemandeDto {
   id_demande: number;
   code_type: DemandeTypeCode;
-  code_statut: 'En_attente' | 'Traitee' | 'Annulee';
+  code_statut: 'Brouillon' | 'En_attente' | 'Traitee' | 'Annulee';
   // Libellés d'affichage (provenant de l'API : typeDemande.libelle, statutDemande.libelle)
   type_libelle?: string;
   statut_libelle?: string;

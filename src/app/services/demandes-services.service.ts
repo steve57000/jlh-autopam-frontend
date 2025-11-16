@@ -99,7 +99,7 @@ export class DemandesServiceService {
     );
   }
 
-  setStatut(id: number, newStatut: 'En_attente' | 'Traitee' | 'Annulee') {
+  setStatut(id: number, newStatut: 'Brouillon' | 'En_attente' | 'Traitee' | 'Annulee') {
     return this.http.put<void>(`${this.apiBase}/demandes/${id}`, { codeStatut: newStatut });
   }
 

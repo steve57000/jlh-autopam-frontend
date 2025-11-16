@@ -4,10 +4,17 @@ import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../environments/environment';
-import { ClientDashboardService, DemandeResponse } from '../services/client-dashboard.service';
+import {
+  ClientDashboardService,
+  DemandeDocumentDto,
+  DemandeResponse,
+  DemandeTimelineEntryDto,
+  RendezVousSummary
+} from '../services/client-dashboard.service';
 import type { DemandeTypeCode } from '../modeles/demande.model';
 import { ToastService } from '../shared/toast/toast.service';
 import { firstValueFrom } from 'rxjs';
+import { LookupsService } from '../services/lookups.service';
 
 type CodeStatut =
   | 'Brouillon' | 'En_attente' | 'Traitee' | 'Annulee'
@@ -48,6 +55,11 @@ interface FilterState {
   dateTo: string | null;   // ISO yyyy-MM-dd
 }
 
+interface FilterOption<T extends string> {
+  value: T;
+  label: string;
+}
+
 @Component({
   selector: 'app-client-dashboard',
   standalone: true,
@@ -66,6 +78,36 @@ export class ClientDashboardComponent implements OnInit {
 
   submittingId: number | null = null;
   private api = environment.apiBaseUrl;
+
+  private readonly fallbackTypeOptions: Array<FilterOption<AnyTypeOrAll>> = [
+    { value: 'Devis', label: 'Devis' },
+    { value: 'Service', label: 'Service' },
+    { value: 'RendezVous', label: 'Rendez-vous' }
+  ];
+
+  private readonly fallbackStatutOptions: Array<FilterOption<AnyStatutOrAll>> = [
+    { value: 'Brouillon', label: 'Brouillon' },
+    { value: 'En_attente', label: 'En attente' },
+    { value: 'Traitee', label: 'Traitée' },
+    { value: 'Annulee', label: 'Annulée' }
+  ];
+
+  private readonly fallbackRdvStatutOptions: Array<FilterOption<AnyStatutOrAll>> = [
+    { value: 'Confirme', label: 'Confirmé (RDV)' },
+    { value: 'Reporte', label: 'Reporté (RDV)' },
+    { value: 'Annule', label: 'Annulé (RDV)' }
+  ];
+
+  readonly typeOptions = signal<Array<FilterOption<AnyTypeOrAll>>>([
+    { value: 'ALL', label: 'Tous' },
+    ...this.fallbackTypeOptions
+  ]);
+
+  readonly statutOptions = signal<Array<FilterOption<AnyStatutOrAll>>>([
+    { value: 'ALL', label: 'Tous' },
+    ...this.fallbackStatutOptions,
+    ...this.fallbackRdvStatutOptions
+  ]);
 
   // ----- filtres -----
   readonly filters = signal<FilterState>({
@@ -108,7 +150,10 @@ export class ClientDashboardComponent implements OnInit {
             String(d?.idDemande ?? ''),
             d?.typeDemande?.libelle, d?.typeDemande?.codeType,
             d?.statutDemande?.libelle, d?.statutDemande?.codeStatut,
-            ...(Array.isArray(d?.services) ? d.services.map(s => s.libelle) : [])
+            d?.client?.nom, d?.client?.prenom, d?.client?.email, d?.client?.immatriculation,
+            d?.client?.vehiculeMarque, d?.client?.vehiculeModele,
+            ...(Array.isArray(d?.services) ? d.services.map(s => s.libelle) : []),
+            ...this.visibleDocuments(d).map(doc => doc.nom)
           ].filter(Boolean).join(' ').toLowerCase();
           if (!hay.includes(q)) return false;
         }
@@ -127,11 +172,67 @@ export class ClientDashboardComponent implements OnInit {
     private srv: ClientDashboardService,
     private http: HttpClient,
     private router: Router,
-    private toast: ToastService
+    private toast: ToastService,
+    private lookups: LookupsService
   ) {}
 
   ngOnInit() {
     this.refresh();
+    this.bootstrapLookups();
+  }
+
+  private bootstrapLookups() {
+    this.lookups.getTypeDemandes().subscribe({
+      next: rows => {
+        const mapped = Array.isArray(rows)
+          ? rows.map(row => ({
+            value: (row.codeType as AnyTypeOrAll) ?? 'Devis',
+            label: row.libelle || row.codeType
+          }))
+          : [];
+        const combined = [...this.fallbackTypeOptions, ...mapped];
+        const dedup = this.deduplicateOptions(combined, 'ALL');
+        this.typeOptions.set([
+          { value: 'ALL', label: 'Tous' },
+          ...dedup
+        ]);
+      },
+      error: () => {
+        // fallback already set
+      }
+    });
+
+    this.lookups.getStatutDemandes().subscribe({
+      next: rows => {
+        const mapped = Array.isArray(rows)
+          ? rows.map(row => ({
+            value: (row.codeStatut as AnyStatutOrAll) ?? 'En_attente',
+            label: row.libelle || row.codeStatut
+          }))
+          : [];
+        const combined = [...this.fallbackStatutOptions, ...mapped];
+        const dedup = this.deduplicateOptions(combined, 'ALL');
+        const withRdv = this.deduplicateOptions([...dedup, ...this.fallbackRdvStatutOptions], 'ALL');
+        this.statutOptions.set([
+          { value: 'ALL', label: 'Tous' },
+          ...withRdv
+        ]);
+      },
+      error: () => {
+        // fallback already set
+      }
+    });
+  }
+
+  private deduplicateOptions<T extends string>(items: Array<FilterOption<T>>, skipValue: string) {
+    const seen = new Set<string>([skipValue]);
+    const out: Array<FilterOption<T>> = [];
+    for (const item of items) {
+      if (!item.value || seen.has(item.value)) continue;
+      seen.add(item.value);
+      out.push(item);
+    }
+    return out;
   }
 
   // ===========================
@@ -223,6 +324,89 @@ export class ClientDashboardComponent implements OnInit {
     }
   }
 
+  visibleDocuments(d?: DemandeResponse): DemandeDocumentDto[] {
+    return (d?.documents ?? []).filter(doc => doc.visibleClient !== false && !!doc.url);
+  }
+
+  documentSize(doc: DemandeDocumentDto): string | null {
+    const value = Number(doc?.tailleKo ?? 0);
+    if (!Number.isFinite(value) || value <= 0) {
+      return null;
+    }
+    if (value >= 1024) {
+      return `${(value / 1024).toFixed(1)} Mo`;
+    }
+    return `${value.toFixed(0)} Ko`;
+  }
+
+  visibleTimeline(d?: DemandeResponse): DemandeTimelineEntryDto[] {
+    return (d?.timeline ?? []).filter(item => item.visibleClient !== false);
+  }
+
+  timelineLabel(entry: DemandeTimelineEntryDto): string {
+    if (entry.commentaire) {
+      return entry.commentaire;
+    }
+    if (entry.statut?.libelle || entry.statut?.codeStatut) {
+      return `Statut mis à jour : ${entry.statut.libelle || entry.statut.codeStatut}`;
+    }
+    if (entry.document?.nom) {
+      return `Document ajouté : ${entry.document.nom}`;
+    }
+    if (entry.rendezVous?.dateDebut) {
+      return 'Rendez-vous mis à jour';
+    }
+    if (entry.montantValide != null) {
+      const amount = Number(entry.montantValide);
+      if (Number.isFinite(amount)) {
+        return `Montant validé : ${amount.toFixed(2)} €`;
+      }
+    }
+    return entry.type;
+  }
+
+  timelineAuthor(entry: DemandeTimelineEntryDto): string | null {
+    if (entry.createdBy) {
+      return entry.createdBy;
+    }
+    if (entry.createdByRole) {
+      return entry.createdByRole === 'ROLE_ADMIN' ? 'Administrateur' : entry.createdByRole;
+    }
+    return null;
+  }
+
+  rendezVousInfo(d?: DemandeResponse): RendezVousSummary | null {
+    if (!d) return null;
+    if (d.rendezVous) {
+      return d.rendezVous;
+    }
+    const entry = this.visibleTimeline(d).find(item => !!item.rendezVous);
+    return entry?.rendezVous ?? null;
+  }
+
+  clientVehicle(d?: DemandeResponse): string | null {
+    const marque = d?.client?.vehiculeMarque;
+    const modele = d?.client?.vehiculeModele;
+    if (!marque && !modele) {
+      return null;
+    }
+    return [marque, modele].filter(Boolean).join(' ');
+  }
+
+  clientImmatriculation(d?: DemandeResponse): string | null {
+    return d?.client?.immatriculation || null;
+  }
+
+  async downloadRdvIcs(rdvId: number) {
+    try {
+      const res = await firstValueFrom(this.srv.getRendezVousIcs(rdvId));
+      this.handleIcsResponse(res, `rdv-${rdvId}.ics`);
+    } catch (err: any) {
+      const msg = err?.error?.message || err.message || 'Téléchargement ICS impossible';
+      this.toast.error('Erreur', msg);
+    }
+  }
+
   // ===========================
   // Actions
   // ===========================
@@ -248,21 +432,7 @@ export class ClientDashboardComponent implements OnInit {
   downloadIcs() {
     this.srv.getProchainRdvIcs().subscribe({
       next: (res) => {
-        const blob = new Blob([res.body!], { type: 'text/calendar;charset=UTF-8' });
-        let filename = 'prochain-rdv.ics';
-        const cd = res.headers.get('Content-Disposition');
-        const m = cd && /filename="?([^"]+)"?/i.exec(cd);
-        if (m?.[1]) filename = m[1];
-
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        this.toast.info('Fichier ICS téléchargé.');
+        this.handleIcsResponse(res, 'prochain-rdv.ics');
       },
       error: (err) => {
         if (err.status === 204) {
@@ -273,6 +443,29 @@ export class ClientDashboardComponent implements OnInit {
         }
       }
     });
+  }
+
+  private handleIcsResponse(res: any, fallbackName: string) {
+    if (!res?.body) {
+      this.toast.error('Erreur', 'Fichier ICS vide');
+      return;
+    }
+
+    const blob = new Blob([res.body], { type: 'text/calendar;charset=UTF-8' });
+    let filename = fallbackName;
+    const cd = res.headers?.get?.('Content-Disposition');
+    const m = cd && /filename="?([^\"]+)"?/i.exec(cd);
+    if (m?.[1]) filename = m[1];
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    this.toast.info('Fichier ICS téléchargé.');
   }
 
   // ===========================

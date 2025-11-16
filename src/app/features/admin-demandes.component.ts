@@ -4,6 +4,15 @@ import { DemandesServiceService } from '../services/demandes-services.service';
 import { DemandeWithServices, ServiceItem } from '../modeles/demande.model';
 import {FormsModule} from '@angular/forms';
 import { ToastService } from '../shared/toast/toast.service';
+import { LookupsService } from '../services/lookups.service';
+
+type TypeFilterValue = 'Tous' | DemandeWithServices['code_type'] | string;
+type StatutFilterValue = 'Tous' | DemandeWithServices['code_statut'] | string;
+
+interface FilterOption<T extends string> {
+  value: T;
+  label: string;
+}
 
 @Component({
   selector: 'admin-demandes',
@@ -15,6 +24,7 @@ import { ToastService } from '../shared/toast/toast.service';
 export class AdminDemandesComponent implements OnInit, OnDestroy {
   private api = inject(DemandesServiceService);
   private readonly toast = inject(ToastService);
+  private readonly lookups = inject(LookupsService);
 
   // Données
   loading = signal(true);
@@ -25,8 +35,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   feedbackType = signal<'success' | 'error' | null>(null);
 
   // Filtres
-  type = signal<'Tous'|'Devis'|'Service'|'RendezVous'>('Tous');
-  statut = signal<'Tous'|'En_attente'|'Traitee'|'Annulee'>('Tous');
+  type = signal<TypeFilterValue>('Tous');
+  statut = signal<StatutFilterValue>('Tous');
   q = signal('');
   dateFrom = signal<string | null>(null); // 'YYYY-MM-DD'
   dateTo = signal<string | null>(null);
@@ -36,9 +46,28 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   private draft = signal<DemandeWithServices | null>(null);
   private original = signal<DemandeWithServices | null>(null);
 
-  // Liste des types/statuts pour le template
-  readonly types = ['Tous','Devis','Service','RendezVous'] as const;
-  readonly statuts = ['Tous','En_attente','Traitee','Annulee'] as const;
+  private readonly fallbackTypeOptions: Array<FilterOption<TypeFilterValue>> = [
+    { value: 'Devis', label: 'Devis' },
+    { value: 'Service', label: 'Service' },
+    { value: 'RendezVous', label: 'Rendez-vous' }
+  ];
+
+  private readonly fallbackStatutOptions: Array<FilterOption<StatutFilterValue>> = [
+    { value: 'Brouillon', label: 'Brouillon' },
+    { value: 'En_attente', label: 'En attente' },
+    { value: 'Traitee', label: 'Traitée' },
+    { value: 'Annulee', label: 'Annulée' }
+  ];
+
+  readonly typeOptions = signal<Array<FilterOption<TypeFilterValue>>>([
+    { value: 'Tous', label: 'Tous' },
+    ...this.fallbackTypeOptions
+  ]);
+
+  readonly statutOptions = signal<Array<FilterOption<StatutFilterValue>>>([
+    { value: 'Tous', label: 'Tous' },
+    ...this.fallbackStatutOptions
+  ]);
 
   filtered = computed(() => {
     const t = this.type();
@@ -86,7 +115,57 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit() {
+    this.loadLookups();
     this.reload();
+  }
+
+  private loadLookups() {
+    this.lookups.getTypeDemandes().subscribe({
+      next: rows => {
+        const mapped = Array.isArray(rows)
+          ? rows.map(row => ({
+            value: (row.codeType as TypeFilterValue) ?? 'Devis',
+            label: row.libelle || row.codeType
+          }))
+          : [];
+        const combined = [...this.fallbackTypeOptions, ...mapped];
+        this.typeOptions.set([
+          { value: 'Tous', label: 'Tous' },
+          ...this.dedupeOptions(combined, 'Tous')
+        ]);
+      },
+      error: () => {
+        // default options kept
+      }
+    });
+
+    this.lookups.getStatutDemandes().subscribe({
+      next: rows => {
+        const mapped = Array.isArray(rows)
+          ? rows.map(row => ({
+            value: (row.codeStatut as StatutFilterValue) ?? 'En_attente',
+            label: row.libelle || row.codeStatut
+          }))
+          : [];
+        const combined = [...this.fallbackStatutOptions, ...mapped];
+        this.statutOptions.set([
+          { value: 'Tous', label: 'Tous' },
+          ...this.dedupeOptions(combined, 'Tous')
+        ]);
+      },
+      error: () => {
+        // default options kept
+      }
+    });
+  }
+
+  private dedupeOptions<T extends string>(items: Array<FilterOption<T>>, skip: string) {
+    const seen = new Set<string>([skip]);
+    return items.filter(item => {
+      if (!item.value || seen.has(item.value)) return false;
+      seen.add(item.value);
+      return true;
+    });
   }
 
   reload() {

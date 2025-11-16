@@ -17,6 +17,60 @@ export interface DemandeServiceDto {
 export interface TypeDemandeDto { codeType: string; libelle?: string; }
 export interface StatutDemandeDto { codeStatut: string; libelle?: string; }
 
+export interface ClientSummaryDto {
+  idClient: number;
+  nom: string;
+  prenom?: string;
+  email: string;
+  telephone?: string | null;
+  immatriculation?: string | null;
+  vehiculeMarque?: string | null;
+  vehiculeModele?: string | null;
+  adresseLigne1?: string | null;
+  adresseLigne2?: string | null;
+  codePostal?: string | null;
+  ville?: string | null;
+}
+
+export interface DemandeDocumentDto {
+  idDocument?: number;
+  nom: string;
+  url: string;
+  tailleKo?: number;
+  visibleClient?: boolean;
+  mimeType?: string;
+  createdAt?: string;
+}
+
+export interface DemandeTimelineEntryDto {
+  id?: number;
+  type: string;
+  source?: string;
+  createdAt?: string;
+  createdBy?: string;
+  createdByRole?: string;
+  visibleClient?: boolean;
+  commentaire?: string;
+  montantValide?: number;
+  statut?: StatutDemandeDto;
+  document?: DemandeDocumentDto;
+  rendezVous?: RendezVousSummary;
+}
+
+export interface RendezVousSummary {
+  idRdv: number;
+  codeStatut: string;
+  libelleStatut?: string;
+  dateDebut: string;
+  dateFin: string;
+  creneau?: {
+    idCreneau: number;
+    dateDebut: string;
+    dateFin: string;
+    statut?: { codeStatut: string; libelle?: string };
+  };
+}
+
 export interface DemandeResponse {
   idDemande: number;
   dateDemande?: string;
@@ -24,6 +78,10 @@ export interface DemandeResponse {
   typeDemande?: TypeDemandeDto;
   statutDemande?: StatutDemandeDto;
   services?: DemandeServiceDto[];
+  client?: ClientSummaryDto;
+  documents?: DemandeDocumentDto[];
+  timeline?: DemandeTimelineEntryDto[];
+  rendezVous?: RendezVousSummary | null;
 }
 
 export interface ClientStatsDto {
@@ -71,6 +129,16 @@ export class ClientDashboardService {
       observe: 'response',
       headers: new HttpHeaders({
         // Laisse le serveur répondre en text/calendar
+        'Accept': 'text/calendar, text/plain, */*'
+      })
+    });
+  }
+
+  getRendezVousIcs(rdvId: number) {
+    return this.http.get(`${this.base}/rendezvous/${rdvId}/ics`, {
+      responseType: 'blob',
+      observe: 'response',
+      headers: new HttpHeaders({
         'Accept': 'text/calendar, text/plain, */*'
       })
     });

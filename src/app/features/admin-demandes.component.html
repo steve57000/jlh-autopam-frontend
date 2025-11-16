@@ -10,13 +10,13 @@
     <label class="filters__field">
       <span>Type</span>
       <select name="typeFilter" [ngModel]="type()" (ngModelChange)="type.set($event)">
-        @for (t of types; track t) { <option [value]="t">{{ t }}</option> }
+        @for (opt of typeOptions(); track opt.value) { <option [value]="opt.value">{{ opt.label }}</option> }
       </select>
     </label>
     <label class="filters__field">
       <span>Statut</span>
       <select name="statusFilter" [ngModel]="statut()" (ngModelChange)="statut.set($event)">
-        @for (s of statuts; track s) { <option [value]="s">{{ s }}</option> }
+        @for (opt of statutOptions(); track opt.value) { <option [value]="opt.value">{{ opt.label }}</option> }
       </select>
     </label>
     <label class="filters__field filters__field--wide">
@@ -194,9 +194,9 @@
           <label>
             <span>Type de demande</span>
             <select [ngModel]="draft.code_type" (ngModelChange)="setDraftType($event)">
-              @for (t of types; track t) {
-                @if (t !== 'Tous') {
-                  <option [value]="t">{{ t }}</option>
+              @for (opt of typeOptions(); track opt.value) {
+                @if (opt.value !== 'Tous') {
+                  <option [value]="opt.value">{{ opt.label }}</option>
                 }
               }
             </select>
@@ -204,9 +204,9 @@
           <label>
             <span>Statut</span>
             <select [ngModel]="draft.code_statut" (ngModelChange)="setDraftStatut($event)">
-              @for (s of statuts; track s) {
-                @if (s !== 'Tous') {
-                  <option [value]="s">{{ s }}</option>
+              @for (opt of statutOptions(); track opt.value) {
+                @if (opt.value !== 'Tous') {
+                  <option [value]="opt.value">{{ opt.label }}</option>
                 }
               }
             </select>
