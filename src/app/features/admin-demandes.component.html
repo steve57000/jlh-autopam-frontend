@@ -217,33 +217,133 @@
           <h4>Services inclus</h4>
           <table class="services-table">
             <thead>
+          <tr>
+            <th>Libellé</th>
+            <th>Quantité</th>
+            <th>Qté max</th>
+            <th>Prix unitaire (€)</th>
+            <th>Actions</th>
+          </tr>
+          </thead>
+          <tbody>
+          @for (service of draft.services; let i = $index; track getServiceKey(service)) {
             <tr>
-              <th>Libellé</th>
-              <th>Quantité</th>
-              <th>Qté max</th>
-              <th>Prix unitaire (€)</th>
+              <td>
+                <input type="text" [ngModel]="service.libelle" (ngModelChange)="updateServiceField(i, 'libelle', $event)" />
+              </td>
+              <td>
+                <input type="number" min="1" [ngModel]="service.quantite" (ngModelChange)="updateServiceField(i, 'quantite', $event)" />
+              </td>
+              <td>
+                <span class="readonly">{{ service.quantite_max ?? '—' }}</span>
+              </td>
+              <td>
+                <input type="number" step="0.01" [ngModel]="service.prix_unitaire ?? ''" (ngModelChange)="updateServiceField(i, 'prix_unitaire', $event)" />
+              </td>
+              <td>
+                <button type="button" class="btn-link" (click)="removeService(i)">Retirer</button>
+              </td>
             </tr>
-            </thead>
-            <tbody>
-            @for (service of draft.services; let i = $index; track getServiceKey(service)) {
-              <tr>
-                <td>
-                  <input type="text" [ngModel]="service.libelle" (ngModelChange)="updateServiceField(i, 'libelle', $event)" />
-                </td>
-                <td>
-                  <input type="number" min="1" [ngModel]="service.quantite" (ngModelChange)="updateServiceField(i, 'quantite', $event)" />
-                </td>
-                <td>
-                  <span class="readonly">{{ service.quantite_max ?? '—' }}</span>
-                </td>
-                <td>
-                  <input type="number" step="0.01" [ngModel]="service.prix_unitaire ?? ''" (ngModelChange)="updateServiceField(i, 'prix_unitaire', $event)" />
-                </td>
-              </tr>
+          }
+          </tbody>
+        </table>
+
+        <div class="service-add">
+          <h5>Ajouter un service</h5>
+          <div class="service-add__fields">
+            <label>
+              <span>Service</span>
+              <select
+                [ngModel]="newServiceSelection().serviceId ?? ''"
+                (ngModelChange)="setNewServiceField('serviceId', $event)"
+              >
+                <option value="">Sélectionnez…</option>
+                @for (svc of serviceCatalog(); track svc.idService) {
+                  <option [value]="svc.idService">{{ svc.libelle }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              <span>Quantité</span>
+              <input type="number" min="1" [ngModel]="newServiceSelection().quantite" (ngModelChange)="setNewServiceField('quantite', $event)" />
+            </label>
+            <label>
+              <span>Prix (€)</span>
+              <input type="number" step="0.01" [ngModel]="newServiceSelection().prix ?? ''" (ngModelChange)="setNewServiceField('prix', $event)" />
+            </label>
+            <button type="button" class="btn" (click)="addServiceLineFromSelection()">Ajouter</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="details-block">
+        <h4>Documents</h4>
+        @if (draft.documents?.length) {
+          <ul class="documents-list">
+            @for (doc of draft.documents; track doc.idDocument ?? doc.nom) {
+              <li>
+                <div>
+                  <strong>{{ doc.nom }}</strong>
+                  <span class="muted">{{ documentSize(doc) || doc.mimeType || '' }}</span>
+                </div>
+                <div class="documents-list__actions">
+                  <a [href]="doc.url" target="_blank" rel="noreferrer noopener">Ouvrir</a>
+                  @if (doc.idDocument) {
+                    <button type="button" (click)="removeDocument(doc)">Supprimer</button>
+                  }
+                </div>
+              </li>
             }
-            </tbody>
-          </table>
+          </ul>
+        } @else {
+          <p class="empty">Aucun document joint pour cette demande.</p>
+        }
+        <div class="doc-upload">
+          <label class="btn">
+            <input type="file" (change)="onDocumentSelected($event)" [disabled]="documentUploading()" />
+            @if (documentUploading()) { Téléversement… } @else { Ajouter un document }
+          </label>
+          @if (documentError()) {
+            <p class="doc-upload__error">{{ documentError() }}</p>
+          }
+        </div>
+      </section>
+
+      @if (draft.code_type === 'RendezVous' && rdvForm(); as rdv) {
+        <section class="details-block">
+          <h4>Planification du rendez-vous</h4>
+          <div class="detail-grid">
+            <label>
+              <span>Date de début</span>
+              <input type="datetime-local" [value]="rdv.dateDebut" (change)="setRdvField('dateDebut', ($any($event.target)).value)" />
+            </label>
+            <label>
+              <span>Date de fin</span>
+              <input type="datetime-local" [value]="rdv.dateFin" (change)="setRdvField('dateFin', ($any($event.target)).value)" />
+            </label>
+            <label>
+              <span>Statut</span>
+              <select [value]="rdv.codeStatut" (change)="setRdvField('codeStatut', ($any($event.target)).value)">
+                @for (opt of rdvStatusOptions(); track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </label>
+          </div>
+          <label class="detail-comment">
+            <span>Commentaire client</span>
+            <textarea rows="2" [value]="rdv.commentaire || ''" (input)="setRdvField('commentaire', ($any($event.target)).value)"></textarea>
+          </label>
+          <div class="detail-actions">
+            <button type="button" class="btn" (click)="saveRendezVous()" [disabled]="rdvSaving()">
+              @if (rdvSaving()) { Sauvegarde… } @else { Confirmer le rendez-vous }
+            </button>
+            @if (rdvFeedback()) {
+              <p class="feedback" [class.feedback--error]="rdvFeedback()?.startsWith('Impossible')">{{ rdvFeedback() }}</p>
+            }
+          </div>
         </section>
+      }
 
         <div class="details-actions">
           <button type="button" class="btn" (click)="saveChanges()" [disabled]="saving() || !hasChanges()">

@@ -4,6 +4,7 @@ import { AdminDashboardComponent } from './dashboard/admin-dashboard.component';
 import { AdminServicesComponent } from './features/admin-services.component';
 import { AdminDemandesComponent } from './features/admin-demandes.component';
 import { AdminPromotionsComponent } from './features/admin-promotions.component';
+import { AdminClientsComponent } from './features/admin-clients.component';
 import { AdminGuard } from './guards/admin.guard';
 
 export const adminRoutes: Routes = [
@@ -26,6 +27,11 @@ export const adminRoutes: Routes = [
         path: 'demandes',
         component: AdminDemandesComponent,
         data: { title: 'Demandes clients' },
+      },
+      {
+        path: 'clients',
+        component: AdminClientsComponent,
+        data: { title: 'Clients' },
       },
       {
         path: 'promotions',

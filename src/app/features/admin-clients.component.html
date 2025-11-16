@@ -1,0 +1,165 @@
+<section class="clients-section">
+  <header class="clients-section__header">
+    <div>
+      <h2>Clients</h2>
+      <p class="clients-section__lead">Accédez aux fiches clients pour ajuster leurs coordonnées et véhicules.</p>
+    </div>
+    <div class="clients-section__filters">
+      <label>
+        <span>Recherche</span>
+        <input
+          type="search"
+          placeholder="nom, email, immatriculation…"
+          [value]="search()"
+          (input)="setSearch(($any($event.target)).value)"
+        />
+      </label>
+      <label>
+        <span>Statut email</span>
+        <select [value]="verification()" (change)="setVerification(($any($event.target)).value)">
+          <option value="all">Tous</option>
+          <option value="verified">Vérifiés</option>
+          <option value="unverified">Non vérifiés</option>
+        </select>
+      </label>
+      <button type="button" class="btn" (click)="loadClients()">↻ Actualiser</button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p>Chargement des clients…</p>
+  } @else if (error()) {
+    <p class="clients-section__error">{{ error() }}</p>
+  } @else {
+    <div class="clients-grid">
+      <div class="clients-list">
+        <table>
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Email</th>
+              <th>Téléphone</th>
+              <th>Immatriculation</th>
+              <th>Vérification</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (client of filtered(); track trackById($index, client)) {
+              <tr
+                (click)="select(client)"
+                [class.active]="client.idClient === selectedId()"
+              >
+                <td>
+                  <strong>{{ client.nom }}</strong>
+                  <span class="muted" *ngIf="client.prenom">{{ client.prenom }}</span>
+                </td>
+                <td>{{ client.email }}</td>
+                <td>{{ client.telephone || '—' }}</td>
+                <td>{{ client.immatriculation || '—' }}</td>
+                <td>
+                  @if (client.emailVerified) {
+                    <span class="badge badge--success">Vérifié</span>
+                  } @else {
+                    <span class="badge badge--warning">À vérifier</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        @if (!filtered().length) {
+          <p class="empty">Aucun client ne correspond à cette recherche.</p>
+        }
+      </div>
+
+      <div class="clients-detail" [class.clients-detail--empty]="!selectedClient()">
+        @if (selectedClient(); as draft) {
+          <div class="detail-card">
+            <header class="detail-card__header">
+              <div>
+                <h3>{{ draft.nom }} {{ draft.prenom }}</h3>
+                <p class="muted">Créé le {{ draft.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+              </div>
+              <button type="button" class="btn-close" (click)="closeDetails()" aria-label="Fermer">×</button>
+            </header>
+
+            <section class="detail-grid">
+              <label>
+                <span>Nom</span>
+                <input type="text" [ngModel]="draft.nom" (ngModelChange)="updateField('nom', $event)" />
+              </label>
+              <label>
+                <span>Prénom</span>
+                <input type="text" [ngModel]="draft.prenom || ''" (ngModelChange)="updateField('prenom', $event)" />
+              </label>
+              <label>
+                <span>Email</span>
+                <input type="email" [ngModel]="draft.email" (ngModelChange)="updateField('email', $event)" />
+              </label>
+              <label>
+                <span>Téléphone</span>
+                <input type="tel" [ngModel]="draft.telephone || ''" (ngModelChange)="updateField('telephone', $event)" />
+              </label>
+            </section>
+
+            <section class="detail-grid">
+              <label>
+                <span>Immatriculation</span>
+                <input type="text" [ngModel]="draft.immatriculation || ''" (ngModelChange)="updateField('immatriculation', $event)" />
+              </label>
+              <label>
+                <span>Marque</span>
+                <input type="text" [ngModel]="draft.vehiculeMarque || ''" (ngModelChange)="updateField('vehiculeMarque', $event)" />
+              </label>
+              <label>
+                <span>Modèle</span>
+                <input type="text" [ngModel]="draft.vehiculeModele || ''" (ngModelChange)="updateField('vehiculeModele', $event)" />
+              </label>
+            </section>
+
+            <section class="detail-grid">
+              <label>
+                <span>Adresse - ligne 1</span>
+                <input type="text" [ngModel]="draft.adresseLigne1 || ''" (ngModelChange)="updateField('adresseLigne1', $event)" />
+              </label>
+              <label>
+                <span>Adresse - ligne 2</span>
+                <input type="text" [ngModel]="draft.adresseLigne2 || ''" (ngModelChange)="updateField('adresseLigne2', $event)" />
+              </label>
+              <label>
+                <span>Code postal</span>
+                <input type="text" [ngModel]="draft.codePostal || ''" (ngModelChange)="updateField('codePostal', $event)" />
+              </label>
+              <label>
+                <span>Ville</span>
+                <input type="text" [ngModel]="draft.ville || ''" (ngModelChange)="updateField('ville', $event)" />
+              </label>
+            </section>
+
+            <section class="detail-meta">
+              <p>
+                <strong>Email vérifié :</strong>
+                @if (draft.emailVerified) {
+                  Oui — {{ draft.emailVerifiedAt | date:'dd/MM/yyyy HH:mm' }}
+                } @else {
+                  Non
+                }
+              </p>
+            </section>
+
+            <div class="detail-actions">
+              <button type="button" class="btn" (click)="saveChanges()" [disabled]="saving() || !hasChanges()">
+                @if (saving()) { Sauvegarde… } @else { Enregistrer }
+              </button>
+              <button type="button" class="btn btn-ghost" (click)="resetDraft()" [disabled]="saving() || !hasChanges()">Réinitialiser</button>
+            </div>
+          </div>
+        } @else {
+          <div class="detail-placeholder">
+            <p>Sélectionnez un client pour afficher la fiche détaillée.</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</section>

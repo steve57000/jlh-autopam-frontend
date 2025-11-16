@@ -250,7 +250,7 @@ export class ClientDashboardComponent implements OnInit {
       this.error = '';
     }
 
-    const httpOptions = { silentError: silent } as const;
+    const httpOptions = { silentError: true } as const;
 
     this.srv.getMyDemandes(httpOptions).subscribe({
       next: list => {
@@ -259,7 +259,8 @@ export class ClientDashboardComponent implements OnInit {
       error: err => {
         if (!silent) {
           this.error = err?.error?.message || err.message || 'Erreur de chargement des demandes';
-        } else if (retries > 0) {
+        }
+        if (retries > 0) {
           this.refresh({ silent: true, retries: retries - 1, delayMs: 600 });
         }
       }
@@ -277,7 +278,7 @@ export class ClientDashboardComponent implements OnInit {
     this.srv.getProchainRdv(httpOptions).subscribe({
       next: rdv => { this.prochainRdv = rdv || null; },
       error: err => {
-        if (err.status !== 204 && !silent) {
+        if (err.status !== 204 && err.status !== 404 && !silent) {
           this.error ||= err?.error?.message || err.message || 'Erreur de chargement du prochain RDV';
         }
         this.loading = false;
