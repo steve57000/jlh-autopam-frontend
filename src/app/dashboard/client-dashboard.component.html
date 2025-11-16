@@ -227,7 +227,7 @@
                           <p>{{ timelineLabel(entry) }}</p>
                         </div>
                         @if (entry.document?.url && entry.document?.nom) {
-                          <a [href]="entry.document.url" target="_blank" rel="noopener">Consulter le document</a>
+                          <a [href]="entry.document?.url" target="_blank" rel="noopener">Consulter le document</a>
                         }
                       </li>
                     }
