@@ -13,14 +13,14 @@ export interface DemandeServiceDto {
   libelle: string;
   prixUnitaire: number;
   quantite: number;
-  quantiteMax?: number;
 }
 export interface TypeDemandeDto { codeType: string; libelle?: string; }
 export interface StatutDemandeDto { codeStatut: string; libelle?: string; }
 
 export interface DemandeResponse {
   idDemande: number;
-  dateDemande: string;
+  dateDemande?: string;
+  dateSoumission?: string;
   typeDemande?: TypeDemandeDto;
   statutDemande?: StatutDemandeDto;
   services?: DemandeServiceDto[];

@@ -2,8 +2,9 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // ✅ nécessaire pour [(ngModel)]
 import { DemandeResponse } from '../../services/client-dashboard.service';
+import type { DemandeTypeCode } from '../../modeles/demande.model';
 
-export type TypeCode = 'Devis' | 'RendezVous';
+export type TypeCode = DemandeTypeCode;
 
 @Component({
   standalone: true,

@@ -23,10 +23,6 @@
           <span class="service-card__price-label">Tarif</span>
           <span class="service-card__price">{{ service.prixUnitaire | number:'1.2-2' }} €</span>
         </div>
-        <div class="service-card__meta">
-          <span class="service-card__price-label">Quantité max / demande</span>
-          <span class="service-card__price">{{ service.quantiteMax }}</span>
-        </div>
         <div class="service-card__actions">
           <button type="button" class="service-card__btn service-card__btn--edit" (click)="openEditService(service)">Modifier</button>
           <button type="button" class="service-card__btn service-card__btn--delete" (click)="confirmDeletion(service)">Supprimer</button>
@@ -63,13 +59,6 @@
             <input id="service-prix" formControlName="prixUnitaire" type="number" step="0.01" min="0" required />
             @if (form.controls['prixUnitaire'].invalid && form.controls['prixUnitaire'].touched) {
               <div class="field__error">Indiquez un prix au format 0,00.</div>
-            }
-          </div>
-          <div class="field">
-            <label for="service-quantite-max">Quantité maximum par demande</label>
-            <input id="service-quantite-max" formControlName="quantiteMax" type="number" min="1" required />
-            @if (form.controls['quantiteMax'].invalid && form.controls['quantiteMax'].touched) {
-              <div class="field__error">Indiquez une quantité minimum de 1.</div>
             }
           </div>
           <div class="modal-actions">

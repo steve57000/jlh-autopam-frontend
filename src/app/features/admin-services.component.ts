@@ -35,7 +35,6 @@ export class AdminServicesComponent implements OnInit {
       libelle: ['', [Validators.required, Validators.maxLength(100)]],
       description: ['', [Validators.maxLength(2000)]],
       prixUnitaire: ['', [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
-      quantiteMax: [1, [Validators.required, Validators.min(1)]],
     });
   }
 
@@ -70,7 +69,6 @@ export class AdminServicesComponent implements OnInit {
       libelle: service.libelle,
       description: service.description,
       prixUnitaire: service.prixUnitaire,
-      quantiteMax: service.quantiteMax
     });
     this.showModal = true;
   }
@@ -87,14 +85,12 @@ export class AdminServicesComponent implements OnInit {
       return;
     }
 
-    const { libelle, description, prixUnitaire, quantiteMax } = this.form.value;
+    const { libelle, description, prixUnitaire } = this.form.value;
     const prixValue = typeof prixUnitaire === 'number' ? prixUnitaire : Number(prixUnitaire);
-    const qtyValue = typeof quantiteMax === 'number' ? quantiteMax : Number(quantiteMax);
     const body = {
       libelle,
       description,
-      prixUnitaire: prixValue,
-      quantiteMax: qtyValue
+      prixUnitaire: prixValue
     };
 
     if (this.editingService?.idService) {

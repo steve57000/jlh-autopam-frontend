@@ -1,3 +1,5 @@
+export type DemandeTypeCode = 'Devis' | 'Service' | 'RendezVous';
+
 export interface ServiceItem {
   id_service: number;
   libelle: string;      // libellé du service (ex: "Vidange")
@@ -8,7 +10,7 @@ export interface ServiceItem {
 
 export interface DemandeDto {
   id_demande: number;
-  code_type: 'Devis' | 'Service' | 'RendezVous';
+  code_type: DemandeTypeCode;
   code_statut: 'En_attente' | 'Traitee' | 'Annulee';
   // Libellés d'affichage (provenant de l'API : typeDemande.libelle, statutDemande.libelle)
   type_libelle?: string;

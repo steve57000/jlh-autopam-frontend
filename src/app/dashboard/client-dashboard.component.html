@@ -36,6 +36,7 @@
             <select [ngModel]="filters().type" (ngModelChange)="setType($event)">
               <option value="ALL">Tous</option>
               <option value="Devis">Devis</option>
+              <option value="Service">Service</option>
               <option value="RendezVous">Rendez-vous</option>
             </select>
           </div>
@@ -133,7 +134,7 @@
 
               <div class="row">
                 <span>Créée le :</span>
-                <span>{{ d.dateDemande | date:'dd/MM/yyyy HH:mm' }}</span>
+                <span>{{ demandeDate(d) | date:'dd/MM/yyyy HH:mm' }}</span>
               </div>
 
               @if (d.services?.length) {

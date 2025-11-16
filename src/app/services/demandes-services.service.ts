@@ -43,7 +43,7 @@ export class DemandesServiceService {
                 : 'Service';
 
             const code_statut = (d?.statutDemande?.codeStatut ?? undefined) as DemandeWithServices['code_statut'];
-            const date_demande = (d?.dateDemande ?? '') as string;
+            const date_demande = (d?.dateDemande ?? d?.dateSoumission ?? '') as string;
 
             const type_libelle = typeof d?.typeDemande?.libelle === 'string' ? d.typeDemande.libelle : undefined;
             const statut_libelle = typeof d?.statutDemande?.libelle === 'string' ? d.statutDemande.libelle : undefined;

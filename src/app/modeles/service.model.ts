@@ -1,7 +1,6 @@
 export interface ServiceDto {
   idService?: number;
   libelle: string;
-  description?: string;
+  description?: string | null;
   prixUnitaire: number | string;
-  quantiteMax: number | string;
 }

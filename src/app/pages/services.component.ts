@@ -4,7 +4,7 @@ import { takeUntil } from 'rxjs/operators';
 import { Subject, firstValueFrom, Subscription } from 'rxjs';
 
 import { ServiceCardComponent } from '../components/service-card.component';
-import { CurrentQuoteComponent } from '../components/current-quote/current-quote.component';
+import { CurrentQuoteComponent, type TypeCode } from '../components/current-quote/current-quote.component';
 
 import { ServicesService } from '../services/services.service';
 import { ServiceDto } from '../modeles/service.model';
@@ -16,8 +16,6 @@ import { ToastService} from '../shared/toast/toast.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import {Router} from '@angular/router';
-
-type TypeCode = 'Devis' | 'RendezVous';
 
 @Component({
   standalone: true,
@@ -101,7 +99,10 @@ export class ServicesComponent implements OnInit, OnDestroy {
   }
 
   castType(v: string): TypeCode {
-    return v === 'RendezVous' ? 'RendezVous' : 'Devis';
+    if (v === 'RendezVous' || v === 'Service') {
+      return v;
+    }
+    return 'Devis';
   }
 
   async onSubmitDemand(payload: { type: TypeCode; immatriculation?: string | null }) {

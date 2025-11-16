@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../environments/environment';
 import { ClientDashboardService, DemandeResponse } from '../services/client-dashboard.service';
+import type { DemandeTypeCode } from '../modeles/demande.model';
 import { ToastService } from '../shared/toast/toast.service';
 import { firstValueFrom } from 'rxjs';
 
@@ -27,8 +28,7 @@ export interface ProchainRdvDto {
   dateFin: string;
 }
 
-type TypeCode = 'Devis' | 'RendezVous';
-type AnyTypeOrAll = 'ALL' | TypeCode;
+type AnyTypeOrAll = 'ALL' | DemandeTypeCode;
 type AnyStatutOrAll =
   | 'ALL'
   | 'Brouillon' | 'En_attente' | 'Traitee' | 'Annulee'
@@ -88,7 +88,7 @@ export class ClientDashboardComponent implements OnInit {
       .filter(d => {
         // type
         if (f.type !== 'ALL') {
-          const t = d?.typeDemande?.codeType as TypeCode | undefined;
+          const t = d?.typeDemande?.codeType as DemandeTypeCode | undefined;
           if (t !== f.type) return false;
         }
         // statut
@@ -96,8 +96,9 @@ export class ClientDashboardComponent implements OnInit {
           const s = d?.statutDemande?.codeStatut as AnyStatutOrAll | undefined;
           if (s !== f.statut) return false;
         }
-        // dates (sur dateDemande)
-        const ts = d?.dateDemande ? new Date(d.dateDemande).getTime() : 0;
+        // dates (sur dateDemande / dateSoumission)
+        const dateValue = this.demandeDate(d);
+        const ts = dateValue ? new Date(dateValue).getTime() : 0;
         if (from !== null && ts < from) return false;
         if (to   !== null && ts > to)   return false;
 
@@ -114,9 +115,11 @@ export class ClientDashboardComponent implements OnInit {
         return true;
       })
       .sort((a, b) => {
-        const da = a?.dateDemande ? new Date(a.dateDemande).getTime() : 0;
-        const db = b?.dateDemande ? new Date(b.dateDemande).getTime() : 0;
-        return db - da;
+        const da = this.demandeDate(a);
+        const db = this.demandeDate(b);
+        const tsA = da ? new Date(da).getTime() : 0;
+        const tsB = db ? new Date(db).getTime() : 0;
+        return tsB - tsA;
       });
   });
 
@@ -187,6 +190,13 @@ export class ClientDashboardComponent implements OnInit {
   // ===========================
   isDraft(d?: DemandeResponse): boolean {
     return (d?.statutDemande?.codeStatut || 'Brouillon') === 'Brouillon';
+  }
+
+  demandeDate(d?: DemandeResponse): string | null {
+    if (!d) {
+      return null;
+    }
+    return d.dateDemande || d.dateSoumission || null;
   }
 
   totalDemande(d: DemandeResponse): number {
