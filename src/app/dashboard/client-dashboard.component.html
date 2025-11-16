@@ -34,24 +34,18 @@
           <div class="field">
             <label>Type</label>
             <select [ngModel]="filters().type" (ngModelChange)="setType($event)">
-              <option value="ALL">Tous</option>
-              <option value="Devis">Devis</option>
-              <option value="Service">Service</option>
-              <option value="RendezVous">Rendez-vous</option>
+              @for (opt of typeOptions(); track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
             </select>
           </div>
 
           <div class="field">
             <label>Statut</label>
             <select [ngModel]="filters().statut" (ngModelChange)="setStatut($event)">
-              <option value="ALL">Tous</option>
-              <option value="Brouillon">Brouillon</option>
-              <option value="En_attente">En attente</option>
-              <option value="Traitee">Traitée</option>
-              <option value="Annulee">Annulée</option>
-              <option value="Confirme">Confirmé (RDV)</option>
-              <option value="Reporte">Reporté (RDV)</option>
-              <option value="Annule">Annulé (RDV)</option>
+              @for (opt of statutOptions(); track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
             </select>
           </div>
 
@@ -137,6 +131,23 @@
                 <span>{{ demandeDate(d) | date:'dd/MM/yyyy HH:mm' }}</span>
               </div>
 
+              @if (clientImmatriculation(d) || clientVehicle(d)) {
+                <div class="client-meta">
+                  @if (clientImmatriculation(d); as immat) {
+                    <div class="client-meta__row">
+                      <span>Immatriculation</span>
+                      <strong>{{ immat }}</strong>
+                    </div>
+                  }
+                  @if (clientVehicle(d); as vehicule) {
+                    <div class="client-meta__row">
+                      <span>Véhicule</span>
+                      <strong>{{ vehicule }}</strong>
+                    </div>
+                  }
+                </div>
+              }
+
               @if (d.services?.length) {
                 <div class="services">
                   <div class="services-head">Services demandés</div>
@@ -153,6 +164,74 @@
                   <div class="total">
                     Total estimatif : <strong>{{ totalDemande(d) | number:'1.2-2' }} €</strong>
                   </div>
+                </div>
+              }
+
+              @if (rendezVousInfo(d); as rdv) {
+                <div class="rdv-block">
+                  <div class="rdv-block__head">
+                    <strong>Rendez-vous lié</strong>
+                    <span class="badge" [class]="badgeClassForRdv(rdv.codeStatut)">
+                      {{ rdv.libelleStatut || rdv.codeStatut }}
+                    </span>
+                  </div>
+                  <div class="row">
+                    <span>Début</span>
+                    <span>{{ rdv.dateDebut | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <div class="row">
+                    <span>Fin</span>
+                    <span>{{ rdv.dateFin | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <div class="actions">
+                    <button class="cta-btn-secondary" type="button" (click)="downloadRdvIcs(rdv.idRdv)">
+                      Télécharger l'invitation (.ics)
+                    </button>
+                  </div>
+                </div>
+              }
+
+              @if (visibleDocuments(d).length) {
+                <div class="documents">
+                  <div class="documents__head">Documents partagés</div>
+                  <ul>
+                    @for (doc of visibleDocuments(d); track doc.idDocument ?? doc.nom) {
+                      <li>
+                        <div>
+                          <strong>{{ doc.nom }}</strong>
+                          @if (documentSize(doc); as size) {
+                            <small>{{ size }}</small>
+                          }
+                        </div>
+                        <a [href]="doc.url" target="_blank" rel="noopener">Voir</a>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+
+              @if (visibleTimeline(d).length) {
+                <div class="timeline">
+                  <div class="timeline__head">Suivi de la demande</div>
+                  <ul>
+                    @for (entry of visibleTimeline(d); track entry.id ?? entry.createdAt) {
+                      <li class="timeline__item">
+                        <div class="timeline__meta">
+                          <span>{{ entry.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                          @if (timelineAuthor(entry); as author) {
+                            <small>{{ author }}</small>
+                          }
+                        </div>
+                        <div class="timeline__body">
+                          <strong>{{ entry.type }}</strong>
+                          <p>{{ timelineLabel(entry) }}</p>
+                        </div>
+                        @if (entry.document?.url && entry.document?.nom) {
+                          <a [href]="entry.document.url" target="_blank" rel="noopener">Consulter le document</a>
+                        }
+                      </li>
+                    }
+                  </ul>
                 </div>
               }
 
