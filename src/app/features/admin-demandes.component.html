@@ -299,8 +299,18 @@
           <p class="empty">Aucun document joint pour cette demande.</p>
         }
         <div class="doc-upload">
-          <label class="btn">
-            <input type="file" (change)="onDocumentSelected($event)" [disabled]="documentUploading()" />
+          <input
+            type="file"
+            class="doc-upload__input"
+            accept=".pdf,application/pdf,image/*"
+            [attr.id]="'doc-upload-input-' + (getDemandeId(draft) ?? 'pending')"
+            (change)="onDocumentSelected($event)"
+            [disabled]="documentUploading()"
+          />
+          <label
+            class="btn"
+            [attr.for]="'doc-upload-input-' + (getDemandeId(draft) ?? 'pending')"
+          >
             @if (documentUploading()) { Téléversement… } @else { Ajouter un document }
           </label>
           @if (documentError()) {
