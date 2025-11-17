@@ -136,7 +136,7 @@
           <p class="muted">{{ draft.client?.email }}</p>
         </section>
 
-        <section class="details-block details-grid">
+        <section class="details-block details-grid details-block--editable">
           <label>
             <span>Téléphone</span>
             <input
@@ -155,7 +155,7 @@
           </label>
         </section>
 
-        <section class="details-block details-grid">
+        <section class="details-block details-grid details-block--editable">
           <label>
             <span>Adresse — ligne 1</span>
             <input
@@ -190,7 +190,7 @@
           </label>
         </section>
 
-        <section class="details-block details-grid">
+        <section class="details-block details-grid details-block--editable">
           <label>
             <span>Type de demande</span>
             <select [ngModel]="draft.code_type" (ngModelChange)="setDraftType($event)">
@@ -213,7 +213,7 @@
           </label>
         </section>
 
-        <section class="details-block">
+        <section class="details-block details-block--editable">
           <h4>Services inclus</h4>
           <table class="services-table">
             <thead>
@@ -310,7 +310,7 @@
       </section>
 
       @if (draft.code_type === 'RendezVous' && rdvForm(); as rdv) {
-        <section class="details-block">
+        <section class="details-block details-block--editable">
           <h4>Planification du rendez-vous</h4>
           <div class="detail-grid">
             <label>
