@@ -215,25 +215,106 @@ export class DemandesServiceService {
     if (!Array.isArray(raw)) {
       return [];
     }
+
     return raw
-      .map((doc: any) => {
-        const id = this.toNumber(doc?.idDocument ?? doc?.id ?? doc?.documentId ?? null, null);
-        const url = doc?.url ?? doc?.lien ?? doc?.link ?? doc?.downloadUrl;
-        if (!url) {
-          return null;
-        }
-        const size = this.toNumber(doc?.tailleKo ?? doc?.taille ?? doc?.sizeKo ?? null, null);
-        return {
-          idDocument: id ?? undefined,
-          nom: String(doc?.nom ?? doc?.filename ?? 'Document'),
-          url: String(url),
-          tailleKo: size ?? undefined,
-          visibleClient: doc?.visibleClient === false ? false : true,
-          mimeType: doc?.mimeType ?? doc?.contentType ?? undefined,
-          createdAt: doc?.createdAt ?? doc?.dateCreation ?? undefined
-        } satisfies DemandeDocumentDto;
-      })
+      .map((doc: any) => this.toDocumentDto(doc))
       .filter(Boolean) as DemandeDocumentDto[];
+  }
+
+  private toDocumentDto(doc: any): DemandeDocumentDto | null {
+    if (!doc) {
+      return null;
+    }
+
+    const id = this.toNumber(doc?.idDocument ?? doc?.id ?? doc?.documentId ?? doc?.id_document ?? null, null);
+    const url = this.extractDocumentUrl(doc);
+    if (!url) {
+      return null;
+    }
+
+    const sizeKo = this.computeDocumentSizeKo(doc);
+    const rawName = doc?.nom ?? doc?.filename ?? doc?.nomFichier ?? doc?.nom_fichier ?? doc?.titre;
+    const nom = typeof rawName === 'string' && rawName.trim().length > 0 ? rawName.trim() : 'Document';
+
+    const visibleClientField = doc?.visibleClient ?? doc?.visible_client;
+    const visibleClient = visibleClientField === false || visibleClientField === 'false'
+      ? false
+      : true;
+
+    return {
+      idDocument: id ?? undefined,
+      nom,
+      url,
+      tailleKo: sizeKo ?? undefined,
+      visibleClient,
+      mimeType: doc?.mimeType ?? doc?.contentType ?? doc?.type_contenu ?? doc?.typeContenu ?? undefined,
+      createdAt: doc?.createdAt ?? doc?.creeLe ?? doc?.cree_le ?? doc?.dateCreation ?? doc?.created_at ?? undefined
+    } satisfies DemandeDocumentDto;
+  }
+
+  private extractDocumentUrl(doc: any): string | null {
+    const candidates = [
+      doc?.url,
+      doc?.lien,
+      doc?.link,
+      doc?.downloadUrl,
+      doc?.urlPublic,
+      doc?.url_public,
+      doc?.urlPublique
+    ];
+
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string') {
+        const trimmed = candidate.trim();
+        if (trimmed.length > 0) {
+          return trimmed;
+        }
+      }
+    }
+
+    const path = typeof doc?.path === 'string'
+      ? doc.path
+      : typeof doc?.chemin === 'string'
+        ? doc.chemin
+        : null;
+    if (path) {
+      return this.joinUrl(this.apiBase, path);
+    }
+
+    return null;
+  }
+
+  private computeDocumentSizeKo(doc: any): number | null {
+    const direct = this.toNumber(
+      doc?.tailleKo ?? doc?.taille_ko ?? doc?.taille ?? doc?.sizeKo ?? doc?.size_ko ?? null,
+      null
+    );
+    if (direct != null) {
+      return direct;
+    }
+
+    const bytes = this.toNumber(
+      doc?.tailleOctets ?? doc?.taille_octets ?? doc?.tailleOctet ?? doc?.taille_bytes ?? null,
+      null
+    );
+    if (bytes != null) {
+      return Number(bytes / 1024);
+    }
+
+    return null;
+  }
+
+  private joinUrl(base: string, path: string): string {
+    if (!path) {
+      return base;
+    }
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+
+    const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    return `${normalizedBase}${normalizedPath}`;
   }
 
   private normalizeTimeline(raw: any): DemandeTimelineEntryDto[] {
