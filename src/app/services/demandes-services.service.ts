@@ -19,7 +19,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class DemandesServiceService {
   private http = inject(HttpClient);
-  private apiBase = environment.apiBaseUrl;
+  private apiBase: string = environment.apiBaseUrl.replace(/\/$/, '');
 
   // ---------- ADMIN : compatibilité historique ----------
   getAll(options?: { silentError?: boolean }): Observable<DemandeWithServices[]> {
@@ -44,8 +44,10 @@ export class DemandesServiceService {
             const code_statut = (d?.statutDemande?.codeStatut ?? undefined) as DemandeWithServices['code_statut'];
             const date_demande = (d?.dateDemande ?? d?.dateSoumission ?? '') as string;
 
-            const type_libelle = typeof d?.typeDemande?.libelle === 'string' ? d.typeDemande.libelle : undefined;
-            const statut_libelle = typeof d?.statutDemande?.libelle === 'string' ? d.statutDemande.libelle : undefined;
+            const type_libelle =
+              typeof d?.typeDemande?.libelle === 'string' ? d.typeDemande.libelle : undefined;
+            const statut_libelle =
+              typeof d?.statutDemande?.libelle === 'string' ? d.statutDemande.libelle : undefined;
 
             const normalizeString = (value: unknown): string | null => {
               if (value == null) {
@@ -83,8 +85,9 @@ export class DemandesServiceService {
               }))
               : [];
 
-            const documents = this.normalizeDocuments(d?.documents);
-            const timeline = this.normalizeTimeline(d?.timeline);
+            // <-- IMPORTANT : on passe l'id de la demande pour construire urlPublic si besoin -->
+            const documents = this.normalizeDocuments(d?.documents, id);
+            const timeline = this.normalizeTimeline(d?.timeline, id);
             const rendezVous = this.normalizeRendezVous(d?.rendezVous ?? d?.rdv ?? null);
 
             const out: DemandeWithServices = {
@@ -166,6 +169,11 @@ export class DemandesServiceService {
     return this.http.delete<void>(`${this.apiBase}/demandes/${id}`);
   }
 
+  /**
+   * Upload d'un document pour une demande.
+   * Le backend renvoie déjà un DemandeDocumentDto aligné (nomFichier, urlPrivate, ...).
+   * Ici on mappe la réponse pour fournir urlPublic utilisable côté frontend (endpoint sécurisé).
+   */
   uploadDocument(
     demandeId: number,
     file: File,
@@ -179,13 +187,33 @@ export class DemandesServiceService {
     if (options?.categorie) {
       form.append('categorie', options.categorie);
     }
-    return this.http.post<DemandeDocumentDto>(`${this.apiBase}/demandes/${demandeId}/documents`, form, {
-      headers: new HttpHeaders({ 'X-Skip-Error-Toast': '1' })
-    });
+    return this.http.post<any>(
+      `${this.apiBase}/demandes/${demandeId}/documents`,
+      form,
+      { headers: new HttpHeaders({ 'X-Skip-Error-Toast': '1' }) }
+    ).pipe(
+      map((created: any) => {
+        // map backend response to frontend DTO, building a usable urlPublic
+        const dto = this.toDocumentDto(created, demandeId);
+        if (!dto) {
+          // fallback: return raw created cast (avoid returning null)
+          return (created as unknown) as DemandeDocumentDto;
+        }
+        return dto;
+      })
+    );
   }
 
   deleteDocument(demandeId: number, documentId: number) {
     return this.http.delete<void>(`${this.apiBase}/demandes/${demandeId}/documents/${documentId}`);
+  }
+
+  downloadDocumentResponse(demandeId: number, documentId: number) {
+    const url = `${this.apiBase}/demandes/${demandeId}/documents/${documentId}`;
+    return this.http.get(url, {
+      observe: 'response',
+      responseType: 'blob'
+    });
   }
 
   // ---------- PAGE SERVICES : nouveau flux ----------
@@ -211,96 +239,122 @@ export class DemandesServiceService {
     return Number.isFinite(n) ? n : fallback;
   }
 
-  private normalizeDocuments(raw: any): DemandeDocumentDto[] {
+  // -------------------------------------------------------------------
+  // DOCUMENTS
+  // -------------------------------------------------------------------
+
+  /**
+   * Normalize documents array. demandeId is optional but used to construct secure access URL
+   */
+  private normalizeDocuments(raw: any, demandeId?: number): DemandeDocumentDto[] {
     if (!Array.isArray(raw)) {
       return [];
     }
 
     return raw
-      .map((doc: any) => this.toDocumentDto(doc))
+      .map((doc: any) => this.toDocumentDto(doc, demandeId))
       .filter(Boolean) as DemandeDocumentDto[];
   }
 
-  private toDocumentDto(doc: any): DemandeDocumentDto | null {
+  /**
+   * Normalise un document provenant de l'API (ou formats anciens)
+   * vers le type DemandeDocumentDto utilisé par le front.
+   *
+   * Si le backend ne fournit pas d'URL publique, on construit une URL d'accès backend :
+   *    {apiBase}/demandes/{demandeId}/documents/{id}
+   *
+   * IMPORTANT: on n'expose jamais un "chemin privé" interne (urlPrivate) directement.
+   */
+  private toDocumentDto(doc: any, demandeId?: number): DemandeDocumentDto | null {
     if (!doc) {
       return null;
     }
 
-    const id = this.toNumber(doc?.idDocument ?? doc?.id ?? doc?.documentId ?? doc?.id_document ?? null, null);
-    const url = this.extractDocumentUrl(doc);
-    if (!url) {
-      return null;
-    }
+    const id = this.toNumber(
+      doc?.idDocument ?? doc?.id ?? null,
+      null
+    );
 
-    const sizeKo = this.computeDocumentSizeKo(doc);
-    const rawName = doc?.nom ?? doc?.filename ?? doc?.nomFichier ?? doc?.nom_fichier ?? doc?.titre;
-    const nom = typeof rawName === 'string' && rawName.trim().length > 0 ? rawName.trim() : 'Document';
+    // Nom du fichier
+    const rawName =
+      doc?.nom ?? doc?.filename ?? doc?.nomFichier;
+    const nomFichier =
+      typeof rawName === 'string' && rawName.trim().length > 0
+        ? rawName.trim()
+        : 'Document';
 
     const visibleClientField = doc?.visibleClient ?? doc?.visible_client;
-    const visibleClient = visibleClientField === false || visibleClientField === 'false'
-      ? false
-      : true;
+    const visibleClient =
+      !(visibleClientField === false || visibleClientField === 'false');
 
-    return {
-      idDocument: id ?? undefined,
-      nom,
-      url,
-      tailleKo: sizeKo ?? undefined,
-      visibleClient,
-      mimeType: doc?.mimeType ?? doc?.contentType ?? doc?.type_contenu ?? doc?.typeContenu ?? undefined,
-      createdAt: doc?.createdAt ?? doc?.creeLe ?? doc?.cree_le ?? doc?.dateCreation ?? doc?.created_at ?? undefined
-    } satisfies DemandeDocumentDto;
-  }
+    const typeContenu =
+      doc?.typeContenu ??
+      doc?.mimeType ??
+      doc?.contentType;
 
-  private extractDocumentUrl(doc: any): string | null {
-    const candidates = [
-      doc?.url,
-      doc?.lien,
-      doc?.link,
-      doc?.downloadUrl,
-      doc?.urlPublic,
-      doc?.url_public,
-      doc?.urlPublique
+    const tailleOctets = this.toNumber(
+      doc?.tailleOctets
+    );
+
+    const creeLe =
+      doc?.creeLe ??
+      doc?.createdAt;
+
+    // Prefer explicit public URL fields sent by backend
+    const explicitCandidates = [
+      doc?.urlPrivate
     ];
-
-    for (const candidate of candidates) {
-      if (typeof candidate === 'string') {
-        const trimmed = candidate.trim();
-        if (trimmed.length > 0) {
-          return trimmed;
-        }
+    for (const c of explicitCandidates) {
+      if (typeof c === 'string' && c.trim().length > 0) {
+        return {
+          idDocument: id ?? undefined,
+          nomFichier,
+          urlPrivate: c.trim(),
+          typeContenu,
+          tailleOctets: tailleOctets ?? null,
+          visibleClient,
+          creePar: doc?.creePar ?? null,
+          creeParRole: doc?.creeParRole ?? null,
+          creeLe
+        } satisfies DemandeDocumentDto;
       }
     }
 
-    const path = typeof doc?.path === 'string'
-      ? doc.path
-      : typeof doc?.chemin === 'string'
-        ? doc.chemin
-        : null;
-    if (path) {
-      return this.joinUrl(this.apiBase, path);
+    // If backend didn't provide a public URL, but we have an id and demandeId,
+    // build the secure endpoint URL served by the backend (will require auth).
+    if (id != null && demandeId != null) {
+      const built = `${this.apiBase}/demandes/${demandeId}/documents/${id}`;
+      return {
+        idDocument: id ?? undefined,
+        nomFichier,
+        urlPrivate: built,
+        typeContenu,
+        tailleOctets: tailleOctets ?? null,
+        visibleClient,
+        creePar: doc?.creePar ?? null,
+        creeParRole: doc?.creeParRole ?? null,
+        creeLe
+      } satisfies DemandeDocumentDto;
     }
 
-    return null;
-  }
-
-  private computeDocumentSizeKo(doc: any): number | null {
-    const direct = this.toNumber(
-      doc?.tailleKo ?? doc?.taille_ko ?? doc?.taille ?? doc?.sizeKo ?? doc?.size_ko ?? null,
-      null
-    );
-    if (direct != null) {
-      return direct;
+    // As a last resort: if there is a relative path (path / chemin), join with apiBase
+    const path = typeof doc?.path === 'string' ? doc.path : typeof doc?.chemin === 'string' ? doc.chemin : null;
+    if (path && path.trim().length > 0) {
+      const joined = this.joinUrl(this.apiBase, path.trim());
+      return {
+        idDocument: id ?? undefined,
+        nomFichier,
+        urlPrivate: joined,
+        typeContenu,
+        tailleOctets: tailleOctets ?? null,
+        visibleClient,
+        creePar: doc?.creePar ?? null,
+        creeParRole: doc?.creeParRole ?? null,
+        creeLe
+      } satisfies DemandeDocumentDto;
     }
 
-    const bytes = this.toNumber(
-      doc?.tailleOctets ?? doc?.taille_octets ?? doc?.tailleOctet ?? doc?.taille_bytes ?? null,
-      null
-    );
-    if (bytes != null) {
-      return Number(bytes / 1024);
-    }
-
+    // no usable url -> skip
     return null;
   }
 
@@ -317,13 +371,21 @@ export class DemandesServiceService {
     return `${normalizedBase}${normalizedPath}`;
   }
 
-  private normalizeTimeline(raw: any): DemandeTimelineEntryDto[] {
+  // -------------------------------------------------------------------
+  // TIMELINE / RENDEZ-VOUS
+  // -------------------------------------------------------------------
+
+  private normalizeTimeline(raw: any, demandeId?: number): DemandeTimelineEntryDto[] {
     if (!Array.isArray(raw)) {
       return [];
     }
     return raw
       .map((entry: any) => {
-        const document = entry?.document ? this.normalizeDocuments([entry.document])[0] : undefined;
+        // normalise le document : trouver le premier élément non-null (ou undefined)
+        const document = entry?.document
+          ? this.normalizeDocuments([entry.document]).find(d => !!d)
+          : undefined;
+
         const rendezVous = this.normalizeRendezVous(entry?.rendezVous ?? entry?.rdv ?? null);
         return {
           id: this.toNumber(entry?.id ?? entry?.timelineId ?? null, null) ?? undefined,
@@ -341,12 +403,13 @@ export class DemandesServiceService {
               libelle: entry.statut.libelle ?? undefined
             }
             : undefined,
-          document,
+          document,    // DemandeDocumentDto | undefined (pas de null)
           rendezVous
         } satisfies DemandeTimelineEntryDto;
       })
       .filter(Boolean) as DemandeTimelineEntryDto[];
   }
+
 
   private normalizeRendezVous(raw: any): RendezVousSummary | null {
     if (!raw) {

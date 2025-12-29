@@ -77,7 +77,8 @@ export class ClientDashboardComponent implements OnInit {
   prochainRdv: ProchainRdvDto | null = null;
 
   submittingId: number | null = null;
-  private api = environment.apiBaseUrl;
+  // safe api base (no trailing slash)
+  private api = environment.apiBaseUrl ? environment.apiBaseUrl.replace(/\/+$/, '') : '';
 
   private readonly fallbackTypeOptions: Array<FilterOption<AnyTypeOrAll>> = [
     { value: 'Devis', label: 'Devis' },
@@ -153,7 +154,7 @@ export class ClientDashboardComponent implements OnInit {
             d?.client?.nom, d?.client?.prenom, d?.client?.email, d?.client?.immatriculation,
             d?.client?.vehiculeMarque, d?.client?.vehiculeModele,
             ...(Array.isArray(d?.services) ? d.services.map(s => s.libelle) : []),
-            ...this.visibleDocuments(d).map(doc => doc.nom)
+            ...this.visibleDocuments(d).map(doc => doc.nomFichier)
           ].filter(Boolean).join(' ').toLowerCase();
           if (!hay.includes(q)) return false;
         }
@@ -287,6 +288,40 @@ export class ClientDashboardComponent implements OnInit {
     });
   }
 
+  /**
+   * Ouvre un document dans un nouvel onglet (client & admin)
+   */
+  async openDocument(doc: DemandeDocumentDto, d?: DemandeResponse) {
+    try {
+      const demandeId = d?.idDemande;
+      const documentId = doc.idDocument;
+      if (!demandeId || !documentId) {
+        this.toast.error('Erreur', 'Identifiants du document manquants.');
+        return;
+      }
+
+      const res = await firstValueFrom(
+        this.srv.downloadDocumentResponse(demandeId, documentId)
+      );
+
+      const blob = res.body as Blob;
+      if (!blob) {
+        this.toast.error('Erreur', 'Fichier vide.');
+        return;
+      }
+
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, '_blank');
+
+      // Nettoyage après ouverture
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+    } catch (err: any) {
+      const msg = err?.error?.message || err?.message || 'Téléchargement impossible';
+      this.toast.error('Erreur', msg);
+    }
+  }
+
+
   // ===========================
   // Helpers & UI
   // ===========================
@@ -326,18 +361,34 @@ export class ClientDashboardComponent implements OnInit {
   }
 
   visibleDocuments(d?: DemandeResponse): DemandeDocumentDto[] {
-    return (d?.documents ?? []).filter(doc => doc.visibleClient !== false && !!doc.url);
+    return (d?.documents ?? []).filter(doc => doc.visibleClient !== false && !!doc.urlPrivate);
   }
 
+  /**
+   * Correction : doc.tailleOctets est en octets.
+   * - < 1024 => affichage en octets
+   * - >= 1024 && < 1024*1024 => Ko
+   * - >= 1024*1024 => Mo (1 décimale)
+   */
   documentSize(doc: DemandeDocumentDto): string | null {
-    const value = Number(doc?.tailleKo ?? 0);
-    if (!Number.isFinite(value) || value <= 0) {
+    if (!doc) return null;
+
+    const bytes = Number(doc?.tailleOctets ?? 0);
+    if (!Number.isFinite(bytes) || bytes <= 0) {
       return null;
     }
-    if (value >= 1024) {
-      return `${(value / 1024).toFixed(1)} Mo`;
+
+    if (bytes >= 1024 * 1024) {
+      const mo = bytes / (1024 * 1024);
+      return `${mo.toFixed(1)} Mo`;
     }
-    return `${value.toFixed(0)} Ko`;
+
+    if (bytes >= 1024) {
+      const ko = bytes / 1024;
+      return `${ko.toFixed(0)} Ko`;
+    }
+
+    return `${bytes} o`;
   }
 
   visibleTimeline(d?: DemandeResponse): DemandeTimelineEntryDto[] {
@@ -351,8 +402,8 @@ export class ClientDashboardComponent implements OnInit {
     if (entry.statut?.libelle || entry.statut?.codeStatut) {
       return `Statut mis à jour : ${entry.statut.libelle || entry.statut.codeStatut}`;
     }
-    if (entry.document?.nom) {
-      return `Document ajouté : ${entry.document.nom}`;
+    if (entry.document?.nomFichier) {
+      return `Document ajouté : ${entry.document.nomFichier}`;
     }
     if (entry.rendezVous?.dateDebut) {
       return 'Rendez-vous mis à jour';
@@ -454,9 +505,14 @@ export class ClientDashboardComponent implements OnInit {
 
     const blob = new Blob([res.body], { type: 'text/calendar;charset=UTF-8' });
     let filename = fallbackName;
-    const cd = res.headers?.get?.('Content-Disposition');
-    const m = cd && /filename="?([^\"]+)"?/i.exec(cd);
-    if (m?.[1]) filename = m[1];
+    // more robust header reading
+    try {
+      const cd = res.headers?.get ? res.headers.get('Content-Disposition') : (res.headers && (res.headers['content-disposition'] || res.headers['Content-Disposition']));
+      const m = cd && /filename="?([^"]+)"?/i.exec(cd);
+      if (m?.[1]) filename = m[1];
+    } catch (e) {
+      // ignore - fallback will be used
+    }
 
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -481,4 +537,5 @@ export class ClientDashboardComponent implements OnInit {
   clearFilters() {
     this.filters.set({ q: '', type: 'ALL', statut: 'ALL', dateFrom: null, dateTo: null });
   }
+
 }

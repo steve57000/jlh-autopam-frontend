@@ -63,13 +63,31 @@ export interface DemandeServiceDto {
 }
 
 export interface DemandeDocumentDto {
+  /** Identifiant du document (clé technique) */
   idDocument?: number;
-  nom: string;
-  url: string;
-  tailleKo?: number;
+
+  /** Nom du fichier (ex: devis_1234.pdf) – correspond à nomFichier côté backend */
+  nomFichier: string;
+
+  /** URL publique de téléchargement/visualisation – correspond à urlPrivate côté backend */
+  urlPrivate: string | null;
+
+  /** Type de contenu MIME (ex: application/pdf) – correspond à typeContenu côté backend */
+  typeContenu?: string | null;
+
+  /** Taille en octets – correspond à tailleOctets côté backend */
+  tailleOctets?: number | null;
+
+  /** Visibilité côté client */
   visibleClient?: boolean;
-  mimeType?: string;
-  createdAt?: string;
+
+  /** Métadonnées auteur (admin/client) */
+  creePar?: string | null;
+  creeParRole?: string | null;
+
+  /** Date de création (Instant ISO) – correspond à creeLe côté backend */
+  creeLe?: string | null;
+
 }
 
 export interface RendezVousSummary {
