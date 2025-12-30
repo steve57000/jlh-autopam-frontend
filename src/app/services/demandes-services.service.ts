@@ -252,109 +252,90 @@ export class DemandesServiceService {
     }
 
     return raw
-      .map((doc: any) => this.toDocumentDto(doc, demandeId))
+      .map((doc: any) => this.toDocumentDto(doc))
       .filter(Boolean) as DemandeDocumentDto[];
   }
 
-  /**
-   * Normalise un document provenant de l'API (ou formats anciens)
-   * vers le type DemandeDocumentDto utilisé par le front.
-   *
-   * Si le backend ne fournit pas d'URL publique, on construit une URL d'accès backend :
-   *    {apiBase}/demandes/{demandeId}/documents/{id}
-   *
-   * IMPORTANT: on n'expose jamais un "chemin privé" interne (urlPrivate) directement.
-   */
-  private toDocumentDto(doc: any, demandeId?: number): DemandeDocumentDto | null {
+  private toDocumentDto(doc: any): DemandeDocumentDto | null {
     if (!doc) {
       return null;
     }
 
-    const id = this.toNumber(
-      doc?.idDocument ?? doc?.id ?? null,
-      null
-    );
+    const id = this.toNumber(doc?.idDocument ?? doc?.id ?? doc?.documentId ?? doc?.id_document ?? null, null);
+    const url = this.extractDocumentUrl(doc);
+    if (!url) {
+      return null;
+    }
 
-    // Nom du fichier
-    const rawName =
-      doc?.nom ?? doc?.filename ?? doc?.nomFichier;
-    const nomFichier =
-      typeof rawName === 'string' && rawName.trim().length > 0
-        ? rawName.trim()
-        : 'Document';
+    const sizeKo = this.computeDocumentSizeKo(doc);
+    const rawName = doc?.nom ?? doc?.filename ?? doc?.nomFichier ?? doc?.nom_fichier ?? doc?.titre;
+    const nom = typeof rawName === 'string' && rawName.trim().length > 0 ? rawName.trim() : 'Document';
 
     const visibleClientField = doc?.visibleClient ?? doc?.visible_client;
-    const visibleClient =
-      !(visibleClientField === false || visibleClientField === 'false');
+    const visibleClient = visibleClientField === false || visibleClientField === 'false'
+      ? false
+      : true;
 
-    const typeContenu =
-      doc?.typeContenu ??
-      doc?.mimeType ??
-      doc?.contentType;
+    return {
+      idDocument: id ?? undefined,
+      nom,
+      url,
+      tailleKo: sizeKo ?? undefined,
+      visibleClient,
+      mimeType: doc?.mimeType ?? doc?.contentType ?? doc?.type_contenu ?? doc?.typeContenu ?? undefined,
+      createdAt: doc?.createdAt ?? doc?.creeLe ?? doc?.cree_le ?? doc?.dateCreation ?? doc?.created_at ?? undefined
+    } satisfies DemandeDocumentDto;
+  }
 
-    const tailleOctets = this.toNumber(
-      doc?.tailleOctets
-    );
-
-    const creeLe =
-      doc?.creeLe ??
-      doc?.createdAt;
-
-    // Prefer explicit public URL fields sent by backend
-    const explicitCandidates = [
-      doc?.urlPrivate
+  private extractDocumentUrl(doc: any): string | null {
+    const candidates = [
+      doc?.url,
+      doc?.lien,
+      doc?.link,
+      doc?.downloadUrl,
+      doc?.urlPublic,
+      doc?.url_public,
+      doc?.urlPublique
     ];
-    for (const c of explicitCandidates) {
-      if (typeof c === 'string' && c.trim().length > 0) {
-        return {
-          idDocument: id ?? undefined,
-          nomFichier,
-          urlPrivate: c.trim(),
-          typeContenu,
-          tailleOctets: tailleOctets ?? null,
-          visibleClient,
-          creePar: doc?.creePar ?? null,
-          creeParRole: doc?.creeParRole ?? null,
-          creeLe
-        } satisfies DemandeDocumentDto;
+
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string') {
+        const trimmed = candidate.trim();
+        if (trimmed.length > 0) {
+          return trimmed;
+        }
       }
     }
 
-    // If backend didn't provide a public URL, but we have an id and demandeId,
-    // build the secure endpoint URL served by the backend (will require auth).
-    if (id != null && demandeId != null) {
-      const built = `${this.apiBase}/demandes/${demandeId}/documents/${id}`;
-      return {
-        idDocument: id ?? undefined,
-        nomFichier,
-        urlPrivate: built,
-        typeContenu,
-        tailleOctets: tailleOctets ?? null,
-        visibleClient,
-        creePar: doc?.creePar ?? null,
-        creeParRole: doc?.creeParRole ?? null,
-        creeLe
-      } satisfies DemandeDocumentDto;
+    const path = typeof doc?.path === 'string'
+      ? doc.path
+      : typeof doc?.chemin === 'string'
+        ? doc.chemin
+        : null;
+    if (path) {
+      return this.joinUrl(this.apiBase, path);
     }
 
-    // As a last resort: if there is a relative path (path / chemin), join with apiBase
-    const path = typeof doc?.path === 'string' ? doc.path : typeof doc?.chemin === 'string' ? doc.chemin : null;
-    if (path && path.trim().length > 0) {
-      const joined = this.joinUrl(this.apiBase, path.trim());
-      return {
-        idDocument: id ?? undefined,
-        nomFichier,
-        urlPrivate: joined,
-        typeContenu,
-        tailleOctets: tailleOctets ?? null,
-        visibleClient,
-        creePar: doc?.creePar ?? null,
-        creeParRole: doc?.creeParRole ?? null,
-        creeLe
-      } satisfies DemandeDocumentDto;
+    return null;
+  }
+
+  private computeDocumentSizeKo(doc: any): number | null {
+    const direct = this.toNumber(
+      doc?.tailleKo ?? doc?.taille_ko ?? doc?.taille ?? doc?.sizeKo ?? doc?.size_ko ?? null,
+      null
+    );
+    if (direct != null) {
+      return direct;
     }
 
-    // no usable url -> skip
+    const bytes = this.toNumber(
+      doc?.tailleOctets ?? doc?.taille_octets ?? doc?.tailleOctet ?? doc?.taille_bytes ?? null,
+      null
+    );
+    if (bytes != null) {
+      return Number(bytes / 1024);
+    }
+
     return null;
   }
 
@@ -371,11 +352,7 @@ export class DemandesServiceService {
     return `${normalizedBase}${normalizedPath}`;
   }
 
-  // -------------------------------------------------------------------
-  // TIMELINE / RENDEZ-VOUS
-  // -------------------------------------------------------------------
-
-  private normalizeTimeline(raw: any, demandeId?: number): DemandeTimelineEntryDto[] {
+  private normalizeTimeline(raw: any): DemandeTimelineEntryDto[] {
     if (!Array.isArray(raw)) {
       return [];
     }

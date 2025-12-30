@@ -333,20 +333,46 @@
           } @else {
           <p class="empty">Aucun document joint pour cette demande.</p>
         }
-          <div class="doc-upload">
-            <input
-              type="file"
-              class="doc-upload__input"
-              accept=".pdf,application/pdf,image/*"
-              [attr.id]="'doc-upload-input-' + (getDemandeId(draft) ?? 'pending')"
-              (change)="onDocumentSelected($event)"
-              [disabled]="documentUploading()"
-            />
-            <label
-              class="btn"
-              [attr.for]="'doc-upload-input-' + (getDemandeId(draft) ?? 'pending')"
-            >
-              @if (documentUploading()) { Téléversement… } @else { Ajouter un document }
+        <div class="doc-upload">
+          <input
+            type="file"
+            class="doc-upload__input"
+            accept=".pdf,application/pdf,image/*"
+            [attr.id]="'doc-upload-input-' + (getDemandeId(draft) ?? 'pending')"
+            (change)="onDocumentSelected($event)"
+            [disabled]="documentUploading()"
+          />
+          <label
+            class="btn"
+            [attr.for]="'doc-upload-input-' + (getDemandeId(draft) ?? 'pending')"
+          >
+            @if (documentUploading()) { Téléversement… } @else { Ajouter un document }
+          </label>
+          @if (documentError()) {
+            <p class="doc-upload__error">{{ documentError() }}</p>
+          }
+        </div>
+      </section>
+
+      @if (draft.code_type === 'RendezVous' && rdvForm(); as rdv) {
+        <section class="details-block details-block--editable">
+          <h4>Planification du rendez-vous</h4>
+          <div class="detail-grid">
+            <label>
+              <span>Date de début</span>
+              <input type="datetime-local" [value]="rdv.dateDebut" (change)="setRdvField('dateDebut', ($any($event.target)).value)" />
+            </label>
+            <label>
+              <span>Date de fin</span>
+              <input type="datetime-local" [value]="rdv.dateFin" (change)="setRdvField('dateFin', ($any($event.target)).value)" />
+            </label>
+            <label>
+              <span>Statut</span>
+              <select [value]="rdv.codeStatut" (change)="setRdvField('codeStatut', ($any($event.target)).value)">
+                @for (opt of rdvStatusOptions(); track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
             </label>
             @if (documentError()) {
               <p class="doc-upload__error">{{ documentError() }}</p>
