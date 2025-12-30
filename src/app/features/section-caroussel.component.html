@@ -1,7 +1,10 @@
 @if (cards && cards.length > 0) {
   <div class="carousel-section" [ngClass]="{ 'gradient': background === 'gradient', 'white': background === 'white' }">
-    <div class="container-max" >
+    <div class="container-max">
       <h2 class="carousel-title">{{ title }}</h2>
+      @if (subtitle) {
+        <p class="carousel-subtitle">{{ subtitle }}</p>
+      }
       <div class="carousel">
         @for (card of cards; track card.title; let i = $index) {
           <div class="carousel-card"

@@ -137,6 +137,30 @@ a.cta-btn-secondary { text-align: center; }
 }
 
 .container-main { min-height: 100vh; }
+.home-section {
+  position: relative;
+}
+
+.home-section + .home-section {
+  margin-top: clamp(2rem, 6vw, 4.5rem);
+  padding-top: clamp(2rem, 5vw, 4rem);
+}
+
+.home-section + .home-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(92%, 1200px);
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.18),
+    rgba(255, 255, 255, 0)
+  );
+}
 .container-max {
   display: flex; flex-direction: row;
   max-width: 1480px; width: 100%; height: 100%;
@@ -328,5 +352,4 @@ a.cta-btn-secondary { text-align: center; }
     text-decoration: underline;
   }
 }
-
 
