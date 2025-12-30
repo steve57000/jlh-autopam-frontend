@@ -61,64 +61,64 @@
   @if (loading()) {
     <p>Chargement…</p>
   } @else if (error()) {
-  <p class="error">{{ error() }}</p>
-} @else {
-  <div class="demandes-content">
-    <div class="table-wrapper">
-      <table>
-        <thead>
-        <tr>
-          <th>#</th>
-          <th>Type</th>
-          <th>Client</th>
-          <th>Email</th>
-          <th>Date</th>
-          <th>Services</th>
-          <th>Statut</th>
-          <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        @for (d of filtered(); let i = $index; track (getDemandeId(d) ?? i)) {
+    <p class="error">{{ error() }}</p>
+  } @else {
+    <div class="demandes-content">
+      <div class="table-wrapper">
+        <table>
+          <thead>
           <tr>
-            <td>{{ getDemandeId(d) }}</td>
-            <td>
-                <span class="badge type-{{ d.code_type }}">
-                  {{ d.type_libelle || d.code_type }}
-                </span>
-            </td>
-            <td>{{ d.client?.nom }} {{ d.client?.prenom }}</td>
-            <td>{{ d.client?.email }}</td>
-            <td>{{ d.date_demande | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td>
-              @for (s of d.services; let j = $index; track getServiceKey(s)) {
-                <span class="chip">
-                    {{ s.libelle }}
-                  @if (s.quantite) { <small>×{{ s.quantite }}</small> }
-                  </span>
-              }
-            </td>
-            <td>
-                <span class="badge statut-{{ d.code_statut }}">
-                  {{ d.statut_libelle || d.code_statut }}
-                </span>
-            </td>
-            <td class="actions">
-              <button type="button" (click)="openDetails(d)">Voir / Modifier</button>
-              <button type="button" (click)="marquerTraitee(d)" [disabled]="d.code_statut==='Traitee'">Traiter</button>
-              <button type="button" class="danger" (click)="supprimer(d)">Supprimer</button>
-            </td>
+            <th>#</th>
+            <th>Type</th>
+            <th>Client</th>
+            <th>Email</th>
+            <th>Date</th>
+            <th>Services</th>
+            <th>Statut</th>
+            <th>Actions</th>
           </tr>
-        }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+          @for (d of filtered(); let i = $index; track (getDemandeId(d) ?? i)) {
+            <tr>
+              <td>{{ getDemandeId(d) }}</td>
+              <td>
+                  <span class="badge type-{{ d.code_type }}">
+                    {{ d.type_libelle || d.code_type }}
+                  </span>
+              </td>
+              <td>{{ d.client?.nom }} {{ d.client?.prenom }}</td>
+              <td>{{ d.client?.email }}</td>
+              <td>{{ d.date_demande | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                @for (s of d.services; let j = $index; track getServiceKey(s)) {
+                  <span class="chip">
+                      {{ s.libelle }}
+                    @if (s.quantite) { <small>×{{ s.quantite }}</small> }
+                    </span>
+                }
+              </td>
+              <td>
+                  <span class="badge statut-{{ d.code_statut }}">
+                    {{ d.statut_libelle || d.code_statut }}
+                  </span>
+              </td>
+              <td class="actions">
+                <button type="button" (click)="openDetails(d)">Voir / Modifier</button>
+                <button type="button" (click)="marquerTraitee(d)" [disabled]="d.code_statut==='Traitee'">Traiter</button>
+                <button type="button" class="danger" (click)="supprimer(d)">Supprimer</button>
+              </td>
+            </tr>
+          }
+          </tbody>
+        </table>
 
-      @if (!filtered().length) {
-        <p class="empty">Aucun résultat avec ces filtres.</p>
-      }
+        @if (!filtered().length) {
+          <p class="empty">Aucun résultat avec ces filtres.</p>
+        }
+      </div>
     </div>
-  </div>
-}
+  }
 </div>
 
 @if (selectedDemande()) {
@@ -331,9 +331,9 @@
               }
             </ul>
           } @else {
-          <p class="empty">Aucun document joint pour cette demande.</p>
-        }
-        <div class="doc-upload">
+            <p class="empty">Aucun document joint pour cette demande.</p>
+          }
+          <div class="doc-upload">
           <input
             type="file"
             class="doc-upload__input"
@@ -351,7 +351,7 @@
           @if (documentError()) {
             <p class="doc-upload__error">{{ documentError() }}</p>
           }
-        </div>
+          </div>
       </section>
 
       @if (draft.code_type === 'RendezVous' && rdvForm(); as rdv) {
