@@ -4,8 +4,22 @@
 @use '../../styles/animations' as anim;
 
 .section-pictos-metiers {
-  background: #fff;
+  background: linear-gradient(180deg, rgba(v.$color-secondary, 0.06), rgba(v.$color-primary, 0.02));
   width: 100%;
+  position: relative;
+  padding-block: clamp(48px, 8vh, 96px);
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 6vw;
+    right: 6vw;
+    top: clamp(12px, 2vh, 24px);
+    height: 1px;
+    background: linear-gradient(90deg, rgba(v.$color-primary, 0), rgba(v.$color-primary, 0.18), rgba(v.$color-primary, 0));
+    opacity: 0.7;
+    pointer-events: none;
+  }
 
   // Masquer le titre et le wrapper par défaut
   .section-title,
@@ -35,8 +49,6 @@
 
   .container-max {
     flex-direction: column;
-    padding-top: 44px;
-    padding-bottom: 44px;
     margin: 0 auto;
 
     h2.section-title {
@@ -55,7 +67,7 @@
       max-width: 860px;
       width: 100%;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 2.5rem 2rem;
       justify-items: stretch;
       align-items: stretch;
@@ -266,7 +278,7 @@
   .section-pictos-metiers {
     .container-max {
       .pictos-wrapper {
-        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 2.3rem 1rem;
       }
       .picto-button {
