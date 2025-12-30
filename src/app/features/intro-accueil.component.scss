@@ -8,14 +8,14 @@
 ------------------------------------*/
 .intro-bg {
   width: 100%;
-  min-height: 940px;
+  min-height: 720px;
   height: 100%;
   background: v.$linear-bg;
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
-  padding: clamp(32px, 6vh, 64px) 0 clamp(140px, 18vh, 200px);
+  padding: clamp(24px, 4vh, 40px) 0 clamp(48px, 8vh, 96px);
 
   &.in-view {
     @include anim.fade-in-up(1s, ease-out, forwards, 50px);
@@ -25,14 +25,13 @@
 .intro-wrapper {
   position: relative;
   flex-direction: column;
-  min-height: 780px;
+  min-height: 0;
   height: auto;
   margin: 0 auto;
 
   .cta-container {
-    position: absolute;
-    bottom: clamp(-36px, -6vh, -12px);
-    left: 20px;
+    margin-top: clamp(20px, 3vh, 32px);
+    align-items: flex-start;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -54,9 +53,9 @@
 
 .main-title {
   font-family: v.$font-title;
-  font-size: 2rem;
+  font-size: clamp(1.7rem, 2.2vw, 2.3rem);
   color: v.$color-quaternary;
-  margin-top: 44px;
+  margin-top: clamp(12px, 3vh, 28px);
   margin-bottom: 0;
   font-weight: 600;
   line-height: 1.22;
@@ -78,19 +77,24 @@
 
 .intro-content {
   width: 100%;
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(0, 1.6fr);
   align-items: center;
+  gap: clamp(20px, 4vw, 40px);
   position: relative;
-  margin-top: clamp(60px, 12vh, 120px);
+  margin-top: clamp(24px, 6vh, 56px);
+}
+
+.intro-column {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2.5vw, 24px);
 }
 
 .intro-img-container {
   position: relative;
-  min-width: clamp(320px, 56vw, 620px);
-  max-width: 860px;
-  width: clamp(360px, 62vw, 860px);
-  margin: 0 auto;
+  min-width: 0;
+  width: 100%;
   aspect-ratio: 1599 / 900;
   box-shadow: v.$shadow-small;
   border-radius: v.$border-radius-high;
@@ -115,16 +119,14 @@
 }
 
 .intro-bloc-left {
-  position: absolute;
-  top: clamp(-96px, -10vw, -48px); // dépasse de 1/5 la hauteur de l'image
-  left: 0;
-  width: clamp(260px, 28vw, 360px);
-  min-height: 240px;
+  position: relative;
+  width: 100%;
+  min-height: 0;
   background: v.$color-primary;
   color: v.$color-quaternary;
   border-radius: v.$border-radius-high;
   box-shadow: v.$shadow-high-right;
-  padding: clamp(24px, 3vw, 32px);
+  padding: clamp(20px, 2.5vw, 30px);
   z-index: 3;
   display: flex;
   flex-direction: column;
@@ -137,23 +139,21 @@
 
   p {
     font-family: v.$font-body;
-    font-size: 1.09rem;
+    font-size: 1.02rem;
     font-weight: 400;
-    line-height: 1.5;
-    margin: 0 0 2rem 0;
+    line-height: 1.55;
+    margin: 0;
   }
 }
 
 .intro-bloc-right {
-  position: absolute;
-  bottom: clamp(-120px, -12vw, -70px);
-  right: 0;
-  width: clamp(300px, 32vw, 420px);
+  position: relative;
+  width: 100%;
   background: v.$color-secondary;
   color: v.$color-quaternary;
   border-radius: v.$border-radius-high;
   box-shadow: v.$shadow-high-left;
-  padding: clamp(28px, 3.5vw, 40px);
+  padding: clamp(20px, 2.6vw, 32px);
   z-index: 3;
   display: flex;
   flex-direction: column;
@@ -165,16 +165,16 @@
 
   .horaires-title {
     font-family: v.$font-title;
-    font-size: 1.18rem;
+    font-size: 1.05rem;
     font-weight: 700;
-    margin-bottom: 1.2rem;
+    margin-bottom: 0.9rem;
     letter-spacing: 0.04em;
   }
   .horaires-info {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-    margin-bottom: 1.1rem;
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
 
     .material-icons {
       font-size: 1.13rem;
@@ -182,20 +182,20 @@
       vertical-align: middle;
     }
     span {
-      font-size: 1.02rem;
+      font-size: 0.98rem;
       font-weight: 500;
     }
   }
   hr {
     border: none;
     border-top: 1.1px solid rgba(245,245,245,0.23);
-    margin: 1.1rem 0 1.2rem;
+    margin: 0.9rem 0 1rem;
   }
   .horaires-table {
     display: flex;
     flex-direction: column;
-    gap: 0.23rem;
-    font-size: 1.01rem;
+    gap: 0.2rem;
+    font-size: 0.96rem;
 
     div {
       display: flex;
@@ -212,81 +212,61 @@
 ------------------------------------*/
 @media (max-width: 1250px) {
   .intro-wrapper {
-    min-height: 980px;
     .cta-container {
-      bottom: clamp(-20px, -4vh, 0px);
-      left: 50%;
-      transform: translateX(-50%);
       text-align: center;
       align-items: center;
     }
   }
   .intro-content {
-    margin-top: clamp(120px, 18vh, 240px);
-  }
-  .intro-bloc-left {
-    top: clamp(-40px, -6vw, -12px);
-  }
-  .intro-bloc-right {
-    bottom: clamp(-60px, -8vw, -24px);
+    grid-template-columns: minmax(240px, 1fr) minmax(0, 1.2fr);
+    align-items: start;
   }
   .intro-img-container {
-    width: 100%;
-    min-width: clamp(520px, 78vw, 780px);
-    margin: 0 auto;
-    aspect-ratio: 1599 / 900;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .intro-bloc-left {
+    grid-column: 1;
+  }
+  .intro-bloc-right {
+    grid-column: 1;
   }
 }
 
 @media (max-width: 800px) {
   .intro-wrapper {
-    min-height: 1200px;
     .cta-container {
-      bottom: clamp(-16px, -3vh, 4px);
-      left: 50%;
-      transform: translateX(-50%);
       text-align: center;
+      align-items: center;
     }
   }
   .intro-content {
-    flex-direction: column;
-    align-items: center;
-    gap: 28px;
-    margin-top: clamp(80px, 12vh, 140px);
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 20px;
+    margin-top: clamp(24px, 6vh, 48px);
+  }
+  .intro-column {
+    order: 2;
   }
   .intro-bloc-left {
-    position: static;
-    width: min(90vw, 520px);
+    width: 100%;
     box-shadow: v.$shadow-high-left;
   }
   .intro-bloc-right {
-    position: static;
-    width: min(90vw, 520px);
+    width: 100%;
     box-shadow: v.$shadow-high-right;
   }
   .intro-img-container {
-    min-width: min(92vw, 720px);
+    min-width: 0;
     margin: 0 auto;
     aspect-ratio: 1599 / 900;
   }
 }
 
 @media (max-width: 620px) {
-  .intro-wrapper {
-    min-height: 1240px;
-
-    .cta-container {
-      position: absolute;
-      bottom: clamp(0px, -1vh, 8px);
-      left: 0;
-      text-align: center;
-      align-items: center;     // aligne le contenu centré
-      width: 100%;             // taille intrinsèque du contenu
-    }
-  }
-
   .intro-content {
-    margin-top: clamp(64px, 12vh, 120px);
+    margin-top: clamp(20px, 5vh, 40px);
   }
 
   .intro-img-container {
