@@ -1,8 +1,6 @@
 import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, Inject, PLATFORM_ID } from '@angular/core';
 import { PromotionModel } from '../modeles/promotion.model';
 import { DatePipe, NgOptimizedImage, isPlatformBrowser } from '@angular/common';
-import { environment } from '../../environments/environment';
-
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
@@ -59,22 +57,6 @@ export class PromotionsSliderComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     this.currentIndex = Math.max(0, Math.min(index, this.promotions.length - 1));
-  }
-
-  getImageUrl(imageUrl: string): string {
-    if (!imageUrl) {
-      return '';
-    }
-
-    if (/^(https?:|data:|blob:)/i.test(imageUrl)) {
-      return imageUrl;
-    }
-
-    const apiBase = environment.apiBaseUrl ? environment.apiBaseUrl.replace(/\/+$/, '') : '';
-    const publicBase = apiBase.replace(/\/api$/i, '');
-    const normalizedPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
-
-    return publicBase ? `${publicBase}${normalizedPath}` : normalizedPath;
   }
 
   private handlePromotionsChange(promotions: PromotionModel[]) {
