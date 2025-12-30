@@ -101,7 +101,7 @@
         font-family: variables.$font-subtitle;
         color: variables.$color-primary;
         font-weight: 600;
-        transition: color 0.2s, background 0.2s, transform 0.2s;
+        transition: color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
         display: inline-block;
         margin: 0;
         padding: 0.35rem 0.6rem;
@@ -127,6 +127,7 @@
           color: variables.$color-secondary;
           background: rgba(variables.$color-secondary, 0.12);
           transform: translateY(-1px);
+          box-shadow: 0 8px 18px rgba(variables.$color-secondary, 0.2);
         }
 
         &:hover::after,
@@ -224,7 +225,8 @@
         background: variables.$color-quaternary;
         flex-direction: column;
         align-items: center;
-        padding: clamp(5rem, 18vh, 12rem) clamp(1.5rem, 6vw, 3rem) clamp(3rem, 8vh, 5rem);
+        justify-content: center;
+        padding: clamp(4.5rem, 10vh, 6rem) clamp(1.5rem, 6vw, 3rem) clamp(2.5rem, 8vh, 4rem);
 
         /* état fermé */
         transform: translateY(-12px);
@@ -236,7 +238,7 @@
         pointer-events: none;        /* bloquer les clics */
         will-change: transform, opacity;      /* perf */
         backface-visibility: hidden; /* évite des artefacts sur GPU */
-        overflow-y: auto;
+        overflow: hidden;
 
         &.open {
           transform: translateY(0);
@@ -269,36 +271,11 @@
     }
 
     &.menu-open .container-max  {
-      position: absolute;
-      width: 100vw;
+      position: relative;
+      width: 100%;
       z-index: 250;
       display: flex;
-      justify-content: center;
-    }
-
-    &.menu-open .container-max .logo {
-      position: absolute;
-      max-width: 300px;
-      width: 100%;
-      top: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-
-      &:hover {
-        transform: translateX(-50%) scale(1.02);
-      }
-
-      img {
-        width: 100%;
-
-        &:hover {
-          filter: brightness(1.20) drop-shadow(1px 2px 1px rgba(64, 64, 64, 0.25));
-        }
-      }
-    }
-
-    &.menu-open .container-max nav {
-      padding-top: clamp(16rem, 36vh, 24rem); // égale à la hauteur du logo+header
+      justify-content: space-between;
     }
   }
 }
