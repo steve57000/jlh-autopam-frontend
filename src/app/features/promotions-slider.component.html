@@ -1,6 +1,9 @@
 @if (promotions.length) {
   <div class="promo-section container-max">
     <h2>Offre du moment</h2>
+    <p class="section-subtitle">
+      Des promotions saisonnières pour vos pneus, l’entretien et la réparation automobile.
+    </p>
     <div class="slider-wrapper">
       <div class="slider" [style.transform]="'translateX(-' + currentIndex * 100 + '%)'">
         @for (promo of promotions; track promo.idPromotion; let i = $index) {
