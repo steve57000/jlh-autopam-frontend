@@ -59,6 +59,35 @@ export class PromotionsSliderComponent implements OnInit, OnDestroy, OnChanges {
     this.currentIndex = Math.max(0, Math.min(index, this.promotions.length - 1));
   }
 
+  getImageUrl(imageUrl: string): string {
+    if (!imageUrl) {
+      return '';
+    }
+
+    if (/^(data:|blob:)/i.test(imageUrl)) {
+      return imageUrl;
+    }
+
+    if (/^https?:/i.test(imageUrl)) {
+      try {
+        const parsed = new URL(imageUrl);
+        if (parsed.pathname.startsWith('/promotions/images/')) {
+          return imageUrl;
+        }
+
+        const normalizedPath = parsed.pathname.startsWith('/')
+          ? parsed.pathname.slice(1)
+          : parsed.pathname;
+        return `${parsed.origin}/promotions/images/${normalizedPath}`;
+      } catch {
+        return imageUrl;
+      }
+    }
+
+    const normalizedPath = imageUrl.startsWith('/') ? imageUrl.slice(1) : imageUrl;
+    return `/promotions/images/${normalizedPath}`;
+  }
+
   private handlePromotionsChange(promotions: PromotionModel[]) {
     if (!promotions?.length) {
       this.stopAutoSlide();
