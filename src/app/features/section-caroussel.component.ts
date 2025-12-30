@@ -12,6 +12,7 @@ import {NgClass} from '@angular/common';
 })
 export class SectionCarousselComponent {
   @Input() title!: string;
+  @Input() subtitle?: string;
   @Input() background!: 'gradient' | 'white';
   @Input() cards: { title: string; content: string; color: 'light' | 'dark' }[] = [];
   @Input() activeIndex: number = 0; // Contrôlé par le parent

@@ -3,14 +3,27 @@
   background: #0d0d0f; // fond sombre (cohérent avec tes tons noirs)
   color: #fff;
 
-  .container {
-    width: min(1200px, 92vw);
-    margin: 0 auto;
+  .container-max {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr);
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: start;
   }
 
   .title {
     font-size: clamp(1.25rem, 1.1rem + 1.5vw, 2rem);
     margin: 0 0 16px;
+  }
+
+  .subtitle {
+    margin: -6px 0 20px;
+    max-width: 420px;
+    color: rgba(255, 255, 255, 0.72);
+    line-height: 1.5;
+  }
+
+  .rail-wrap {
+    align-self: center;
   }
 
   .rail-wrap {
@@ -105,5 +118,11 @@
     padding: 0; margin: -1px;
     overflow: hidden; clip: rect(0, 0, 0, 0);
     white-space: nowrap; border: 0;
+  }
+
+  @media (max-width: 900px) {
+    .container-max {
+      grid-template-columns: 1fr;
+    }
   }
 }
