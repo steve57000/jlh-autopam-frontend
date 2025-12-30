@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-inline: clamp(1rem, 3vw, 2.5rem);
+  padding-inline: 0;
   border-bottom: 1px solid variables.$color-primary;
   box-shadow: 0 4px 8px rgba(variables.$color-primary, 45%);
   z-index: 100;
@@ -101,14 +101,37 @@
         font-family: variables.$font-subtitle;
         color: variables.$color-primary;
         font-weight: 600;
-        transition: color 0.2s;
+        transition: color 0.2s, background 0.2s, transform 0.2s;
         display: inline-block;
         margin: 0;
+        padding: 0.35rem 0.6rem;
+        border-radius: 999px;
+        position: relative;
+
+        &::after {
+          content: "";
+          position: absolute;
+          left: 14%;
+          right: 14%;
+          bottom: -6px;
+          height: 3px;
+          border-radius: 999px;
+          background: variables.$color-secondary;
+          transform: scaleX(0);
+          transform-origin: center;
+          transition: transform 0.2s ease;
+        }
 
         &:hover,
         &.active {
           color: variables.$color-secondary;
-          text-decoration: underline 6px variables.$color-secondary;
+          background: rgba(variables.$color-secondary, 0.12);
+          transform: translateY(-1px);
+        }
+
+        &:hover::after,
+        &.active::after {
+          transform: scaleX(1);
         }
 
         &:focus-visible {
@@ -192,34 +215,35 @@
       }
 
       nav {
-        display: none;
+        display: flex;
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
-        height: 100vh;
+        height: 100dvh;
         background: variables.$color-quaternary;
         flex-direction: column;
         align-items: center;
         padding: clamp(5rem, 18vh, 12rem) clamp(1.5rem, 6vw, 3rem) clamp(3rem, 8vh, 5rem);
 
         /* état fermé */
-        transform: translateX(100%);
-        transition: transform 0.3s, visibility 0s linear 0.3s; /* différer la visibilité après l’anim */
+        transform: translateY(-12px);
+        opacity: 0;
+        transition: transform 0.25s ease, opacity 0.25s ease, visibility 0s linear 0.25s;
         z-index: 150;
         gap: 2rem;
         visibility: hidden;          /* masquer visuellement */
         pointer-events: none;        /* bloquer les clics */
-        will-change: transform;      /* perf */
+        will-change: transform, opacity;      /* perf */
         backface-visibility: hidden; /* évite des artefacts sur GPU */
         overflow-y: auto;
 
         &.open {
-          display: flex;
-          transform: translateX(0%);
+          transform: translateY(0);
+          opacity: 1;
           visibility: visible;
           pointer-events: auto;
-          transition: transform 0.3s; /* visibilité immédiate à l’ouverture */
+          transition: transform 0.25s ease, opacity 0.25s ease;
         }
 
 
@@ -228,6 +252,18 @@
           font-size: clamp(1.5rem, 4vw, 2rem);
           color: variables.$color-primary;
           font-family: variables.$font-subtitle;
+          padding: 0.35rem 1rem;
+
+          &::after {
+            bottom: -10px;
+            left: 22%;
+            right: 22%;
+          }
+        }
+
+        .cta-btn {
+          width: min(280px, 80vw);
+          text-align: center;
         }
       }
     }

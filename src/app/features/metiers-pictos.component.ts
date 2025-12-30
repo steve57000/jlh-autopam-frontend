@@ -18,6 +18,7 @@ export class MetiersPictosComponent {
   @Input() items: { img: string; label: string; description: string }[] = [];
 
   selectedItem: { img: string; label: string; description: string } | null = null;
+  isClosing = false;
   private lastFocusedTrigger: HTMLElement | null = null;
 
   @ViewChild('dialogElement')
@@ -29,15 +30,23 @@ export class MetiersPictosComponent {
 
   openModal(item: { img: string; label: string; description: string }, event: Event) {
     this.selectedItem = item;
+    this.isClosing = false;
     this.lastFocusedTrigger = event.currentTarget as HTMLElement;
   }
 
   closeModal() {
-    this.selectedItem = null;
-    if (this.lastFocusedTrigger) {
-      this.lastFocusedTrigger.focus();
-      this.lastFocusedTrigger = null;
+    if (!this.selectedItem || this.isClosing) {
+      return;
     }
+    this.isClosing = true;
+    setTimeout(() => {
+      this.selectedItem = null;
+      this.isClosing = false;
+      if (this.lastFocusedTrigger) {
+        this.lastFocusedTrigger.focus();
+        this.lastFocusedTrigger = null;
+      }
+    }, 200);
   }
 
   @HostListener('document:keydown.escape')
