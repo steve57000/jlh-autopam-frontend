@@ -19,7 +19,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class DemandesServiceService {
   private http = inject(HttpClient);
-  private apiBase = environment.apiBaseUrl;
+  private apiBase: string = environment.apiBaseUrl.replace(/\/$/, '');
 
   // ---------- ADMIN : compatibilité historique ----------
   getAll(options?: { silentError?: boolean }): Observable<DemandeWithServices[]> {
@@ -44,8 +44,10 @@ export class DemandesServiceService {
             const code_statut = (d?.statutDemande?.codeStatut ?? undefined) as DemandeWithServices['code_statut'];
             const date_demande = (d?.dateDemande ?? d?.dateSoumission ?? '') as string;
 
-            const type_libelle = typeof d?.typeDemande?.libelle === 'string' ? d.typeDemande.libelle : undefined;
-            const statut_libelle = typeof d?.statutDemande?.libelle === 'string' ? d.statutDemande.libelle : undefined;
+            const type_libelle =
+              typeof d?.typeDemande?.libelle === 'string' ? d.typeDemande.libelle : undefined;
+            const statut_libelle =
+              typeof d?.statutDemande?.libelle === 'string' ? d.statutDemande.libelle : undefined;
 
             const normalizeString = (value: unknown): string | null => {
               if (value == null) {
@@ -83,8 +85,9 @@ export class DemandesServiceService {
               }))
               : [];
 
-            const documents = this.normalizeDocuments(d?.documents);
-            const timeline = this.normalizeTimeline(d?.timeline);
+            // <-- IMPORTANT : on passe l'id de la demande pour construire urlPublic si besoin -->
+            const documents = this.normalizeDocuments(d?.documents, id);
+            const timeline = this.normalizeTimeline(d?.timeline, id);
             const rendezVous = this.normalizeRendezVous(d?.rendezVous ?? d?.rdv ?? null);
 
             const out: DemandeWithServices = {
@@ -166,6 +169,11 @@ export class DemandesServiceService {
     return this.http.delete<void>(`${this.apiBase}/demandes/${id}`);
   }
 
+  /**
+   * Upload d'un document pour une demande.
+   * Le backend renvoie déjà un DemandeDocumentDto aligné (nomFichier, urlPrivate, ...).
+   * Ici on mappe la réponse pour fournir urlPublic utilisable côté frontend (endpoint sécurisé).
+   */
   uploadDocument(
     demandeId: number,
     file: File,
@@ -179,13 +187,33 @@ export class DemandesServiceService {
     if (options?.categorie) {
       form.append('categorie', options.categorie);
     }
-    return this.http.post<DemandeDocumentDto>(`${this.apiBase}/demandes/${demandeId}/documents`, form, {
-      headers: new HttpHeaders({ 'X-Skip-Error-Toast': '1' })
-    });
+    return this.http.post<any>(
+      `${this.apiBase}/demandes/${demandeId}/documents`,
+      form,
+      { headers: new HttpHeaders({ 'X-Skip-Error-Toast': '1' }) }
+    ).pipe(
+      map((created: any) => {
+        // map backend response to frontend DTO, building a usable urlPublic
+        const dto = this.toDocumentDto(created, demandeId);
+        if (!dto) {
+          // fallback: return raw created cast (avoid returning null)
+          return (created as unknown) as DemandeDocumentDto;
+        }
+        return dto;
+      })
+    );
   }
 
   deleteDocument(demandeId: number, documentId: number) {
     return this.http.delete<void>(`${this.apiBase}/demandes/${demandeId}/documents/${documentId}`);
+  }
+
+  downloadDocumentResponse(demandeId: number, documentId: number) {
+    const url = `${this.apiBase}/demandes/${demandeId}/documents/${documentId}`;
+    return this.http.get(url, {
+      observe: 'response',
+      responseType: 'blob'
+    });
   }
 
   // ---------- PAGE SERVICES : nouveau flux ----------
@@ -211,7 +239,14 @@ export class DemandesServiceService {
     return Number.isFinite(n) ? n : fallback;
   }
 
-  private normalizeDocuments(raw: any): DemandeDocumentDto[] {
+  // -------------------------------------------------------------------
+  // DOCUMENTS
+  // -------------------------------------------------------------------
+
+  /**
+   * Normalize documents array. demandeId is optional but used to construct secure access URL
+   */
+  private normalizeDocuments(raw: any, demandeId?: number): DemandeDocumentDto[] {
     if (!Array.isArray(raw)) {
       return [];
     }
@@ -323,7 +358,11 @@ export class DemandesServiceService {
     }
     return raw
       .map((entry: any) => {
-        const document = entry?.document ? this.normalizeDocuments([entry.document])[0] : undefined;
+        // normalise le document : trouver le premier élément non-null (ou undefined)
+        const document = entry?.document
+          ? this.normalizeDocuments([entry.document]).find(d => !!d)
+          : undefined;
+
         const rendezVous = this.normalizeRendezVous(entry?.rendezVous ?? entry?.rdv ?? null);
         return {
           id: this.toNumber(entry?.id ?? entry?.timelineId ?? null, null) ?? undefined,
@@ -341,12 +380,13 @@ export class DemandesServiceService {
               libelle: entry.statut.libelle ?? undefined
             }
             : undefined,
-          document,
+          document,    // DemandeDocumentDto | undefined (pas de null)
           rendezVous
         } satisfies DemandeTimelineEntryDto;
       })
       .filter(Boolean) as DemandeTimelineEntryDto[];
   }
+
 
   private normalizeRendezVous(raw: any): RendezVousSummary | null {
     if (!raw) {

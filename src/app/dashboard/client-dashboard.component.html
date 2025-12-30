@@ -195,15 +195,17 @@
                 <div class="documents">
                   <div class="documents__head">Documents partagés</div>
                   <ul>
-                    @for (doc of visibleDocuments(d); track doc.idDocument ?? doc.nom) {
+                    @for (doc of visibleDocuments(d); track doc.idDocument ?? doc.nomFichier) {
                       <li>
                         <div>
-                          <strong>{{ doc.nom }}</strong>
+                          <strong>{{ doc.nomFichier }}</strong>
                           @if (documentSize(doc); as size) {
                             <small>{{ size }}</small>
                           }
                         </div>
-                        <a [href]="doc.url" target="_blank" rel="noopener">Voir</a>
+                        <button class="cta-btn-secondary" type="button" (click)="openDocument(doc, d)">
+                          Voir
+                        </button>
                       </li>
                     }
                   </ul>
@@ -226,8 +228,8 @@
                           <strong>{{ entry.type }}</strong>
                           <p>{{ timelineLabel(entry) }}</p>
                         </div>
-                        @if (entry.document?.url && entry.document?.nom) {
-                          <a [href]="entry.document?.url" target="_blank" rel="noopener">Consulter le document</a>
+                        @if (entry.document) {
+                          <button class="cta-btn-secondary" (click)="openDocument(entry.document, d)">Consulter</button>
                         }
                       </li>
                     }

@@ -814,17 +814,42 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     return Number.isNaN(date.getTime()) ? null : date.toISOString();
   }
 
+  // ⚠️ ADAPTÉ : utilise maintenant tailleOctets (backend) pour déduire la taille en Ko / Mo
   documentSize(doc: DemandeDocumentDto | undefined): string | null {
     if (!doc) return null;
-    const value = Number(doc.tailleKo ?? 0);
-    if (!Number.isFinite(value) || value <= 0) {
+
+    const bytes = Number((doc as any).tailleOctets ?? 0);
+    if (!Number.isFinite(bytes) || bytes <= 0) {
       return null;
     }
-    if (value >= 1024) {
-      return `${(value / 1024).toFixed(1)} Mo`;
+
+    const ko = bytes / 1024;
+    if (ko >= 1024) {
+      const mo = ko / 1024;
+      return `${mo.toFixed(1)} Mo`;
     }
-    return `${value.toFixed(0)} Ko`;
+    return `${ko.toFixed(0)} Ko`;
   }
+
+  openAdminDocument(doc: DemandeDocumentDto, d: DemandeWithServices) {
+    const id = this.getDemandeId(d);
+    if (!id || !doc.idDocument) return;
+
+    this.api.downloadDocumentResponse(id, doc.idDocument).subscribe({
+      next: res => {
+        const blob = res.body!;
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        window.open(blobUrl, "_blank");
+
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      },
+      error: err => {
+        this.toast.error('Impossible de lire le document', err?.error?.message);
+      }
+    });
+  }
+
 
   @HostListener('document:keydown.escape')
   onEscape() {

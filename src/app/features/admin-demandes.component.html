@@ -10,13 +10,17 @@
     <label class="filters__field">
       <span>Type</span>
       <select name="typeFilter" [ngModel]="type()" (ngModelChange)="type.set($event)">
-        @for (opt of typeOptions(); track opt.value) { <option [value]="opt.value">{{ opt.label }}</option> }
+        @for (opt of typeOptions(); track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
       </select>
     </label>
     <label class="filters__field">
       <span>Statut</span>
       <select name="statusFilter" [ngModel]="statut()" (ngModelChange)="statut.set($event)">
-        @for (opt of statutOptions(); track opt.value) { <option [value]="opt.value">{{ opt.label }}</option> }
+        @for (opt of statutOptions(); track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
       </select>
     </label>
     <label class="filters__field filters__field--wide">
@@ -44,72 +48,77 @@
         (change)="dateTo.set(($any($event.target)).value || null)"
       />
     </label>
-<!--    <div class="filters__actions">-->
-      <button type="button" class="btn" (click)="reload()">↻ Actualiser</button>
-      <button type="button" class="btn btn-ghost" (click)="type.set('Tous'); statut.set('Tous'); q.set(''); dateFrom.set(null); dateTo.set(null);">Réinitialiser</button>
-<!--    </div>-->
+    <button type="button" class="btn" (click)="reload()">↻ Actualiser</button>
+    <button
+      type="button"
+      class="btn btn-ghost"
+      (click)="type.set('Tous'); statut.set('Tous'); q.set(''); dateFrom.set(null); dateTo.set(null);"
+    >
+      Réinitialiser
+    </button>
   </form>
 
   @if (loading()) {
     <p>Chargement…</p>
   } @else if (error()) {
-    <p class="error">{{ error() }}</p>
-  } @else {
-    <div class="demandes-content">
-      <div class="table-wrapper">
-        <table>
-          <thead>
+  <p class="error">{{ error() }}</p>
+} @else {
+  <div class="demandes-content">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+        <tr>
+          <th>#</th>
+          <th>Type</th>
+          <th>Client</th>
+          <th>Email</th>
+          <th>Date</th>
+          <th>Services</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (d of filtered(); let i = $index; track (getDemandeId(d) ?? i)) {
           <tr>
-            <th>#</th>
-            <th>Type</th>
-            <th>Client</th>
-            <th>Email</th>
-            <th>Date</th>
-            <th>Services</th>
-            <th>Statut</th>
-            <th>Actions</th>
+            <td>{{ getDemandeId(d) }}</td>
+            <td>
+                <span class="badge type-{{ d.code_type }}">
+                  {{ d.type_libelle || d.code_type }}
+                </span>
+            </td>
+            <td>{{ d.client?.nom }} {{ d.client?.prenom }}</td>
+            <td>{{ d.client?.email }}</td>
+            <td>{{ d.date_demande | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              @for (s of d.services; let j = $index; track getServiceKey(s)) {
+                <span class="chip">
+                    {{ s.libelle }}
+                  @if (s.quantite) { <small>×{{ s.quantite }}</small> }
+                  </span>
+              }
+            </td>
+            <td>
+                <span class="badge statut-{{ d.code_statut }}">
+                  {{ d.statut_libelle || d.code_statut }}
+                </span>
+            </td>
+            <td class="actions">
+              <button type="button" (click)="openDetails(d)">Voir / Modifier</button>
+              <button type="button" (click)="marquerTraitee(d)" [disabled]="d.code_statut==='Traitee'">Traiter</button>
+              <button type="button" class="danger" (click)="supprimer(d)">Supprimer</button>
+            </td>
           </tr>
-          </thead>
-          <tbody>
-            @for (d of filtered(); let i = $index; track (getDemandeId(d) ?? i)) {
-              <tr>
-                <td>{{ getDemandeId(d) }}</td>
-                <td>
-                  <span class="badge type-{{ d.code_type }}">
-                    {{ d.type_libelle || d.code_type }}
-                  </span>
-                </td>
-                <td>{{ d.client?.nom }} {{ d.client?.prenom }}</td>
-                <td>{{ d.client?.email }}</td>
-                <td>{{ d.date_demande | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td>
-                  @for (s of d.services; let j = $index; track getServiceKey(s)) {
-                    <span class="chip">
-                      {{ s.libelle }}
-                      @if (s.quantite) { <small>×{{ s.quantite }}</small> }
-                    </span>
-                  }
-                </td>
-                <td>
-                  <span class="badge statut-{{ d.code_statut }}">
-                    {{ d.statut_libelle || d.code_statut }}
-                  </span>
-                </td>
-                <td class="actions">
-                  <button type="button" (click)="openDetails(d)">Voir / Modifier</button>
-                  <button type="button" (click)="marquerTraitee(d)" [disabled]="d.code_statut==='Traitee'">Traiter</button>
-                  <button type="button" class="danger" (click)="supprimer(d)">Supprimer</button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+        }
+        </tbody>
+      </table>
 
-        @if (!filtered().length) { <p class="empty">Aucun résultat avec ces filtres.</p> }
-      </div>
-
+      @if (!filtered().length) {
+        <p class="empty">Aucun résultat avec ces filtres.</p>
+      }
     </div>
-  }
+  </div>
+}
 </div>
 
 @if (selectedDemande()) {
@@ -217,85 +226,111 @@
           <h4>Services inclus</h4>
           <table class="services-table">
             <thead>
-          <tr>
-            <th>Libellé</th>
-            <th>Quantité</th>
-            <th>Qté max</th>
-            <th>Prix unitaire (€)</th>
-            <th>Actions</th>
-          </tr>
-          </thead>
-          <tbody>
-          @for (service of draft.services; let i = $index; track getServiceKey(service)) {
             <tr>
-              <td>
-                <input type="text" [ngModel]="service.libelle" (ngModelChange)="updateServiceField(i, 'libelle', $event)" />
-              </td>
-              <td>
-                <input type="number" min="1" [ngModel]="service.quantite" (ngModelChange)="updateServiceField(i, 'quantite', $event)" />
-              </td>
-              <td>
-                <span class="readonly">{{ service.quantite_max ?? '—' }}</span>
-              </td>
-              <td>
-                <input type="number" step="0.01" [ngModel]="service.prix_unitaire ?? ''" (ngModelChange)="updateServiceField(i, 'prix_unitaire', $event)" />
-              </td>
-              <td>
-                <button type="button" class="btn-link" (click)="removeService(i)">Retirer</button>
-              </td>
+              <th>Libellé</th>
+              <th>Quantité</th>
+              <th>Qté max</th>
+              <th>Prix unitaire (€)</th>
+              <th>Actions</th>
             </tr>
-          }
-          </tbody>
-        </table>
-
-        <div class="service-add">
-          <h5>Ajouter un service</h5>
-          <div class="service-add__fields">
-            <label>
-              <span>Service</span>
-              <select
-                [ngModel]="newServiceSelection().serviceId ?? ''"
-                (ngModelChange)="setNewServiceField('serviceId', $event)"
-              >
-                <option value="">Sélectionnez…</option>
-                @for (svc of serviceCatalog(); track svc.idService) {
-                  <option [value]="svc.idService">{{ svc.libelle }}</option>
-                }
-              </select>
-            </label>
-            <label>
-              <span>Quantité</span>
-              <input type="number" min="1" [ngModel]="newServiceSelection().quantite" (ngModelChange)="setNewServiceField('quantite', $event)" />
-            </label>
-            <label>
-              <span>Prix (€)</span>
-              <input type="number" step="0.01" [ngModel]="newServiceSelection().prix ?? ''" (ngModelChange)="setNewServiceField('prix', $event)" />
-            </label>
-            <button type="button" class="btn" (click)="addServiceLineFromSelection()">Ajouter</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="details-block">
-        <h4>Documents</h4>
-        @if (draft.documents?.length) {
-          <ul class="documents-list">
-            @for (doc of draft.documents; track doc.idDocument ?? doc.nom) {
-              <li>
-                <div>
-                  <strong>{{ doc.nom }}</strong>
-                  <span class="muted">{{ documentSize(doc) || doc.mimeType || '' }}</span>
-                </div>
-                <div class="documents-list__actions">
-                  <a [href]="doc.url" target="_blank" rel="noreferrer noopener">Ouvrir</a>
-                  @if (doc.idDocument) {
-                    <button type="button" (click)="removeDocument(doc)">Supprimer</button>
-                  }
-                </div>
-              </li>
+            </thead>
+            <tbody>
+            @for (service of draft.services; let i = $index; track getServiceKey(service)) {
+              <tr>
+                <td>
+                  <input
+                    type="text"
+                    [ngModel]="service.libelle"
+                    (ngModelChange)="updateServiceField(i, 'libelle', $event)"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min="1"
+                    [ngModel]="service.quantite"
+                    (ngModelChange)="updateServiceField(i, 'quantite', $event)"
+                  />
+                </td>
+                <td>
+                  <span class="readonly">{{ service.quantite_max ?? '—' }}</span>
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    step="0.01"
+                    [ngModel]="service.prix_unitaire ?? ''"
+                    (ngModelChange)="updateServiceField(i, 'prix_unitaire', $event)"
+                  />
+                </td>
+                <td>
+                  <button type="button" class="btn-link" (click)="removeService(i)">Retirer</button>
+                </td>
+              </tr>
             }
-          </ul>
-        } @else {
+            </tbody>
+          </table>
+
+          <div class="service-add">
+            <h5>Ajouter un service</h5>
+            <div class="service-add__fields">
+              <label>
+                <span>Service</span>
+                <select
+                  [ngModel]="newServiceSelection().serviceId ?? ''"
+                  (ngModelChange)="setNewServiceField('serviceId', $event)"
+                >
+                  <option value="">Sélectionnez…</option>
+                  @for (svc of serviceCatalog(); track svc.idService) {
+                    <option [value]="svc.idService">{{ svc.libelle }}</option>
+                  }
+                </select>
+              </label>
+              <label>
+                <span>Quantité</span>
+                <input
+                  type="number"
+                  min="1"
+                  [ngModel]="newServiceSelection().quantite"
+                  (ngModelChange)="setNewServiceField('quantite', $event)"
+                />
+              </label>
+              <label>
+                <span>Prix (€)</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  [ngModel]="newServiceSelection().prix ?? ''"
+                  (ngModelChange)="setNewServiceField('prix', $event)"
+                />
+              </label>
+              <button type="button" class="btn" (click)="addServiceLineFromSelection()">Ajouter</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="details-block">
+          <h4>Documents</h4>
+          @if (draft.documents?.length) {
+            <ul class="documents-list">
+              @for (doc of draft.documents; track doc.idDocument ?? doc.nomFichier) {
+                <li>
+                  <div>
+                    <strong>{{ doc.nomFichier }}</strong>
+                    <span class="muted">{{ documentSize(doc) || doc.typeContenu || '' }}</span>
+                  </div>
+                  <div class="documents-list__actions">
+                    <button type="button" (click)="openAdminDocument(doc, draft)">
+                      Ouvrir
+                    </button>
+                    @if (doc.idDocument) {
+                      <button type="button" (click)="removeDocument(doc)">Supprimer</button>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          } @else {
           <p class="empty">Aucun document joint pour cette demande.</p>
         }
         <div class="doc-upload">
@@ -339,27 +374,90 @@
                 }
               </select>
             </label>
-          </div>
-          <label class="detail-comment">
-            <span>Commentaire client</span>
-            <textarea rows="2" [value]="rdv.commentaire || ''" (input)="setRdvField('commentaire', ($any($event.target)).value)"></textarea>
-          </label>
-          <div class="detail-actions">
-            <button type="button" class="btn" (click)="saveRendezVous()" [disabled]="rdvSaving()">
-              @if (rdvSaving()) { Sauvegarde… } @else { Confirmer le rendez-vous }
-            </button>
-            @if (rdvFeedback()) {
-              <p class="feedback" [class.feedback--error]="rdvFeedback()?.startsWith('Impossible')">{{ rdvFeedback() }}</p>
+            @if (documentError()) {
+              <p class="doc-upload__error">{{ documentError() }}</p>
             }
           </div>
         </section>
-      }
+
+        @if (draft.code_type === 'RendezVous' && rdvForm(); as rdv) {
+          <section class="details-block details-block--editable">
+            <h4>Planification du rendez-vous</h4>
+            <div class="detail-grid">
+              <label>
+                <span>Date de début</span>
+                <input
+                  type="datetime-local"
+                  [value]="rdv.dateDebut"
+                  (change)="setRdvField('dateDebut', ($any($event.target)).value)"
+                />
+              </label>
+              <label>
+                <span>Date de fin</span>
+                <input
+                  type="datetime-local"
+                  [value]="rdv.dateFin"
+                  (change)="setRdvField('dateFin', ($any($event.target)).value)"
+                />
+              </label>
+              <label>
+                <span>Statut</span>
+                <select
+                  [value]="rdv.codeStatut"
+                  (change)="setRdvField('codeStatut', ($any($event.target)).value)"
+                >
+                  @for (opt of rdvStatusOptions(); track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+            <label class="detail-comment">
+              <span>Commentaire client</span>
+              <textarea
+                rows="2"
+                [value]="rdv.commentaire || ''"
+                (input)="setRdvField('commentaire', ($any($event.target)).value)"
+              ></textarea>
+            </label>
+            <div class="detail-actions">
+              <button
+                type="button"
+                class="btn"
+                (click)="saveRendezVous()"
+                [disabled]="rdvSaving()"
+              >
+                @if (rdvSaving()) { Sauvegarde… } @else { Confirmer le rendez-vous }
+              </button>
+              @if (rdvFeedback()) {
+                <p
+                  class="feedback"
+                  [class.feedback--error]="rdvFeedback()?.startsWith('Impossible')"
+                >
+                  {{ rdvFeedback() }}
+                </p>
+              }
+            </div>
+          </section>
+        }
 
         <div class="details-actions">
-          <button type="button" class="btn" (click)="saveChanges()" [disabled]="saving() || !hasChanges()">
+          <button
+            type="button"
+            class="btn"
+            (click)="saveChanges()"
+            [disabled]="saving() || !hasChanges()"
+          >
             @if (saving()) { Sauvegarde… } @else { Enregistrer les modifications }
           </button>
-          <button type="button" class="btn btn-ghost" (click)="resetDraft()" [disabled]="saving() || !hasChanges()">Réinitialiser</button>
+          <button
+            type="button"
+            class="btn btn-ghost"
+            (click)="resetDraft()"
+            [disabled]="saving() || !hasChanges()"
+          >
+            Réinitialiser
+          </button>
         </div>
       </section>
     }

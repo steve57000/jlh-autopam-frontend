@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
+import {Observable, throwError} from 'rxjs';
 import { environment } from '../../environments/environment';
 import type {
   ClientSummaryDto,
@@ -10,6 +10,8 @@ import type {
   DemandeTimelineEntryDto,
   RendezVousSummary
 } from '../modeles/demande.model';
+import {DemandeServiceRequest, DemandeServiceResponse} from '../modeles/demande-service.model';
+import {catchError} from 'rxjs/operators';
 
 interface RequestOptions {
   silentError?: boolean;
@@ -74,6 +76,17 @@ export class ClientDashboardService {
       })
     });
   }
+
+  downloadDocumentResponse(demandeId: number, documentId: number) {
+    const url = `${this.base}/${demandeId}/documents/client/${documentId}`;
+
+    // NE PAS ajouter manuellement Authorization : l'interceptor s'en charge.
+    return this.http.get(url, {
+      observe: 'response',
+      responseType: 'blob',
+    });
+  }
+
 }
 
 export type {
