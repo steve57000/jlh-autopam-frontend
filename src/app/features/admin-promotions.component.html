@@ -19,7 +19,7 @@
       <article class="promo-card" role="listitem">
         <figure class="promo-card__media">
           <img
-            ngSrc="{{ promo.imageUrl }}"
+            [ngSrc]="promo.imageUrl"
             [alt]="promo.description || 'Promotion ' + promo.idPromotion"
             width="320"
             height="180"

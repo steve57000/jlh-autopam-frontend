@@ -1,15 +1,16 @@
 <div class="container-main">
-  <!-- Section promotions -->
-  <app-promotions-slider class="app-promotions-slider" [promotions]="promotions"></app-promotions-slider>
+  <div class="home-section">
+    <app-promotions-slider class="app-promotions-slider" [promotions]="promotions"></app-promotions-slider>
+  </div>
+  <div class="home-section">
+    <app-intro-accueil></app-intro-accueil>
+  </div>
 
-  <!-- Section intro -->
-  <app-intro-accueil></app-intro-accueil>
+  <div class="home-section">
+    <app-metiers-pictos [items]="metiersPictos"></app-metiers-pictos>
+  </div>
 
-  <!-- Section services -->
-  <app-metiers-pictos [items]="metiersPictos"></app-metiers-pictos>
-
-  <!-- Section carrousel / agréments -->
-  <div #sectionAgrements>
+  <div #sectionAgrements class="home-section">
     <app-section-caroussel
       [title]="'Nos agréments'"
       [subtitle]="'Nos labels et certifications pour une qualité de service irréprochable.'"
@@ -19,6 +20,7 @@
     </app-section-caroussel>
   </div>
 
-  <!-- Section marques -->
-  <app-brands></app-brands>
+  <div class="home-section">
+    <app-brands></app-brands>
+  </div>
 </div>
