@@ -13,7 +13,6 @@ import {
   PromotionRequest
 } from '../modeles/promotion.model';
 import { ToastService } from '../shared/toast/toast.service';
-import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'admin-promotions',
@@ -171,14 +170,28 @@ export class AdminPromotionsComponent implements OnInit {
       return '';
     }
 
-    if (/^(https?:|data:|blob:)/i.test(imageUrl)) {
+    if (/^(data:|blob:)/i.test(imageUrl)) {
       return imageUrl;
     }
 
-    const apiBase = environment.apiBaseUrl ? environment.apiBaseUrl.replace(/\/+$/, '') : '';
-    const publicBase = apiBase.replace(/\/api$/i, '');
-    const normalizedPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+    if (/^https?:/i.test(imageUrl)) {
+      try {
+        const parsed = new URL(imageUrl);
+        if (parsed.pathname.startsWith('/promotions/images/')) {
+          return imageUrl;
+        }
 
-    return publicBase ? `${publicBase}${normalizedPath}` : normalizedPath;
+        const normalizedPath = parsed.pathname.startsWith('/')
+          ? parsed.pathname.slice(1)
+          : parsed.pathname;
+        return `${parsed.origin}/promotions/images/${normalizedPath}`;
+      } catch {
+        return imageUrl;
+      }
+    }
+
+    const normalizedPath = imageUrl.startsWith('/') ? imageUrl.slice(1) : imageUrl;
+    return `/promotions/images/${normalizedPath}`;
   }
+
 }
