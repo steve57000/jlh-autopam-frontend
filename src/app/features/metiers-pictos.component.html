@@ -1,6 +1,10 @@
 <section class="section-pictos-metiers" appInViewport>
   <div class="container-max">
     <h2 class="section-title" appInViewport>Nos services</h2>
+    <div class="services-cta-mid" appInViewport>
+      <p class="services-cta-mid__text">Un besoin précis ou une question rapide ? On vous oriente vers la bonne prestation.</p>
+      <a class="cta-btn services-cta-mid__btn" routerLink="/contact">Parler à un conseiller</a>
+    </div>
     <div class="pictos-wrapper" appInViewport>
       @for (item of items; track item.img) {
         <div class="picto-bloc">

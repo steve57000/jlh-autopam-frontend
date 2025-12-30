@@ -9,7 +9,8 @@
 
   // Masquer le titre et le wrapper par défaut
   .section-title,
-  .pictos-wrapper {
+  .pictos-wrapper,
+  .services-cta-mid {
     opacity: 0;
   }
 
@@ -26,6 +27,12 @@
     @include anim.staggered-list('> .picto-bloc', .1s, 12);
   }
 
+  .services-cta-mid.in-view {
+    opacity: 1;
+    @include anim.fade-in-up(.6s, ease-out, forwards, 16px);
+    animation-delay: .2s;
+  }
+
   .container-max {
     flex-direction: column;
     padding-top: 44px;
@@ -35,6 +42,28 @@
     h2.section-title {
       margin-bottom: 48px;
       font-size: 29.4px;
+    }
+
+    .services-cta-mid {
+      margin: -20px auto 36px;
+      max-width: 720px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+
+      &__text {
+        font-family: v.$font-body;
+        font-size: 1.05rem;
+        color: v.$color-primary;
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      &__btn {
+        padding-inline: 2.2rem;
+      }
     }
 
     .pictos-wrapper {

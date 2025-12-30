@@ -34,7 +34,8 @@
     align-items: center;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+    text-align: center;
 
     &.in-view {
       @include anim.scale-in(0.6s, ease-out, both);
@@ -44,9 +45,54 @@
     .cta-label {
       font-family: v.$font-cta;
       color: v.$color-quaternary;
-      font-size: 1.07rem;
-      margin-bottom: 2px;
+      font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+      margin-bottom: 0;
       letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .cta-text {
+      font-family: v.$font-body;
+      color: v.$color-quaternary;
+      font-size: clamp(1rem, 1.6vw, 1.15rem);
+      margin: 0;
+      max-width: 520px;
+      line-height: 1.45;
+    }
+
+    .cta-btn {
+      background: v.$color-tertiary;
+      color: v.$color-quaternary;
+      border: 2px solid transparent;
+      border-radius: 999px;
+      padding: 0.9rem 2.8rem;
+      min-width: min(320px, 100%);
+      font-size: 1.05rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+
+      &:hover {
+        background: v.$btn-hover-bg;
+        transform: translateY(-2px);
+        box-shadow: 0 18px 32px rgba(0, 0, 0, 0.4);
+      }
+
+      &:focus-visible {
+        outline: 3px solid v.$color-quaternary;
+        outline-offset: 4px;
+        border-color: rgba(v.$color-quaternary, 0.7);
+      }
+    }
+
+    .cta-microcopy {
+      font-family: v.$font-body;
+      color: rgba(v.$color-quaternary, 0.85);
+      font-size: 0.95rem;
+      letter-spacing: 0.01em;
     }
   }
 }
