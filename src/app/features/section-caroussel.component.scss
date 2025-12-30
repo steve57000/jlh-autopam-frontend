@@ -23,9 +23,20 @@
     font-weight: 600;
     margin-left: 0;
     margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+  .carousel-subtitle {
+    font-family: v.$font-body;
+    color: rgba(v.$color-quaternary, 0.88);
+    margin: 0 0 1.6rem;
+    max-width: 560px;
+    line-height: 1.5;
   }
   &.white .carousel-title {
     color: v.$color-primary;
+  }
+  &.white .carousel-subtitle {
+    color: rgba(v.$color-primary, 0.75);
   }
   .carousel {
     width: 100%;
@@ -149,4 +160,3 @@
     }
   }
 }
-

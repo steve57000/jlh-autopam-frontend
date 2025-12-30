@@ -86,8 +86,8 @@ export class DemandesServiceService {
               : [];
 
             // <-- IMPORTANT : on passe l'id de la demande pour construire urlPublic si besoin -->
-            const documents = this.normalizeDocuments(d?.documents, id);
-            const timeline = this.normalizeTimeline(d?.timeline, id);
+            const documents = this.normalizeDocuments(d?.documents);
+            const timeline = this.normalizeTimeline(d?.timeline);
             const rendezVous = this.normalizeRendezVous(d?.rendezVous ?? d?.rdv ?? null);
 
             const out: DemandeWithServices = {
@@ -194,7 +194,7 @@ export class DemandesServiceService {
     ).pipe(
       map((created: any) => {
         // map backend response to frontend DTO, building a usable urlPublic
-        const dto = this.toDocumentDto(created, demandeId);
+        const dto = this.toDocumentDto(created);
         if (!dto) {
           // fallback: return raw created cast (avoid returning null)
           return (created as unknown) as DemandeDocumentDto;
@@ -246,7 +246,7 @@ export class DemandesServiceService {
   /**
    * Normalize documents array. demandeId is optional but used to construct secure access URL
    */
-  private normalizeDocuments(raw: any, demandeId?: number): DemandeDocumentDto[] {
+  private normalizeDocuments(raw: any): DemandeDocumentDto[] {
     if (!Array.isArray(raw)) {
       return [];
     }
@@ -262,14 +262,10 @@ export class DemandesServiceService {
     }
 
     const id = this.toNumber(doc?.idDocument ?? doc?.id ?? doc?.documentId ?? doc?.id_document ?? null, null);
-    const url = this.extractDocumentUrl(doc);
-    if (!url) {
-      return null;
-    }
-
-    const sizeKo = this.computeDocumentSizeKo(doc);
-    const rawName = doc?.nom ?? doc?.filename ?? doc?.nomFichier ?? doc?.nom_fichier ?? doc?.titre;
-    const nom = typeof rawName === 'string' && rawName.trim().length > 0 ? rawName.trim() : 'Document';
+    const urlPrivate = this.extractDocumentUrl(doc);
+    const tailleOctets = this.computeDocumentSizeOctets(doc);
+    const rawName = doc?.nomFichier ?? doc?.nom_fichier ?? doc?.nom ?? doc?.filename ?? doc?.titre;
+    const nomFichier = typeof rawName === 'string' && rawName.trim().length > 0 ? rawName.trim() : 'Document';
 
     const visibleClientField = doc?.visibleClient ?? doc?.visible_client;
     const visibleClient = visibleClientField === false || visibleClientField === 'false'
@@ -278,12 +274,14 @@ export class DemandesServiceService {
 
     return {
       idDocument: id ?? undefined,
-      nom,
-      url,
-      tailleKo: sizeKo ?? undefined,
+      nomFichier,
+      urlPrivate: urlPrivate ?? null,
+      tailleOctets: tailleOctets ?? undefined,
       visibleClient,
-      mimeType: doc?.mimeType ?? doc?.contentType ?? doc?.type_contenu ?? doc?.typeContenu ?? undefined,
-      createdAt: doc?.createdAt ?? doc?.creeLe ?? doc?.cree_le ?? doc?.dateCreation ?? doc?.created_at ?? undefined
+      typeContenu: doc?.typeContenu ?? doc?.type_contenu ?? doc?.contentType ?? doc?.mimeType ?? undefined,
+      creeLe: doc?.creeLe ?? doc?.cree_le ?? doc?.createdAt ?? doc?.dateCreation ?? doc?.created_at ?? undefined,
+      creePar: doc?.creePar ?? doc?.createdBy ?? undefined,
+      creeParRole: doc?.creeParRole ?? doc?.createdByRole ?? undefined
     } satisfies DemandeDocumentDto;
   }
 
@@ -319,21 +317,21 @@ export class DemandesServiceService {
     return null;
   }
 
-  private computeDocumentSizeKo(doc: any): number | null {
-    const direct = this.toNumber(
-      doc?.tailleKo ?? doc?.taille_ko ?? doc?.taille ?? doc?.sizeKo ?? doc?.size_ko ?? null,
-      null
-    );
-    if (direct != null) {
-      return direct;
-    }
-
+  private computeDocumentSizeOctets(doc: any): number | null {
     const bytes = this.toNumber(
       doc?.tailleOctets ?? doc?.taille_octets ?? doc?.tailleOctet ?? doc?.taille_bytes ?? null,
       null
     );
     if (bytes != null) {
-      return Number(bytes / 1024);
+      return bytes;
+    }
+
+    const kiloBytes = this.toNumber(
+      doc?.tailleKo ?? doc?.taille_ko ?? doc?.taille ?? doc?.sizeKo ?? doc?.size_ko ?? null,
+      null
+    );
+    if (kiloBytes != null) {
+      return Math.round(kiloBytes * 1024);
     }
 
     return null;
