@@ -1,9 +1,24 @@
 @use '../../styles/variables' as variables;
 
 .promo-section {
-  margin: clamp(2rem, 5vw, 4rem) auto;
+  margin: 0 auto;
+  padding-block: clamp(48px, 8vh, 96px);
   flex-direction: column;
-  padding: 0 clamp(1rem, 5vw, 2rem);
+  padding-inline: clamp(1rem, 5vw, 2rem);
+  background: linear-gradient(180deg, rgba(13, 13, 15, 0.02), rgba(13, 13, 15, 0.04));
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 6vw;
+    right: 6vw;
+    top: clamp(12px, 2vh, 24px);
+    height: 1px;
+    background: linear-gradient(90deg, rgba(13, 13, 15, 0), rgba(13, 13, 15, 0.18), rgba(13, 13, 15, 0));
+    opacity: 0.6;
+    pointer-events: none;
+  }
   h2 {
     margin-bottom: 1.2rem;
     font-family: variables.$font-title;
