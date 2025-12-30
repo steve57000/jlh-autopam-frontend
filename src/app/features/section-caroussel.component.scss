@@ -22,10 +22,21 @@
     color: v.$color-quaternary;
     font-weight: 600;
     margin-left: 0;
-    margin-top: 0;
+    margin: 0;
   }
   &.white .carousel-title {
     color: v.$color-primary;
+  }
+  .section-subtitle {
+    font-family: v.$font-body;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0.5rem 0 2.2rem;
+    color: rgba(v.$color-quaternary, 0.75);
+    max-width: 720px;
+  }
+  &.white .section-subtitle {
+    color: rgba(v.$color-primary, 0.72);
   }
   .carousel {
     width: 100%;
@@ -149,4 +160,3 @@
     }
   }
 }
-
