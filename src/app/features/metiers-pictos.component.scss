@@ -154,7 +154,8 @@
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  animation: modal-fade-in 0.2s ease-out;
+  opacity: 0;
+  animation: modal-fade-in 0.24s ease-out forwards;
 
   .service-modal__backdrop {
     position: absolute;
@@ -179,8 +180,10 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    animation: modal-pop-in 0.24s ease-out;
+    opacity: 0;
+    animation: modal-pop-in 0.28s ease-out forwards;
     transition: transform .2s ease, opacity .2s ease;
+    will-change: transform, opacity;
   }
 
   .service-modal__close {
