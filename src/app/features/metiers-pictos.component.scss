@@ -63,15 +63,6 @@
       font-size: 1.02rem;
     }
 
-    .section-subtitle {
-      font-family: v.$font-body;
-      font-size: 1rem;
-      color: rgba(v.$color-primary, 0.72);
-      margin: 0 0 32px;
-      line-height: 1.5;
-      max-width: 720px;
-    }
-
     .pictos-wrapper {
       max-width: 860px;
       width: 100%;
@@ -163,12 +154,14 @@
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
+  animation: modal-fade-in 0.2s ease-out;
 
   .service-modal__backdrop {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, .6);
     backdrop-filter: blur(2px);
+    transition: opacity .2s ease;
   }
 
   .service-modal__dialog {
@@ -186,6 +179,8 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    animation: modal-pop-in 0.24s ease-out;
+    transition: transform .2s ease, opacity .2s ease;
   }
 
   .service-modal__close {
@@ -237,6 +232,33 @@
 
   .service-modal__cta {
     margin-top: .5rem;
+  }
+
+  &.is-closing {
+    .service-modal__backdrop {
+      opacity: 0;
+    }
+
+    .service-modal__dialog {
+      opacity: 0;
+      transform: translateY(10px) scale(0.98);
+    }
+  }
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 

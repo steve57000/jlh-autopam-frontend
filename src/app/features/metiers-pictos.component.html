@@ -32,7 +32,7 @@
     </div>
   </div>
   @if (selectedItem; as active) {
-    <div class="service-modal">
+    <div class="service-modal" [class.is-closing]="isClosing">
       <div class="service-modal__backdrop" (click)="closeModal()" aria-hidden="true"></div>
       <div
         #dialogElement
