@@ -27,12 +27,11 @@
     font-weight: 600;
   }
   .section-subtitle {
-    margin: -0.6rem 0 1.6rem;
-    font-family: variables.$font-body;
+    margin: -0.6rem 0 1.4rem;
+    color: rgba(variables.$color-primary, 0.75);
     font-size: 1rem;
-    color: rgba(variables.$color-primary, 0.7);
     line-height: 1.5;
-    max-width: 720px;
+    max-width: 680px;
   }
   .slider-wrapper {
     position: relative;
