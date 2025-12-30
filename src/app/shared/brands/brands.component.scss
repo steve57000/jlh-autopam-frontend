@@ -1,7 +1,21 @@
 .brands-section {
-  padding: clamp(24px, 4vw, 56px) 0;
+  padding-block: clamp(48px, 8vh, 96px);
+  padding-inline: 0;
   background: #0d0d0f; // fond sombre (cohérent avec tes tons noirs)
   color: #fff;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 6vw;
+    right: 6vw;
+    top: clamp(12px, 2vh, 24px);
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+    opacity: 0.7;
+    pointer-events: none;
+  }
 
   .container {
     width: min(1200px, 92vw);
@@ -17,6 +31,14 @@
     max-width: 640px;
     color: rgba(255, 255, 255, 0.72);
     line-height: 1.5;
+  }
+
+  .section-subtitle {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0 0 24px;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 720px;
   }
 
   .rail-wrap {
