@@ -41,7 +41,7 @@
       max-width: 860px;
       width: 100%;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 2.5rem 2rem;
       justify-items: stretch;
       align-items: stretch;
@@ -218,7 +218,7 @@
   .section-pictos-metiers {
     .container-max {
       .pictos-wrapper {
-        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 2.3rem 1rem;
       }
       .picto-button {
