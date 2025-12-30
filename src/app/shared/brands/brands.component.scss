@@ -6,12 +6,8 @@
   position: relative;
 
   .container-max {
-    display: grid;
-    grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr);
-    gap: clamp(1.5rem, 4vw, 3rem);
-    align-items: start;
+    display: block;
   }
-
   .title {
     font-size: clamp(1.25rem, 1.1rem + 1.5vw, 2rem);
     margin: 0 0 16px;
