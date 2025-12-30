@@ -1,9 +1,14 @@
 <div class="container-main">
+  <!-- Section promotions -->
   <app-promotions-slider class="app-promotions-slider" [promotions]="promotions"></app-promotions-slider>
+
+  <!-- Section intro -->
   <app-intro-accueil></app-intro-accueil>
 
+  <!-- Section services -->
   <app-metiers-pictos [items]="metiersPictos"></app-metiers-pictos>
 
+  <!-- Section carrousel / agréments -->
   <div #sectionAgrements>
     <app-section-caroussel
       [title]="'Nos agréments'"
@@ -13,5 +18,6 @@
     </app-section-caroussel>
   </div>
 
+  <!-- Section marques -->
   <app-brands></app-brands>
 </div>

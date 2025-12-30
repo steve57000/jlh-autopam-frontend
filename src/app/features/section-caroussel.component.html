@@ -2,6 +2,9 @@
   <div class="carousel-section" [ngClass]="{ 'gradient': background === 'gradient', 'white': background === 'white' }">
     <div class="container-max" >
       <h2 class="carousel-title">{{ title }}</h2>
+      <p class="section-subtitle">
+        Agréments reconnus pour l’entretien auto, pneus et réparation à Pont-à-Mousson.
+      </p>
       <div class="carousel">
         @for (card of cards; track card.title; let i = $index) {
           <div class="carousel-card"
