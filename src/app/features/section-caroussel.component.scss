@@ -3,16 +3,29 @@
 .carousel-section {
   width: 100%;
   min-height: 520px;
-  padding: 44px 0;
+  padding-block: clamp(48px, 8vh, 96px);
+  padding-inline: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  position: relative;
 
   &.gradient {
     background: v.$linear-bg;
   }
   &.white {
-    background: #fff;
+    background: linear-gradient(180deg, rgba(13, 13, 15, 0.02), rgba(13, 13, 15, 0.06));
+  }
+  &::after {
+    content: '';
+    position: absolute;
+    left: 6vw;
+    right: 6vw;
+    bottom: clamp(12px, 2vh, 24px);
+    height: 1px;
+    background: linear-gradient(90deg, rgba(13, 13, 15, 0), rgba(13, 13, 15, 0.2), rgba(13, 13, 15, 0));
+    opacity: 0.6;
+    pointer-events: none;
   }
   .container-max{
     flex-direction: column;
@@ -141,7 +154,6 @@
 
 @media (max-width: 660px) {
   .carousel-section {
-    padding: 0;
     .carousel-card {
       width: 320px;
       padding: 16px;
@@ -154,7 +166,6 @@
 
 @media (max-width: 420px) {
   .carousel-section {
-    padding: 0;
     .carousel-card {
       width: 300px;
     }
