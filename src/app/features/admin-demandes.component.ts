@@ -1,4 +1,5 @@
 import { Component, HostListener, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { DemandesServiceService } from '../services/demandes-services.service';
 import { DemandeWithServices, ServiceItem, DemandeDocumentDto, RendezVousSummary } from '../modeles/demande.model';
 import {FormsModule} from '@angular/forms';
@@ -34,7 +35,7 @@ interface RendezVousFormState {
   selector: 'admin-demandes',
   templateUrl: './admin-demandes.component.html',
   styleUrls: ['./admin-demandes.component.scss'],
-  imports: [FormsModule],
+  imports: [CommonModule, DatePipe, FormsModule],
   standalone: true
 })
 export class AdminDemandesComponent implements OnInit, OnDestroy {
