@@ -5,20 +5,11 @@
   padding-block: clamp(48px, 8vh, 96px);
   flex-direction: column;
   padding-inline: clamp(1rem, 5vw, 2rem);
-  background: linear-gradient(180deg, rgba(13, 13, 15, 0.02), rgba(13, 13, 15, 0.04));
+  background:
+    radial-gradient(1200px circle at 10% 0%, rgba(72, 108, 117, 0.18), rgba(72, 108, 117, 0) 60%),
+    linear-gradient(180deg, rgba(13, 13, 15, 0.02), rgba(13, 13, 15, 0.05));
   position: relative;
 
-  &::before {
-    content: '';
-    position: absolute;
-    left: 6vw;
-    right: 6vw;
-    top: clamp(12px, 2vh, 24px);
-    height: 1px;
-    background: linear-gradient(90deg, rgba(13, 13, 15, 0), rgba(13, 13, 15, 0.18), rgba(13, 13, 15, 0));
-    opacity: 0.6;
-    pointer-events: none;
-  }
   h2 {
     margin-bottom: 1.2rem;
     font-family: variables.$font-title;
@@ -37,10 +28,11 @@
     position: relative;
     overflow: hidden;
     border-radius: variables.$border-radius-high;
-    box-shadow: 0 2px 20px 0 rgba(64,64,64,0.15);
+    box-shadow: 0 12px 30px rgba(21, 28, 31, 0.16);
     margin: 0 auto;
-    background: #fff;
+    background: linear-gradient(180deg, #ffffff, #f9fafb);
     max-width: min(100%, 960px);
+    border: 1px solid rgba(13, 13, 15, 0.08);
   }
   .slider {
     display: flex;
@@ -64,6 +56,8 @@
     overflow: hidden;
     width: min(640px, calc(100vw - 4rem));
     background: #fff;
+    box-shadow: 0 10px 24px rgba(21, 28, 31, 0.12);
+    border: 1px solid rgba(13, 13, 15, 0.08);
   }
   .promo-img {
     width: min(540px, 100%);
@@ -73,6 +67,7 @@
   }
   .promo-content {
     padding: 1.2rem;
+    text-align: center;
     h3 {
       font-family: variables.$font-title;
       font-size: 1.4rem;
