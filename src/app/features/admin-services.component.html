@@ -55,6 +55,21 @@
             <textarea id="service-description" formControlName="description" rows="3" maxlength="2000" placeholder="Décrivez la prestation et ses spécificités"></textarea>
           </div>
           <div class="field">
+            <label for="service-icon">Icône (optionnel)</label>
+            <input
+              id="service-icon"
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              (change)="onIconSelected($event)"
+            />
+            @if (iconPreview) {
+              <div class="service-icon-preview">
+                <img [src]="iconPreview" alt="Aperçu de l'icône du service" />
+                <button type="button" class="link danger" (click)="clearIcon()">Retirer l'icône</button>
+              </div>
+            }
+          </div>
+          <div class="field">
             <label for="service-prix">Prix unitaire (€)</label>
             <input id="service-prix" formControlName="prixUnitaire" type="number" step="0.01" min="0" required />
             @if (form.controls['prixUnitaire'].invalid && form.controls['prixUnitaire'].touched) {

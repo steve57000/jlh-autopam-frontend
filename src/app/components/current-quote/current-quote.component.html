@@ -38,6 +38,17 @@
           <option value="RendezVous">Rendez-vous</option>
         </select>
       </div>
+      @if (type === 'RendezVous' || type === 'Service') {
+        <div class="row">
+          <span class="label">Nature du rendez-vous</span>
+          <textarea
+            name="rdvCommentaire"
+            [(ngModel)]="rendezVousCommentaire"
+            rows="3"
+            placeholder="Décrivez la raison du rendez-vous (ex: bruit moteur, entretien complet...)"
+          ></textarea>
+        </div>
+      }
     </div>
 
     <ul class="quote__list">

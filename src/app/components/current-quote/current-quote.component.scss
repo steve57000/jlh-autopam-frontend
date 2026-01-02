@@ -11,6 +11,10 @@
 .row { display:grid; grid-template-columns: 140px 1fr; gap:.5rem; align-items:center; margin:.25rem 0; }
 .label { color:#6c757d; }
 .value { color:v.$color-primary; }
+.row textarea {
+  resize: vertical;
+  min-height: 90px;
+}
 
 .link { background:none; border:none; color:v.$color-secondary; cursor:pointer; margin-left:.5rem; text-decoration:underline;
   &.danger { color:v.$delete-btn-color; }

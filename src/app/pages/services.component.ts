@@ -105,7 +105,11 @@ export class ServicesComponent implements OnInit, OnDestroy {
     return 'Devis';
   }
 
-  async onSubmitDemand(payload: { type: TypeCode; immatriculation?: string | null }) {
+  async onSubmitDemand(payload: {
+    type: TypeCode;
+    immatriculation?: string | null;
+    rendezVousCommentaire?: string | null;
+  }) {
     if (!this.draft?.idDemande) return;
 
     const id = this.draft.idDemande;
@@ -167,13 +171,19 @@ export class ServicesComponent implements OnInit, OnDestroy {
         }
       }
 
-      if (payload.type === 'RendezVous' && this.selectedCreneauId && this.assignedAdminId) {
+      const commentaire = payload.rendezVousCommentaire?.trim() || null;
+      if (
+        (payload.type === 'RendezVous' || payload.type === 'Service') &&
+        this.selectedCreneauId &&
+        this.assignedAdminId
+      ) {
         await firstValueFrom(
           this.http.post(`${api}/rendezvous`, {
             demandeId: id,
             creneauId: this.selectedCreneauId,
             administrateurId: this.assignedAdminId,
-            codeStatut: 'Confirme'
+            codeStatut: 'Confirme',
+            commentaire
           }, skipErrorOptions)
         );
       }

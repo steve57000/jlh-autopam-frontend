@@ -20,6 +20,7 @@ export class AdminServicesComponent implements OnInit {
   editingService: ServiceDto | null = null;
   form: FormGroup;
   showModal = false;
+  iconPreview: string | null = null;
 
   loading = false;
   errorMsg = '';
@@ -34,6 +35,7 @@ export class AdminServicesComponent implements OnInit {
     this.form = this.fb.group({
       libelle: ['', [Validators.required, Validators.maxLength(100)]],
       description: ['', [Validators.maxLength(2000)]],
+      icon: ['', [Validators.maxLength(255)]],
       prixUnitaire: ['', [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
     });
   }
@@ -60,6 +62,7 @@ export class AdminServicesComponent implements OnInit {
   openAjoutService() {
     this.editingService = null;
     this.form.reset();
+    this.iconPreview = null;
     this.showModal = true;
   }
 
@@ -68,8 +71,10 @@ export class AdminServicesComponent implements OnInit {
     this.form.patchValue({
       libelle: service.libelle,
       description: service.description,
+      icon: service.icon ?? '',
       prixUnitaire: service.prixUnitaire,
     });
+    this.iconPreview = service.icon ?? null;
     this.showModal = true;
   }
 
@@ -77,6 +82,29 @@ export class AdminServicesComponent implements OnInit {
     this.showModal = false;
     this.editingService = null;
     this.form.reset();
+    this.iconPreview = null;
+  }
+
+  onIconSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      this.toast.error('Le fichier doit être une image.');
+      input.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.iconPreview = typeof reader.result === 'string' ? reader.result : null;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  clearIcon() {
+    this.iconPreview = null;
   }
 
   submitForm() {
@@ -85,11 +113,13 @@ export class AdminServicesComponent implements OnInit {
       return;
     }
 
-    const { libelle, description, prixUnitaire } = this.form.value;
+    const { libelle, description, prixUnitaire, icon } = this.form.value;
     const prixValue = typeof prixUnitaire === 'number' ? prixUnitaire : Number(prixUnitaire);
+    const iconValue = typeof icon === 'string' ? icon.trim() : '';
     const body = {
       libelle,
       description,
+      icon: this.iconPreview,
       prixUnitaire: prixValue
     };
 

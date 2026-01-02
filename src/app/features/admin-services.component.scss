@@ -147,6 +147,23 @@
   box-shadow: 0 6px 16px rgba(226, 0, 68, 0.32);
 }
 
+.service-icon-preview {
+  margin-top: .5rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  align-items: flex-start;
+
+  img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    background: #f6f6f6;
+    border-radius: .35rem;
+    padding: .25rem;
+  }
+}
+
 .modal-bg {
   position: fixed;
   inset: 0;

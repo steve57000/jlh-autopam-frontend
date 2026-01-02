@@ -17,11 +17,16 @@ export class CurrentQuoteComponent {
   @Input() demande?: DemandeResponse | null;
 
   @Output() remove = new EventEmitter<{ idDemande: number; idService: number }>();
-  @Output() submit = new EventEmitter<{ type: TypeCode; immatriculation?: string | null }>(); // ✅
+  @Output() submit = new EventEmitter<{
+    type: TypeCode;
+    immatriculation?: string | null;
+    rendezVousCommentaire?: string | null;
+  }>();
 
   // champs du formulaire local (brouillon)
   type: TypeCode = 'Devis';
   immatOverride: string | null = null;
+  rendezVousCommentaire: string | null = null;
 
   total(): number {
     const s = this.demande?.services ?? [];
@@ -37,7 +42,8 @@ export class CurrentQuoteComponent {
     // émet vers la page services (type + immat éventuelle)
     this.submit.emit({
       type: this.type,
-      immatriculation: (this.immatOverride && this.immatOverride.trim()) || null
+      immatriculation: (this.immatOverride && this.immatOverride.trim()) || null,
+      rendezVousCommentaire: this.rendezVousCommentaire?.trim() || null
     });
   }
 }
