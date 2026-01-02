@@ -100,6 +100,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     if (this.isBrowser) {
       this.document.body.classList.toggle('menu-open', open);
+      this.document.documentElement.classList.toggle('menu-open', open);
     }
   }
 }
