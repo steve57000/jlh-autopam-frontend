@@ -10,17 +10,6 @@
     linear-gradient(180deg, rgba(13, 13, 15, 0.02), rgba(13, 13, 15, 0.05));
   position: relative;
 
-  &::before {
-    content: '';
-    position: absolute;
-    left: 6vw;
-    right: 6vw;
-    top: clamp(12px, 2vh, 24px);
-    height: 1px;
-    background: linear-gradient(90deg, rgba(13, 13, 15, 0), rgba(13, 13, 15, 0.18), rgba(13, 13, 15, 0));
-    opacity: 0.6;
-    pointer-events: none;
-  }
   h2 {
     margin-bottom: 1.2rem;
     font-family: variables.$font-title;
@@ -116,12 +105,12 @@
     color: #fff;
     border: none;
     border-radius: 50%;
-    width: clamp(40px, 6vw, 52px);      // Taille du bouton (adapter si besoin)
+    width: clamp(40px, 6vw, 52px);
     height: clamp(40px, 6vw, 52px);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;      // Très important : pas de padding
+    padding: 0;
     cursor: pointer;
     z-index: 2;
     outline: none;

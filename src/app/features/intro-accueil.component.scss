@@ -20,18 +20,6 @@
   &.in-view {
     @include anim.fade-in-up(1s, ease-out, forwards, 50px);
   }
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: 8vw;
-    right: 8vw;
-    bottom: clamp(16px, 2.5vh, 32px);
-    height: 1px;
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0));
-    opacity: 0.6;
-    pointer-events: none;
-  }
 }
 
 .intro-wrapper {

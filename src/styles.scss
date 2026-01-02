@@ -137,54 +137,7 @@ a.cta-btn-secondary { text-align: center; }
 }
 
 .container-main { min-height: 100vh; }
-.home-section {
-  position: relative;
-  --section-separator-color: rgba(13, 13, 15, 0.28);
-  --section-separator-soft: rgba(13, 13, 15, 0.14);
-  --section-separator-glow: rgba(13, 13, 15, 0.18);
-}
 
-.home-section--dark,
-.home-section--accent {
-  --section-separator-color: rgba(255, 255, 255, 0.38);
-  --section-separator-soft: rgba(255, 255, 255, 0.18);
-  --section-separator-glow: rgba(255, 255, 255, 0.3);
-}
-
-.home-section::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: min(94%, 1200px);
-  height: 2px;
-  transform: translateX(-50%);
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0),
-    var(--section-separator-color),
-    rgba(255, 255, 255, 0)
-  );
-  box-shadow: 0 0 16px var(--section-separator-glow);
-}
-
-.home-section::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: min(78%, 980px);
-  height: 1px;
-  transform: translateX(-50%);
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0),
-    var(--section-separator-soft),
-    rgba(255, 255, 255, 0)
-  );
-}
 .container-max {
   display: flex; flex-direction: row;
   max-width: 1480px; width: 100%; height: 100%;
