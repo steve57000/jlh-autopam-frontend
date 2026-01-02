@@ -35,6 +35,12 @@ body.admin-modal-open {
   overflow: hidden;
 }
 
+html.menu-open,
+body.menu-open {
+  overflow: hidden;
+  height: 100%;
+}
+
 h1, h2, h3 { font-family: v.$font-title; }
 h4, h5, h6 { font-family: v.$font-subtitle; }
 
