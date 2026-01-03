@@ -22,10 +22,25 @@
   padding:          1.5rem;
   margin-bottom:    1rem;
   transition:       box-shadow vars.$transition-fast;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
     /* Ombre plus marquée au hover */
     box-shadow: vars.$shadow-small;
+  }
+
+  .service-icon {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    background: #f6f6f6;
+    border-radius: 14px;
+    padding: 0.4rem;
+    margin-bottom: 0.5rem;
+
+    @include anim.fade-in(.5s);
+    animation-delay: calc(var(--delay) + 0.2s);
   }
 
   /* Étiquette “À partir de” */
