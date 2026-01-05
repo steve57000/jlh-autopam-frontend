@@ -24,6 +24,7 @@ export class AdminServicesComponent implements OnInit {
   form: FormGroup;
   showModal = false;
   iconPreview: string | null = null;
+  private iconLabelMap = new Map<string, string>();
 
   loading = false;
   errorMsg = '';
@@ -72,9 +73,11 @@ export class AdminServicesComponent implements OnInit {
     this.iconsService.getAll().subscribe({
       next: icons => {
         this.serviceIcons = Array.isArray(icons) ? icons : [];
+        this.buildIconLabelMap();
       },
       error: () => {
         this.serviceIcons = [];
+        this.iconLabelMap.clear();
       }
     });
   }
@@ -128,6 +131,14 @@ export class AdminServicesComponent implements OnInit {
   selectIcon(icon: ServiceIconDto) {
     this.iconPreview = icon.url;
     this.form.patchValue({ icon: icon.url });
+  }
+
+  getServiceIcon(service: ServiceDto): string | null {
+    if (service.icon) {
+      return service.icon;
+    }
+    const lookupKey = this.normalizeLabel(service.libelle);
+    return this.iconLabelMap.get(lookupKey) ?? null;
   }
 
   clearIcon() {
@@ -200,5 +211,18 @@ export class AdminServicesComponent implements OnInit {
       },
       error: err => this.toast.error('Erreur lors de la suppression.', err.error?.message || err.message)
     });
+  }
+
+  private buildIconLabelMap() {
+    this.iconLabelMap.clear();
+    for (const icon of this.serviceIcons) {
+      if (icon.label) {
+        this.iconLabelMap.set(this.normalizeLabel(icon.label), icon.url);
+      }
+    }
+  }
+
+  private normalizeLabel(label: string) {
+    return label.trim().toLowerCase();
   }
 }

@@ -17,9 +17,9 @@
   <div class="services-grid" role="list">
     @for (service of services; track service.idService; let i = $index) {
       <article class="service-card" role="listitem">
-        @if (service.icon) {
+        @if (getServiceIcon(service); as iconUrl) {
           <div class="service-card__icon">
-            <img [src]="service.icon" [alt]="service.libelle" />
+            <img [src]="iconUrl" [alt]="service.libelle" />
           </div>
         }
         <h3 class="service-card__title">{{ service.libelle }}</h3>
@@ -84,6 +84,7 @@
                       (click)="selectIcon(icon)"
                     >
                       <img [src]="icon.url" [alt]="icon.label || 'Icône'" />
+                      <span class="service-icon-library__label">{{ icon.label || 'Icône' }}</span>
                     </button>
                   }
                 </div>

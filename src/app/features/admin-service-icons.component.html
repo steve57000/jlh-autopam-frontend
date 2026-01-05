@@ -15,15 +15,15 @@
 
   <div class="icons-grid">
     @for (icon of icons; track icon.idIcon) {
-      <article class="icon-card">
-        <button type="button" class="icon-card__preview" (click)="openEditModal(icon)">
+      <button type="button" class="icon-card" (click)="openEditModal(icon)">
+        <div class="icon-card__preview">
           <img [src]="icon.url" [alt]="icon.label || 'Icône service'" />
-        </button>
+        </div>
         <div class="icon-card__meta">
           <span class="icon-card__label">{{ icon.label || 'Icône' }}</span>
           <span class="icon-card__action">Cliquer pour modifier</span>
         </div>
-      </article>
+      </button>
     }
   </div>
 
