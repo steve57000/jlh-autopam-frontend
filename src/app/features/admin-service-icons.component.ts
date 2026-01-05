@@ -22,6 +22,7 @@ export class AdminServiceIconsComponent implements OnInit {
   showDeleteConfirm = false;
   iconToDelete: ServiceIconDto | null = null;
   showEditModal = false;
+  showEditLibrary = false;
   editingIcon: ServiceIconDto | null = null;
   editForm: FormGroup;
 
@@ -95,6 +96,7 @@ export class AdminServiceIconsComponent implements OnInit {
       url: icon.url
     });
     this.showEditModal = true;
+    this.showEditLibrary = false;
     this.showDeleteConfirm = false;
     this.iconToDelete = null;
   }
@@ -102,6 +104,37 @@ export class AdminServiceIconsComponent implements OnInit {
   closeEditModal() {
     this.showEditModal = false;
     this.editingIcon = null;
+    this.showEditLibrary = false;
+  }
+
+  onEditFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      this.toast.error('Le fichier doit être une image.');
+      input.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : null;
+      this.editForm.patchValue({ url: result || '' });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  toggleEditLibrary() {
+    this.showEditLibrary = !this.showEditLibrary;
+  }
+
+  selectEditIcon(icon: ServiceIconDto) {
+    this.editForm.patchValue({
+      url: icon.url,
+      label: icon.label ?? this.editForm.value.label ?? ''
+    });
   }
 
   clearSelection() {

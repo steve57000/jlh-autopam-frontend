@@ -77,9 +77,31 @@
             <input id="edit-icon-label" formControlName="label" maxlength="150" />
           </div>
           <div class="field">
-            <label for="edit-icon-url">URL / Data URL</label>
-            <input id="edit-icon-url" formControlName="url" maxlength="50000" />
+            <label for="edit-icon-file">Remplacer par une nouvelle image</label>
+            <input
+              id="edit-icon-file"
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              (change)="onEditFileSelected($event)"
+            />
           </div>
+          @if (icons.length) {
+            <button type="button" class="icon-library-toggle" (click)="toggleEditLibrary()">
+              {{ showEditLibrary ? 'Masquer la bibliothèque' : 'Voir la bibliothèque d’icônes' }}
+            </button>
+            @if (showEditLibrary) {
+              <div class="icon-library">
+                <div class="icon-library__grid">
+                  @for (icon of icons; track icon.idIcon) {
+                    <button type="button" class="icon-library__item" (click)="selectEditIcon(icon)">
+                      <img [src]="icon.url" [alt]="icon.label || 'Icône'" />
+                      <span class="icon-library__label">{{ icon.label || 'Icône' }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          }
           <div class="modal-actions">
             <button class="cta-btn" type="submit" [disabled]="editForm.invalid">Mettre à jour</button>
             <button type="button" class="link danger" (click)="confirmDeletion(editingIcon)">Supprimer définitivement</button>
