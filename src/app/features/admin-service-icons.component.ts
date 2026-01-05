@@ -30,11 +30,11 @@ export class AdminServiceIconsComponent implements OnInit {
   constructor(private iconsService: ServiceIconsService, private fb: FormBuilder) {
     this.form = this.fb.group({
       label: ['', [Validators.maxLength(150)]],
-      url: ['', [Validators.maxLength(1000), Validators.required]]
+      url: ['', [Validators.maxLength(50000), Validators.required]]
     });
     this.editForm = this.fb.group({
       label: ['', [Validators.maxLength(150)]],
-      url: ['', [Validators.maxLength(1000), Validators.required]]
+      url: ['', [Validators.maxLength(50000), Validators.required]]
     });
   }
 
