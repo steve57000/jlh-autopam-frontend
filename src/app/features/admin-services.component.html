@@ -17,6 +17,11 @@
   <div class="services-grid" role="list">
     @for (service of services; track service.idService; let i = $index) {
       <article class="service-card" role="listitem">
+        @if (service.icon) {
+          <div class="service-card__icon">
+            <img [src]="service.icon" [alt]="service.libelle" />
+          </div>
+        }
         <h3 class="service-card__title">{{ service.libelle }}</h3>
         <p class="service-card__description">{{ service.description || 'Pas de description fournie.' }}</p>
         <div class="service-card__meta">
@@ -68,12 +73,35 @@
                 <button type="button" class="link danger" (click)="clearIcon()">Retirer l'icône</button>
               </div>
             }
+            @if (serviceIcons.length) {
+              <div class="service-icon-library">
+                <p>Ou choisir une icône existante :</p>
+                <div class="service-icon-library__grid">
+                  @for (icon of serviceIcons; track icon.idIcon) {
+                    <button
+                      type="button"
+                      class="service-icon-library__item"
+                      (click)="selectIcon(icon)"
+                    >
+                      <img [src]="icon.url" [alt]="icon.label || 'Icône'" />
+                    </button>
+                  }
+                </div>
+              </div>
+            }
           </div>
           <div class="field">
             <label for="service-prix">Prix unitaire (€)</label>
             <input id="service-prix" formControlName="prixUnitaire" type="number" step="0.01" min="0" required />
             @if (form.controls['prixUnitaire'].invalid && form.controls['prixUnitaire'].touched) {
               <div class="field__error">Indiquez un prix au format 0,00.</div>
+            }
+          </div>
+          <div class="field">
+            <label for="service-quantite-max">Quantité maximale</label>
+            <input id="service-quantite-max" formControlName="quantiteMax" type="number" min="1" required />
+            @if (form.controls['quantiteMax'].invalid && form.controls['quantiteMax'].touched) {
+              <div class="field__error">Indiquez une quantité maximale supérieure ou égale à 1.</div>
             }
           </div>
           <div class="modal-actions">

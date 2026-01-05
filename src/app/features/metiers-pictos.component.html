@@ -5,7 +5,7 @@
       Pneumatiques, entretien et réparation automobile à Pont‑à‑Mousson : découvrez nos prestations.
     </p>
     <div class="pictos-wrapper" appInViewport>
-      @for (item of items; track item.img) {
+      @for (item of items; track $index) {
         <div class="picto-bloc">
           <button
             type="button"
@@ -15,7 +15,7 @@
             aria-haspopup="dialog"
           >
             <img
-              [ngSrc]="item.img"
+              [src]="item.img"
               [alt]="item.label"
               class="picto-img"
               width="150"
@@ -52,7 +52,7 @@
           ×
         </button>
         <img
-          [ngSrc]="active.img"
+          [src]="active.img"
           [alt]="active.label"
           width="150"
           height="150"

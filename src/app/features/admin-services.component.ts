@@ -4,6 +4,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ServicesService } from '../services/services.service';
 import { ServiceDto } from '../modeles/service.model';
 import { ToastService } from '../shared/toast/toast.service';
+import { ServiceIconsService } from '../services/service-icons.service';
+import { ServiceIconDto } from '../modeles/service-icon.model';
 
 @Component({
   selector: 'admin-services',
@@ -18,6 +20,7 @@ import { ToastService } from '../shared/toast/toast.service';
 export class AdminServicesComponent implements OnInit {
   services: ServiceDto[] = [];
   editingService: ServiceDto | null = null;
+  serviceIcons: ServiceIconDto[] = [];
   form: FormGroup;
   showModal = false;
   iconPreview: string | null = null;
@@ -31,17 +34,23 @@ export class AdminServicesComponent implements OnInit {
 
   private readonly toast = inject(ToastService);
 
-  constructor(private srv: ServicesService, private fb: FormBuilder) {
+  constructor(
+    private srv: ServicesService,
+    private iconsService: ServiceIconsService,
+    private fb: FormBuilder
+  ) {
     this.form = this.fb.group({
       libelle: ['', [Validators.required, Validators.maxLength(100)]],
       description: ['', [Validators.maxLength(2000)]],
-      icon: ['', [Validators.maxLength(255)]],
+      icon: [''],
       prixUnitaire: ['', [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
+      quantiteMax: [1, [Validators.required, Validators.min(1)]],
     });
   }
 
   ngOnInit() {
     this.fetchServices();
+    this.fetchIcons();
   }
 
   fetchServices() {
@@ -55,6 +64,17 @@ export class AdminServicesComponent implements OnInit {
         this.errorMsg = 'Erreur de chargement : ' + (err.error?.message || err.message);
         this.loading = false;
         this.toast.error('Impossible de charger les services.', err.error?.message || err.message);
+      }
+    });
+  }
+
+  fetchIcons() {
+    this.iconsService.getAll().subscribe({
+      next: icons => {
+        this.serviceIcons = Array.isArray(icons) ? icons : [];
+      },
+      error: () => {
+        this.serviceIcons = [];
       }
     });
   }
@@ -73,6 +93,7 @@ export class AdminServicesComponent implements OnInit {
       description: service.description,
       icon: service.icon ?? '',
       prixUnitaire: service.prixUnitaire,
+      quantiteMax: service.quantiteMax ?? 1,
     });
     this.iconPreview = service.icon ?? null;
     this.showModal = true;
@@ -99,12 +120,19 @@ export class AdminServicesComponent implements OnInit {
     const reader = new FileReader();
     reader.onload = () => {
       this.iconPreview = typeof reader.result === 'string' ? reader.result : null;
+      this.form.patchValue({ icon: this.iconPreview || '' });
     };
     reader.readAsDataURL(file);
   }
 
+  selectIcon(icon: ServiceIconDto) {
+    this.iconPreview = icon.url;
+    this.form.patchValue({ icon: icon.url });
+  }
+
   clearIcon() {
     this.iconPreview = null;
+    this.form.patchValue({ icon: '' });
   }
 
   submitForm() {
@@ -113,14 +141,15 @@ export class AdminServicesComponent implements OnInit {
       return;
     }
 
-    const { libelle, description, prixUnitaire, icon } = this.form.value;
+    const { libelle, description, prixUnitaire, quantiteMax } = this.form.value;
     const prixValue = typeof prixUnitaire === 'number' ? prixUnitaire : Number(prixUnitaire);
-    const iconValue = typeof icon === 'string' ? icon.trim() : '';
+    const quantiteValue = typeof quantiteMax === 'number' ? quantiteMax : Number(quantiteMax);
     const body = {
       libelle,
       description,
-      icon: this.iconPreview,
-      prixUnitaire: prixValue
+      icon: this.iconPreview ? this.iconPreview.trim() : null,
+      prixUnitaire: prixValue,
+      quantiteMax: quantiteValue
     };
 
     if (this.editingService?.idService) {
@@ -129,6 +158,7 @@ export class AdminServicesComponent implements OnInit {
           const idx = this.services.findIndex(s => s.idService === updated.idService);
           if (idx !== -1) this.services[idx] = updated;
           this.toast.success('Service modifié avec succès !');
+          this.fetchIcons();
           this.closeModal();
         },
         error: err => this.toast.error('Erreur lors de la modification.', err.error?.message || err.message)
@@ -138,6 +168,7 @@ export class AdminServicesComponent implements OnInit {
         next: created => {
           this.services.push(created);
           this.toast.success('Service ajouté avec succès !');
+          this.fetchIcons();
           this.closeModal();
         },
         error: err => this.toast.error("Erreur lors de l'ajout.", err.error?.message || err.message)

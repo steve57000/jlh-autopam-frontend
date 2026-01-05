@@ -1,0 +1,104 @@
+<section class="icons-section">
+  <header class="icons-section__header">
+    <div>
+      <h2 class="icons-section__title">Bibliothèque d’icônes</h2>
+      <p class="icons-section__lead">Ajoutez, visualisez ou supprimez les pictogrammes disponibles.</p>
+    </div>
+  </header>
+
+  @if (loading) {
+    <p class="icons-section__status">Chargement…</p>
+  }
+  @if (errorMsg) {
+    <p class="icons-section__status icons-section__status--error">{{ errorMsg }}</p>
+  }
+
+  <div class="icons-grid">
+    @for (icon of icons; track icon.idIcon) {
+      <article class="icon-card">
+        <button type="button" class="icon-card__preview" (click)="openEditModal(icon)">
+          <img [src]="icon.url" [alt]="icon.label || 'Icône service'" />
+        </button>
+        <div class="icon-card__meta">
+          <span class="icon-card__label">{{ icon.label || 'Icône' }}</span>
+          <span class="icon-card__action">Cliquer pour modifier</span>
+        </div>
+      </article>
+    }
+  </div>
+
+  <form class="icon-form" [formGroup]="form" (ngSubmit)="submitForm()" novalidate>
+    <div class="icon-form__grid">
+      <div class="field">
+        <label for="icon-label">Libellé (optionnel)</label>
+        <input id="icon-label" formControlName="label" maxlength="150" />
+      </div>
+      <div class="field">
+        <label for="icon-file">Importer une icône</label>
+        <input
+          id="icon-file"
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          (change)="onIconSelected($event)"
+        />
+        @if (previewUrl) {
+          <div class="icon-preview">
+            <img [src]="previewUrl" alt="Aperçu de l'icône" />
+            <button type="button" class="link danger" (click)="clearSelection()">Effacer</button>
+          </div>
+        }
+      </div>
+      <div class="field">
+        <label for="icon-url">URL / Data URL</label>
+        <input id="icon-url" formControlName="url" maxlength="1000" />
+        @if (form.controls['url'].invalid && form.controls['url'].touched) {
+          <div class="field__error">Indiquez une URL d’icône valide.</div>
+        }
+      </div>
+    </div>
+    <div class="icon-form__actions">
+      <button class="cta-btn" type="submit" [disabled]="form.invalid">Ajouter l’icône</button>
+    </div>
+  </form>
+
+  @if (showEditModal && editingIcon) {
+    <div class="modal-bg" role="presentation">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="edit-icon-title">
+        <div class="modal-card__header">
+          <h3 id="edit-icon-title">Modifier l’icône</h3>
+          <button type="button" class="modal-card__close" (click)="closeEditModal()">×</button>
+        </div>
+        <form [formGroup]="editForm" (ngSubmit)="updateIcon()" novalidate>
+          <div class="icon-modal__preview">
+            <img [src]="editForm.value.url" [alt]="editForm.value.label || 'Icône'" />
+          </div>
+          <div class="field">
+            <label for="edit-icon-label">Libellé</label>
+            <input id="edit-icon-label" formControlName="label" maxlength="150" />
+          </div>
+          <div class="field">
+            <label for="edit-icon-url">URL / Data URL</label>
+            <input id="edit-icon-url" formControlName="url" maxlength="1000" />
+          </div>
+          <div class="modal-actions">
+            <button class="cta-btn" type="submit" [disabled]="editForm.invalid">Mettre à jour</button>
+            <button type="button" class="link danger" (click)="confirmDeletion(editingIcon)">Supprimer définitivement</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (showDeleteConfirm) {
+    <div class="modal-bg" role="presentation">
+      <div class="modal-card modal-card--confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-delete-title">
+        <h3 id="confirm-delete-title">Suppression définitive</h3>
+        <p>Supprimer cette icône est irréversible. Voulez-vous continuer ?</p>
+        <div class="modal-actions">
+          <button class="service-card__btn service-card__btn--delete" type="button" (click)="deleteConfirmed()">Supprimer définitivement</button>
+          <button class="modal-actions__cancel" type="button" (click)="cancelDeletion()">Annuler</button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

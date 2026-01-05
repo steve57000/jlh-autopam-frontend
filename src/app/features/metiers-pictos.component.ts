@@ -1,5 +1,4 @@
 import { Component, ElementRef, HostListener, Input, ViewChild } from '@angular/core';
-import { NgOptimizedImage }            from '@angular/common';
 import { RouterLink }                  from '@angular/router';
 import { InViewportDirective }         from '../directives/in-viewport.directive';
 
@@ -7,7 +6,6 @@ import { InViewportDirective }         from '../directives/in-viewport.directive
   selector: 'app-metiers-pictos',
   standalone: true,
   imports: [
-    NgOptimizedImage,
     RouterLink,
     InViewportDirective
   ],

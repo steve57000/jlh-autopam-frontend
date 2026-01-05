@@ -1,0 +1,138 @@
+.icons-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding-bottom: 2rem;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  &__title {
+    margin: 0 0 .25rem;
+  }
+
+  &__lead {
+    margin: 0;
+    color: #4b4b4b;
+  }
+
+  &__status {
+    margin: 0;
+    font-weight: 500;
+
+    &--error {
+      color: #b42318;
+    }
+  }
+}
+
+.icons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.icon-card {
+  padding: 1rem;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
+  }
+
+  &__preview {
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+
+    img {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+    }
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    align-items: center;
+  }
+
+  &__label {
+    font-weight: 600;
+  }
+
+  &__action {
+    font-size: 0.85rem;
+    color: #6b6b6b;
+  }
+}
+
+.icon-form {
+  background: #fff;
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+}
+
+.icon-preview {
+  margin-top: .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  align-items: flex-start;
+
+  img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: #f5f5f5;
+    padding: .5rem;
+  }
+}
+
+.icon-modal__preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 20px;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+
+  img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+  }
+}

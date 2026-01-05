@@ -5,6 +5,7 @@ import { AdminServicesComponent } from './features/admin-services.component';
 import { AdminDemandesComponent } from './features/admin-demandes.component';
 import { AdminPromotionsComponent } from './features/admin-promotions.component';
 import { AdminClientsComponent } from './features/admin-clients.component';
+import { AdminServiceIconsComponent } from './features/admin-service-icons.component';
 import { AdminGuard } from './guards/admin.guard';
 
 export const adminRoutes: Routes = [
@@ -22,6 +23,11 @@ export const adminRoutes: Routes = [
         path: 'services',
         component: AdminServicesComponent,
         data: { title: 'Gestion des services' },
+      },
+      {
+        path: 'icons',
+        component: AdminServiceIconsComponent,
+        data: { title: 'Gestion des icônes' },
       },
       {
         path: 'demandes',

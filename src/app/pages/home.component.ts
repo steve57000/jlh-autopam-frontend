@@ -216,14 +216,19 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private buildMetiersFromServices(services: ServiceDto[]): MetiersPicto[] {
-    return services
-      .filter(service => typeof service.icon === 'string' && service.icon.trim().length > 0)
-      .sort((a, b) => (a.idService ?? 0) - (b.idService ?? 0))
-      .map(service => ({
-        img: service.icon!.trim(),
+    const sorted = services
+      .slice()
+      .sort((a, b) => (a.idService ?? 0) - (b.idService ?? 0));
+
+    return sorted.map((service, index) => {
+      const icon = typeof service.icon === 'string' ? service.icon.trim() : '';
+      const fallbackIcon = DEFAULT_METIERS_PICTOS[index % DEFAULT_METIERS_PICTOS.length]?.img;
+      return {
+        img: icon || fallbackIcon,
         label: service.libelle,
         description: service.description ?? ''
-      }));
+      };
+    });
   }
   clearMetiersSlide() {
     if (this.metiersInterval) {
