@@ -15,15 +15,15 @@
 
   <div class="icons-grid">
     @for (icon of icons; track icon.idIcon) {
-      <article class="icon-card">
-        <button type="button" class="icon-card__preview" (click)="openEditModal(icon)">
+      <button type="button" class="icon-card" (click)="openEditModal(icon)">
+        <div class="icon-card__preview">
           <img [src]="icon.url" [alt]="icon.label || 'Icône service'" />
-        </button>
+        </div>
         <div class="icon-card__meta">
           <span class="icon-card__label">{{ icon.label || 'Icône' }}</span>
           <span class="icon-card__action">Cliquer pour modifier</span>
         </div>
-      </article>
+      </button>
     }
   </div>
 
@@ -50,9 +50,9 @@
       </div>
       <div class="field">
         <label for="icon-url">URL / Data URL</label>
-        <input id="icon-url" formControlName="url" maxlength="1000" />
+        <input id="icon-url" formControlName="url" maxlength="50000" />
         @if (form.controls['url'].invalid && form.controls['url'].touched) {
-          <div class="field__error">Indiquez une URL d’icône valide.</div>
+          <div class="field__error">Indiquez une URL d’icône valide (ou un fichier).</div>
         }
       </div>
     </div>
@@ -77,9 +77,31 @@
             <input id="edit-icon-label" formControlName="label" maxlength="150" />
           </div>
           <div class="field">
-            <label for="edit-icon-url">URL / Data URL</label>
-            <input id="edit-icon-url" formControlName="url" maxlength="1000" />
+            <label for="edit-icon-file">Remplacer par une nouvelle image</label>
+            <input
+              id="edit-icon-file"
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              (change)="onEditFileSelected($event)"
+            />
           </div>
+          @if (icons.length) {
+            <button type="button" class="icon-library-toggle" (click)="toggleEditLibrary()">
+              {{ showEditLibrary ? 'Masquer la bibliothèque' : 'Voir la bibliothèque d’icônes' }}
+            </button>
+            @if (showEditLibrary) {
+              <div class="icon-library">
+                <div class="icon-library__grid">
+                  @for (icon of icons; track icon.idIcon) {
+                    <button type="button" class="icon-library__item" (click)="selectEditIcon(icon)">
+                      <img [src]="icon.url" [alt]="icon.label || 'Icône'" />
+                      <span class="icon-library__label">{{ icon.label || 'Icône' }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          }
           <div class="modal-actions">
             <button class="cta-btn" type="submit" [disabled]="editForm.invalid">Mettre à jour</button>
             <button type="button" class="link danger" (click)="confirmDeletion(editingIcon)">Supprimer définitivement</button>
