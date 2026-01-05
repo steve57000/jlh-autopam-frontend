@@ -16,6 +16,7 @@ export class AdminServiceIconsComponent implements OnInit {
   icons: ServiceIconDto[] = [];
   form: FormGroup;
   previewUrl: string | null = null;
+  selectedFile: File | null = null;
   loading = false;
   errorMsg = '';
 
@@ -25,6 +26,8 @@ export class AdminServiceIconsComponent implements OnInit {
   showEditLibrary = false;
   editingIcon: ServiceIconDto | null = null;
   editForm: FormGroup;
+  editSelectedFile: File | null = null;
+  editPreviewUrl: string | null = null;
 
   private readonly toast = inject(ToastService);
 
@@ -41,6 +44,16 @@ export class AdminServiceIconsComponent implements OnInit {
 
   ngOnInit() {
     this.fetchIcons();
+    this.form.get('url')?.valueChanges.subscribe(value => {
+      if (this.selectedFile && value !== this.selectedFile.name) {
+        this.selectedFile = null;
+      }
+    });
+    this.editForm.get('url')?.valueChanges.subscribe(value => {
+      if (this.editSelectedFile && value !== this.editSelectedFile.name) {
+        this.editSelectedFile = null;
+      }
+    });
   }
 
   fetchIcons() {
@@ -68,11 +81,12 @@ export class AdminServiceIconsComponent implements OnInit {
       input.value = '';
       return;
     }
+    this.selectedFile = file;
     const reader = new FileReader();
     reader.onload = () => {
       const result = typeof reader.result === 'string' ? reader.result : null;
       this.previewUrl = result;
-      this.form.patchValue({ url: result || '' });
+      this.form.patchValue({ url: file.name });
     };
     reader.readAsDataURL(file);
   }
@@ -82,6 +96,7 @@ export class AdminServiceIconsComponent implements OnInit {
   }
 
   selectIcon(icon: ServiceIconDto) {
+    this.selectedFile = null;
     this.previewUrl = icon.url;
     this.form.patchValue({
       url: icon.url,
@@ -91,6 +106,8 @@ export class AdminServiceIconsComponent implements OnInit {
 
   openEditModal(icon: ServiceIconDto) {
     this.editingIcon = icon;
+    this.editSelectedFile = null;
+    this.editPreviewUrl = icon.url;
     this.editForm.reset({
       label: icon.label ?? '',
       url: icon.url
@@ -105,6 +122,8 @@ export class AdminServiceIconsComponent implements OnInit {
     this.showEditModal = false;
     this.editingIcon = null;
     this.showEditLibrary = false;
+    this.editSelectedFile = null;
+    this.editPreviewUrl = null;
   }
 
   onEditFileSelected(event: Event) {
@@ -118,10 +137,12 @@ export class AdminServiceIconsComponent implements OnInit {
       input.value = '';
       return;
     }
+    this.editSelectedFile = file;
     const reader = new FileReader();
     reader.onload = () => {
       const result = typeof reader.result === 'string' ? reader.result : null;
-      this.editForm.patchValue({ url: result || '' });
+      this.editPreviewUrl = result;
+      this.editForm.patchValue({ url: file.name });
     };
     reader.readAsDataURL(file);
   }
@@ -131,6 +152,8 @@ export class AdminServiceIconsComponent implements OnInit {
   }
 
   selectEditIcon(icon: ServiceIconDto) {
+    this.editSelectedFile = null;
+    this.editPreviewUrl = icon.url;
     this.editForm.patchValue({
       url: icon.url,
       label: icon.label ?? this.editForm.value.label ?? ''
@@ -139,6 +162,7 @@ export class AdminServiceIconsComponent implements OnInit {
 
   clearSelection() {
     this.previewUrl = null;
+    this.selectedFile = null;
     this.form.reset();
   }
 
@@ -148,8 +172,9 @@ export class AdminServiceIconsComponent implements OnInit {
       return;
     }
     const payload = {
-      url: String(this.form.value.url || '').trim(),
-      label: String(this.form.value.label || '').trim() || null
+      url: this.selectedFile ? undefined : String(this.form.value.url || '').trim(),
+      label: String(this.form.value.label || '').trim() || null,
+      file: this.selectedFile
     };
     this.iconsService.create(payload).subscribe({
       next: created => {
@@ -157,6 +182,7 @@ export class AdminServiceIconsComponent implements OnInit {
         this.toast.success('Icône ajoutée avec succès.');
         this.previewUrl = created.url;
         this.form.patchValue({ url: created.url, label: created.label ?? '' });
+        this.selectedFile = null;
       },
       error: err => {
         this.toast.error("Erreur lors de l'ajout.", err.error?.message || err.message);
@@ -173,10 +199,11 @@ export class AdminServiceIconsComponent implements OnInit {
       return;
     }
     const payload = {
-      url: String(this.editForm.value.url || '').trim(),
-      label: String(this.editForm.value.label || '').trim() || null
+      url: this.editSelectedFile ? undefined : String(this.editForm.value.url || '').trim(),
+      label: String(this.editForm.value.label || '').trim() || null,
+      file: this.editSelectedFile
     };
-    this.iconsService.create(payload).subscribe({
+    this.iconsService.update(this.editingIcon.idIcon, payload).subscribe({
       next: created => {
         this.icons = this.icons.map(icon => {
           if (icon.idIcon === this.editingIcon?.idIcon) {

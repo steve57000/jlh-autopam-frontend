@@ -70,7 +70,7 @@
         </div>
         <form [formGroup]="editForm" (ngSubmit)="updateIcon()" novalidate>
           <div class="icon-modal__preview">
-            <img [src]="editForm.value.url" [alt]="editForm.value.label || 'Icône'" />
+            <img [src]="editPreviewUrl || editForm.value.url" [alt]="editForm.value.label || 'Icône'" />
           </div>
           <div class="field">
             <label for="edit-icon-label">Libellé</label>
