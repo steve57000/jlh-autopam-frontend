@@ -29,126 +29,147 @@
   }
 
   @if (!loading && !error) {
+    <div class="dashboard__grid">
+      <article class="card chart-card chart-card--client-filters">
+        <header>
+          <p class="card__eyebrow">Filtres</p>
+          <h3>Affiner vos demandes</h3>
+        </header>
+        <div class="filters">
+          <div class="row">
+            <div class="field">
+              <label>Recherche</label>
+              <input
+                type="search"
+                [ngModel]="filters().q"
+                (ngModelChange)="setQ($event)"
+                placeholder="Service, type, statut, #id…" />
+            </div>
 
-      <!-- ====== Filtres ====== -->
-      <div class="filters">
-        <div class="row">
-          <div class="field">
-            <label>Recherche</label>
-            <input
-              type="search"
-              [ngModel]="filters().q"
-              (ngModelChange)="setQ($event)"
-              placeholder="Service, type, statut, #id…" />
-          </div>
+            <div class="field">
+              <label>Type</label>
+              <select [ngModel]="filters().type" (ngModelChange)="setType($event)">
+                @for (opt of typeOptions(); track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
 
-          <div class="field">
-            <label>Type</label>
-            <select [ngModel]="filters().type" (ngModelChange)="setType($event)">
-              @for (opt of typeOptions(); track opt.value) {
-                <option [value]="opt.value">{{ opt.label }}</option>
-              }
-            </select>
-          </div>
+            <div class="field">
+              <label>Statut</label>
+              <select [ngModel]="filters().statut" (ngModelChange)="setStatut($event)">
+                @for (opt of statutOptions(); track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
 
-          <div class="field">
-            <label>Statut</label>
-            <select [ngModel]="filters().statut" (ngModelChange)="setStatut($event)">
-              @for (opt of statutOptions(); track opt.value) {
-                <option [value]="opt.value">{{ opt.label }}</option>
-              }
-            </select>
-          </div>
+            <div class="field">
+              <label>Du</label>
+              <input type="date" [ngModel]="filters().dateFrom" (ngModelChange)="setFrom($event)" />
+            </div>
 
-          <div class="field">
-            <label>Du</label>
-            <input type="date" [ngModel]="filters().dateFrom" (ngModelChange)="setFrom($event)" />
-          </div>
+            <div class="field">
+              <label>Au</label>
+              <input type="date" [ngModel]="filters().dateTo" (ngModelChange)="setTo($event)" />
+            </div>
 
-          <div class="field">
-            <label>Au</label>
-            <input type="date" [ngModel]="filters().dateTo" (ngModelChange)="setTo($event)" />
-          </div>
-
-          <div class="actions">
-            <button type="button" class="cta-btn-secondary" (click)="clearFilters()">Réinitialiser</button>
+            <div class="actions">
+              <button type="button" class="btn btn-outline btn-small" (click)="clearFilters()">Réinitialiser</button>
+            </div>
           </div>
         </div>
-      </div>
+      </article>
 
       @if (stats) {
-        <div class="stats-grid">
-          <div class="stat">
-            <div class="stat-kpi">{{ stats.enAttente }}</div>
-            <div class="stat-label">En attente</div>
-          </div>
-          <div class="stat">
-            <div class="stat-kpi">{{ stats.traitees }}</div>
-            <div class="stat-label">Traitées</div>
-          </div>
-          <div class="stat">
-            <div class="stat-kpi">{{ stats.annulees }}</div>
-            <div class="stat-label">Annulées</div>
-          </div>
-          <div class="stat">
-            <div class="stat-kpi">{{ stats.rdvAvenir }}</div>
-            <div class="stat-label">RDV à venir</div>
-          </div>
-          <div class="stat">
-            <div class="stat-kpi">{{ stats.demandesLibres }}</div>
-            <div class="stat-label">Demandes libres</div>
-          </div>
-          <div class="stat">
-            <div class="stat-kpi">{{ stats.demandesService }}</div>
-            <div class="stat-label">Demandes de service</div>
-          </div>
-          <div class="stat">
-            <div class="stat-kpi">{{ stats.demandesDevis }}</div>
-            <div class="stat-label">Demandes de devis</div>
-          </div>
-          <div class="stat">
-            <div class="stat-kpi">{{ stats.rdvLies }}</div>
-            <div class="stat-label">RDV liés</div>
-          </div>
-          <div class="stat">
-            <div class="stat-kpi">{{ stats.rdvNonLies }}</div>
-            <div class="stat-label">RDV non liés</div>
-          </div>
-        </div>
-      }
-
-      @if (prochainRdv) {
-        <article class="card next-rdv">
+        <article class="card summary-card summary-card--client">
           <header>
-            <strong>Prochain RDV</strong>
-            <span class="badge" [class]="badgeClassForRdv(prochainRdv.codeStatut)">
-              {{ prochainRdv.libelleStatut || prochainRdv.codeStatut }}
-            </span>
+            <p class="card__eyebrow">Statistiques</p>
+            <h3>Vue d'ensemble de vos demandes</h3>
           </header>
-
-          <div class="row">
-            <span>Début :</span>
-            <span>{{ prochainRdv.dateDebut | date:'dd/MM/yyyy HH:mm' }}</span>
-          </div>
-          <div class="row">
-            <span>Fin :</span>
-            <span>{{ prochainRdv.dateFin | date:'dd/MM/yyyy HH:mm' }}</span>
-          </div>
-
-          <div class="actions">
-            <button class="cta-btn-secondary" type="button" (click)="downloadIcs()">
-              Ajouter à mon agenda (.ics)
-            </button>
+          <div class="stats-grid">
+            <div class="stat">
+              <div class="stat-kpi">{{ stats.enAttente }}</div>
+              <div class="stat-label">En attente</div>
+            </div>
+            <div class="stat">
+              <div class="stat-kpi">{{ stats.traitees }}</div>
+              <div class="stat-label">Traitées</div>
+            </div>
+            <div class="stat">
+              <div class="stat-kpi">{{ stats.annulees }}</div>
+              <div class="stat-label">Annulées</div>
+            </div>
+            <div class="stat">
+              <div class="stat-kpi">{{ stats.rdvAvenir }}</div>
+              <div class="stat-label">RDV à venir</div>
+            </div>
+            <div class="stat">
+              <div class="stat-kpi">{{ stats.demandesLibres }}</div>
+              <div class="stat-label">Demandes libres</div>
+            </div>
+            <div class="stat">
+              <div class="stat-kpi">{{ stats.demandesService }}</div>
+              <div class="stat-label">Demandes de service</div>
+            </div>
+            <div class="stat">
+              <div class="stat-kpi">{{ stats.demandesDevis }}</div>
+              <div class="stat-label">Demandes de devis</div>
+            </div>
+            <div class="stat">
+              <div class="stat-kpi">{{ stats.rdvLies }}</div>
+              <div class="stat-label">RDV liés</div>
+            </div>
+            <div class="stat">
+              <div class="stat-kpi">{{ stats.rdvNonLies }}</div>
+              <div class="stat-label">RDV non liés</div>
+            </div>
           </div>
         </article>
       }
 
+      @if (prochainRdv) {
+        <article class="card activity-card next-rdv">
+          <header>
+            <p class="card__eyebrow">Agenda</p>
+            <h3>Prochain rendez-vous</h3>
+          </header>
+          <div class="rdv-card">
+            <div class="rdv-card__head">
+              <strong>Statut</strong>
+              <span class="badge" [class]="badgeClassForRdv(prochainRdv.codeStatut)">
+                {{ prochainRdv.libelleStatut || prochainRdv.codeStatut }}
+              </span>
+            </div>
+            <div class="row">
+              <span>Début :</span>
+              <span>{{ prochainRdv.dateDebut | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="row">
+              <span>Fin :</span>
+              <span>{{ prochainRdv.dateFin | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="actions">
+              <button class="btn btn-outline btn-small" type="button" (click)="downloadIcs()">
+                Ajouter à mon agenda (.ics)
+              </button>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+
+    <article class="card activity-card activity-card--client">
+      <header>
+        <p class="card__eyebrow">Demandes</p>
+        <h3>Suivi de vos demandes</h3>
+      </header>
       @if (activeDemandes().length === 0) {
-        <p>Aucune demande active ne correspond à vos filtres.</p>
+        <p class="dashboard__state">Aucune demande active ne correspond à vos filtres.</p>
       } @else {
         <div class="list">
           @for (d of activeDemandes(); track d.idDemande) {
-            <article class="card">
+            <article class="card demande-card">
               <header>
                 <strong>Demande #{{ d.idDemande }}</strong>
                 <span class="chip type">{{ d.typeDemande?.libelle || d.typeDemande?.codeType || '—' }}</span>
@@ -215,7 +236,7 @@
                     <span>{{ rdv.dateFin | date:'dd/MM/yyyy HH:mm' }}</span>
                   </div>
                   <div class="actions">
-                    <button class="cta-btn-secondary" type="button" (click)="downloadRdvIcs(rdv.idRdv)">
+                    <button class="btn btn-outline btn-small" type="button" (click)="downloadRdvIcs(rdv.idRdv)">
                       Télécharger l'invitation (.ics)
                     </button>
                   </div>
@@ -234,7 +255,7 @@
                             <small>{{ size }}</small>
                           }
                         </div>
-                        <button class="cta-btn-secondary" type="button" (click)="openDocument(doc, d)">
+                        <button class="btn btn-outline btn-small" type="button" (click)="openDocument(doc, d)">
                           Voir
                         </button>
                       </li>
@@ -260,7 +281,7 @@
                           <p>{{ timelineLabel(entry) }}</p>
                         </div>
                         @if (entry.document) {
-                          <button class="cta-btn-secondary" (click)="openDocument(entry.document, d)">Consulter</button>
+                          <button class="btn btn-outline btn-small" (click)="openDocument(entry.document, d)">Consulter</button>
                         }
                       </li>
                     }
@@ -271,7 +292,7 @@
               @if (isDraft(d)) {
                 <div class="actions">
                   <button
-                    class="cta-btn"
+                    class="btn"
                     type="button"
                     [disabled]="submittingId === d.idDemande"
                     (click)="submitDraft(d)">
@@ -279,7 +300,7 @@
                   </button>
 
                   <button
-                    class="cta-btn-secondary"
+                    class="btn btn-outline"
                     type="button"
                     [disabled]="submittingId === d.idDemande"
                     (click)="continueDraft()">
@@ -291,53 +312,54 @@
           }
         </div>
       }
+    </article>
 
-      @if (showArchived) {
-        <div class="archive-section">
-          <div class="archive-section__header">
-            <h3>Archives</h3>
-            <p>Retrouvez vos demandes traitées ou annulées.</p>
-          </div>
-          @if (archivedDemandes().length === 0) {
-            <p>Aucune demande archivée ne correspond à vos filtres.</p>
-          } @else {
-            <div class="list list--archive">
-              @for (d of archivedDemandes(); track d.idDemande) {
-                <article class="card card--archive">
-                  <header>
-                    <strong>Demande #{{ d.idDemande }}</strong>
-                    <span class="chip type">{{ d.typeDemande?.libelle || d.typeDemande?.codeType || '—' }}</span>
-                    <span class="badge" [class]="badgeClassForDemande(d.statutDemande?.codeStatut)">
-                      {{ d.statutDemande?.libelle || d.statutDemande?.codeStatut || '—' }}
-                    </span>
-                  </header>
-                  <div class="row">
-                    <span>Créée le :</span>
-                    <span>{{ demandeDate(d) | date:'dd/MM/yyyy HH:mm' }}</span>
-                  </div>
-                  @if (d.services?.length) {
-                    <div class="services">
-                      <div class="services-head">Services réalisés</div>
-                      <ul>
-                        @for (s of d.services; track s.idService) {
-                          <li>
-                            <span class="svc-label">{{ s.libelle }}</span>
-                            <span class="svc-prix">
-                              {{ s.quantite }} × {{ s.prixUnitaire | number:'1.2-2' }} €
-                            </span>
-                          </li>
-                        }
-                      </ul>
-                      <div class="total">
-                        Total estimatif : <strong>{{ totalDemande(d) | number:'1.2-2' }} €</strong>
-                      </div>
+    @if (showArchived) {
+      <article class="card activity-card activity-card--client">
+        <header>
+          <p class="card__eyebrow">Archives</p>
+          <h3>Demandes traitées ou annulées</h3>
+        </header>
+        @if (archivedDemandes().length === 0) {
+          <p class="dashboard__state">Aucune demande archivée ne correspond à vos filtres.</p>
+        } @else {
+          <div class="list list--archive">
+            @for (d of archivedDemandes(); track d.idDemande) {
+              <article class="card card--archive demande-card">
+                <header>
+                  <strong>Demande #{{ d.idDemande }}</strong>
+                  <span class="chip type">{{ d.typeDemande?.libelle || d.typeDemande?.codeType || '—' }}</span>
+                  <span class="badge" [class]="badgeClassForDemande(d.statutDemande?.codeStatut)">
+                    {{ d.statutDemande?.libelle || d.statutDemande?.codeStatut || '—' }}
+                  </span>
+                </header>
+                <div class="row">
+                  <span>Créée le :</span>
+                  <span>{{ demandeDate(d) | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                @if (d.services?.length) {
+                  <div class="services">
+                    <div class="services-head">Services réalisés</div>
+                    <ul>
+                      @for (s of d.services; track s.idService) {
+                        <li>
+                          <span class="svc-label">{{ s.libelle }}</span>
+                          <span class="svc-prix">
+                            {{ s.quantite }} × {{ s.prixUnitaire | number:'1.2-2' }} €
+                          </span>
+                        </li>
+                      }
+                    </ul>
+                    <div class="total">
+                      Total estimatif : <strong>{{ totalDemande(d) | number:'1.2-2' }} €</strong>
                     </div>
-                  }
-                </article>
-              }
-            </div>
-          }
-        </div>
-      }
+                  </div>
+                }
+              </article>
+            }
+          </div>
+        }
+      </article>
     }
+  }
 </section>
