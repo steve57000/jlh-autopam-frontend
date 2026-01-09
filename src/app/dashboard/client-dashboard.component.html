@@ -40,130 +40,130 @@
             <p class="card__eyebrow">Filtres</p>
             <h3>Affiner vos demandes</h3>
           </header>
-        <div class="filters">
-          <div class="row">
-            <div class="field">
-              <label>Recherche</label>
-              <input
-                type="search"
-                [ngModel]="filters().q"
-                (ngModelChange)="setQ($event)"
-                placeholder="Service, type, statut, #id…" />
-            </div>
+          <div class="filters">
+            <div class="row">
+              <div class="field">
+                <label>Recherche</label>
+                <input
+                  type="search"
+                  [ngModel]="filters().q"
+                  (ngModelChange)="setQ($event)"
+                  placeholder="Service, type, statut, #id…" />
+              </div>
 
-            <div class="field">
-              <label>Type</label>
-              <select [ngModel]="filters().type" (ngModelChange)="setType($event)">
-                @for (opt of typeOptions(); track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
-            </div>
+              <div class="field">
+                <label>Type</label>
+                <select [ngModel]="filters().type" (ngModelChange)="setType($event)">
+                  @for (opt of typeOptions(); track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
 
-            <div class="field">
-              <label>Statut</label>
-              <select [ngModel]="filters().statut" (ngModelChange)="setStatut($event)">
-                @for (opt of statutOptions(); track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
-            </div>
+              <div class="field">
+                <label>Statut</label>
+                <select [ngModel]="filters().statut" (ngModelChange)="setStatut($event)">
+                  @for (opt of statutOptions(); track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
 
-            <div class="field">
-              <label>Du</label>
-              <input type="date" [ngModel]="filters().dateFrom" (ngModelChange)="setFrom($event)" />
-            </div>
+              <div class="field">
+                <label>Du</label>
+                <input type="date" [ngModel]="filters().dateFrom" (ngModelChange)="setFrom($event)" />
+              </div>
 
-            <div class="field">
-              <label>Au</label>
-              <input type="date" [ngModel]="filters().dateTo" (ngModelChange)="setTo($event)" />
-            </div>
+              <div class="field">
+                <label>Au</label>
+                <input type="date" [ngModel]="filters().dateTo" (ngModelChange)="setTo($event)" />
+              </div>
 
-            <div class="actions">
-              <button type="button" class="btn btn-outline btn-small" (click)="clearFilters()">Réinitialiser</button>
+              <div class="actions">
+                <button type="button" class="btn btn-outline btn-small" (click)="clearFilters()">Réinitialiser</button>
+              </div>
             </div>
           </div>
-        </div>
-      </article>
+        </article>
 
-      @if (activeSection() === 'overview') {
-        @if (stats) {
-          <article class="card summary-card summary-card--client">
-            <header>
-              <p class="card__eyebrow">Statistiques</p>
-              <h3>Vue d'ensemble de vos demandes</h3>
-            </header>
-            <div class="stats-grid">
-              <div class="stat">
-                <div class="stat-kpi">{{ stats.enAttente }}</div>
-                <div class="stat-label">En attente</div>
+        @if (activeSection() === 'overview') {
+          @if (stats) {
+            <article class="card summary-card summary-card--client">
+              <header>
+                <p class="card__eyebrow">Statistiques</p>
+                <h3>Vue d'ensemble de vos demandes</h3>
+              </header>
+              <div class="stats-grid">
+                <div class="stat">
+                  <div class="stat-kpi">{{ stats.enAttente }}</div>
+                  <div class="stat-label">En attente</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-kpi">{{ stats.traitees }}</div>
+                  <div class="stat-label">Traitées</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-kpi">{{ stats.annulees }}</div>
+                  <div class="stat-label">Annulées</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-kpi">{{ stats.rdvAvenir }}</div>
+                  <div class="stat-label">RDV à venir</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-kpi">{{ stats.demandesLibres }}</div>
+                  <div class="stat-label">Demandes libres</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-kpi">{{ stats.demandesService }}</div>
+                  <div class="stat-label">Demandes de service</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-kpi">{{ stats.demandesDevis }}</div>
+                  <div class="stat-label">Demandes de devis</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-kpi">{{ stats.rdvLies }}</div>
+                  <div class="stat-label">RDV liés</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-kpi">{{ stats.rdvNonLies }}</div>
+                  <div class="stat-label">RDV non liés</div>
+                </div>
               </div>
-              <div class="stat">
-                <div class="stat-kpi">{{ stats.traitees }}</div>
-                <div class="stat-label">Traitées</div>
-              </div>
-              <div class="stat">
-                <div class="stat-kpi">{{ stats.annulees }}</div>
-                <div class="stat-label">Annulées</div>
-              </div>
-              <div class="stat">
-                <div class="stat-kpi">{{ stats.rdvAvenir }}</div>
-                <div class="stat-label">RDV à venir</div>
-              </div>
-              <div class="stat">
-                <div class="stat-kpi">{{ stats.demandesLibres }}</div>
-                <div class="stat-label">Demandes libres</div>
-              </div>
-              <div class="stat">
-                <div class="stat-kpi">{{ stats.demandesService }}</div>
-                <div class="stat-label">Demandes de service</div>
-              </div>
-              <div class="stat">
-                <div class="stat-kpi">{{ stats.demandesDevis }}</div>
-                <div class="stat-label">Demandes de devis</div>
-              </div>
-              <div class="stat">
-                <div class="stat-kpi">{{ stats.rdvLies }}</div>
-                <div class="stat-label">RDV liés</div>
-              </div>
-              <div class="stat">
-                <div class="stat-kpi">{{ stats.rdvNonLies }}</div>
-                <div class="stat-label">RDV non liés</div>
-              </div>
-            </div>
-          </article>
-        }
+            </article>
+          }
 
-        @if (prochainRdv) {
-          <article class="card activity-card next-rdv">
-            <header>
-              <p class="card__eyebrow">Agenda</p>
-              <h3>Prochain rendez-vous</h3>
-            </header>
-            <div class="rdv-card">
-              <div class="rdv-card__head">
-                <strong>Statut</strong>
-                <span class="badge" [class]="badgeClassForRdv(prochainRdv.codeStatut)">
-                  {{ prochainRdv.libelleStatut || prochainRdv.codeStatut }}
-                </span>
+          @if (prochainRdv) {
+            <article class="card activity-card next-rdv">
+              <header>
+                <p class="card__eyebrow">Agenda</p>
+                <h3>Prochain rendez-vous</h3>
+              </header>
+              <div class="rdv-card">
+                <div class="rdv-card__head">
+                  <strong>Statut</strong>
+                  <span class="badge" [class]="badgeClassForRdv(prochainRdv.codeStatut)">
+                    {{ prochainRdv.libelleStatut || prochainRdv.codeStatut }}
+                  </span>
+                </div>
+                <div class="row">
+                  <span>Début :</span>
+                  <span>{{ prochainRdv.dateDebut | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <div class="row">
+                  <span>Fin :</span>
+                  <span>{{ prochainRdv.dateFin | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <div class="actions">
+                  <button class="btn btn-outline btn-small" type="button" (click)="downloadIcs()">
+                    Ajouter à mon agenda (.ics)
+                  </button>
+                </div>
               </div>
-              <div class="row">
-                <span>Début :</span>
-                <span>{{ prochainRdv.dateDebut | date:'dd/MM/yyyy HH:mm' }}</span>
-              </div>
-              <div class="row">
-                <span>Fin :</span>
-                <span>{{ prochainRdv.dateFin | date:'dd/MM/yyyy HH:mm' }}</span>
-              </div>
-              <div class="actions">
-                <button class="btn btn-outline btn-small" type="button" (click)="downloadIcs()">
-                  Ajouter à mon agenda (.ics)
-                </button>
-              </div>
-            </div>
-          </article>
+            </article>
+          }
         }
-      }
       </div>
 
       @if (activeSection() === 'overview') {
