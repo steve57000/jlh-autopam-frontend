@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../environments/environment';
@@ -15,6 +15,8 @@ import type { DemandeTypeCode } from '../modeles/demande.model';
 import { ToastService } from '../shared/toast/toast.service';
 import { firstValueFrom } from 'rxjs';
 import { LookupsService } from '../services/lookups.service';
+import { ServicesComponent } from '../pages/services.component';
+import { AccountComponent } from '../account/account.component/account.component';
 
 type CodeStatut =
   | 'Brouillon' | 'En_attente' | 'Traitee' | 'Annulee'
@@ -68,7 +70,13 @@ interface FilterOption<T extends string> {
 @Component({
   selector: 'app-client-dashboard',
   standalone: true,
-  imports: [CommonModule, DatePipe, RouterLink, FormsModule],
+  imports: [
+    CommonModule,
+    DatePipe,
+    FormsModule,
+    ServicesComponent,
+    AccountComponent
+  ],
   templateUrl: './client-dashboard.component.html',
   styleUrls: ['./client-dashboard.component.scss']
 })
@@ -77,12 +85,13 @@ export class ClientDashboardComponent implements OnInit {
   loading = false;
   error = '';
 
-  demandes: DemandeResponse[] = [];
+  demandes = signal<DemandeResponse[]>([]);
   stats: ClientStatsDto | null = null;
   prochainRdv: ProchainRdvDto | null = null;
 
   submittingId: number | null = null;
-  showArchived = false;
+  showArchived = true;
+  readonly activeSection = signal<'overview' | 'services' | 'account'>('overview');
   // safe api base (no trailing slash)
   private api = environment.apiBaseUrl ? environment.apiBaseUrl.replace(/\/+$/, '') : '';
 
@@ -133,7 +142,7 @@ export class ClientDashboardComponent implements OnInit {
     const from = f.dateFrom ? new Date(f.dateFrom + 'T00:00:00').getTime() : null;
     const to   = f.dateTo   ? new Date(f.dateTo   + 'T23:59:59').getTime() : null;
 
-    return (this.demandes ?? [])
+    return (this.demandes() ?? [])
       .filter(d => {
         // type
         if (f.type !== 'ALL') {
@@ -276,7 +285,7 @@ export class ClientDashboardComponent implements OnInit {
 
     this.srv.getMyDemandes(httpOptions).subscribe({
       next: list => {
-        this.demandes = list ?? [];
+        this.demandes.set(list ?? []);
         finalize();
       },
       error: err => {
@@ -571,6 +580,27 @@ export class ClientDashboardComponent implements OnInit {
 
   clearFilters() {
     this.filters.set({ q: '', type: 'ALL', statut: 'ALL', dateFrom: null, dateTo: null });
+  }
+
+  showOverview() {
+    this.activeSection.set('overview');
+  }
+
+  showServices() {
+    this.activeSection.set('services');
+  }
+
+  showAccount() {
+    this.activeSection.set('account');
+  }
+
+  toggleArchivesSection() {
+    if (this.activeSection() !== 'overview') {
+      this.activeSection.set('overview');
+      this.showArchived = true;
+      return;
+    }
+    this.showArchived = !this.showArchived;
   }
 
 }
