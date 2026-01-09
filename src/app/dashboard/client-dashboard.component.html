@@ -1,26 +1,34 @@
-<section class="client-dashboard">
-  <div class="container-max">
-    <div class="header">
-      <h2>Mon tableau de bord</h2>
-      <div class="toolbar">
-        <button class="cta-btn-secondary" (click)="refresh()">Rafraîchir</button>
-        <a routerLink="/services" class="cta-btn-secondary">Ajouter un service</a>
-        <a routerLink="/account" class="cta-btn-secondary">Mon compte</a>
-        <button class="cta-btn-secondary" type="button" (click)="showArchived = !showArchived">
-          {{ showArchived ? 'Masquer les archives' : 'Voir les archives' }}
-        </button>
-      </div>
+<section class="dashboard client-dashboard">
+  <header class="dashboard__intro">
+    <div>
+      <p class="dashboard__eyebrow">Tableau de bord client</p>
+      <h2 class="dashboard__subtitle">Bienvenue dans votre espace personnel</h2>
+      <p class="dashboard__hint">
+        Suivez l'état de vos demandes, vos rendez-vous et les documents partagés, exactement comme le dashboard admin.
+      </p>
     </div>
+    <div class="dashboard__actions">
+      <button class="btn" (click)="refresh()">Actualiser</button>
+      <a routerLink="/services" class="btn btn-outline">Ajouter un service</a>
+      <a routerLink="/account" class="btn btn-outline">Mon compte</a>
+      <button class="btn btn-outline" type="button" (click)="showArchived = !showArchived">
+        {{ showArchived ? 'Masquer les archives' : 'Voir les archives' }}
+      </button>
+    </div>
+  </header>
 
-    @if (loading) {
-      <p>Chargement…</p>
-    }
+  @if (loading) {
+    <div class="dashboard__state" aria-live="polite">Chargement de vos demandes…</div>
+  }
 
-    @if (error) {
-      <p class="error">{{ error }}</p>
-    }
+  @if (error) {
+    <div class="dashboard__state dashboard__state--error">
+      <p>{{ error }}</p>
+      <button type="button" class="btn btn-small" (click)="refresh()">Réessayer</button>
+    </div>
+  }
 
-    @if (!loading && !error) {
+  @if (!loading && !error) {
 
       <!-- ====== Filtres ====== -->
       <div class="filters">
@@ -332,5 +340,4 @@
         </div>
       }
     }
-  </div>
 </section>
