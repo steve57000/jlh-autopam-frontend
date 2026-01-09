@@ -74,8 +74,7 @@ export class ServicesComponent implements OnInit, OnDestroy {
   async refreshDraft() {
     try {
       const q = await this.state.loadDraft({ silent: true });
-      const lines = Array.isArray(q?.services) ? q.services.length : 0;
-      this.draft = lines > 0 ? q : null;
+      this.draft = q ?? null;
     } catch {
       this.draft = null;
     }
@@ -99,16 +98,17 @@ export class ServicesComponent implements OnInit, OnDestroy {
   }
 
   castType(v: string): TypeCode {
-    if (v === 'RendezVous' || v === 'Service') {
+    if (v === 'Libre' || v === 'Service' || v === 'Devis') {
       return v;
     }
-    return 'Devis';
+    return 'Libre';
   }
 
   async onSubmitDemand(payload: {
     type: TypeCode;
     immatriculation?: string | null;
     rendezVousCommentaire?: string | null;
+    validationPrix?: boolean;
   }) {
     if (!this.draft?.idDemande) return;
 
@@ -172,13 +172,54 @@ export class ServicesComponent implements OnInit, OnDestroy {
       }
 
       const commentaire = payload.rendezVousCommentaire?.trim() || null;
+      const needsValidation = payload.type === 'Service' || payload.type === 'Devis';
+      if (needsValidation && !payload.validationPrix) {
+        this.toast.error('Validation du prix requise avant la planification.');
+        return;
+      }
+      if (needsValidation) {
+        const montantValide = (this.draft?.services ?? [])
+          .reduce((sum, line) => sum + (line.prixUnitaire || 0) * (line.quantite || 0), 0);
+        await firstValueFrom(
+          this.http.post(
+            `${api}/demandes/${id}/timeline/validation-prix`,
+            {
+              type: 'MONTANT',
+              montantValide,
+              commentaire: 'Prix validé par le client.'
+            },
+            skipErrorOptions
+          )
+        );
+      }
+
       if (
-        (payload.type === 'RendezVous' || payload.type === 'Service') &&
+        payload.type === 'Libre' &&
         this.selectedCreneauId &&
         this.assignedAdminId
       ) {
         await firstValueFrom(
           this.http.post(`${api}/rendezvous`, {
+            demandeId: id,
+            creneauId: this.selectedCreneauId,
+            administrateurId: this.assignedAdminId,
+            codeStatut: 'Confirme',
+            commentaire
+          }, skipErrorOptions)
+        );
+      }
+
+      if (
+        payload.type === 'Service' &&
+        this.selectedCreneauId &&
+        this.assignedAdminId
+      ) {
+        const serviceId = this.draft?.services?.[0]?.idService;
+        if (!serviceId) {
+          throw new Error('Service introuvable pour la planification.');
+        }
+        await firstValueFrom(
+          this.http.post(`${api}/services/${serviceId}/rendezvous`, {
             demandeId: id,
             creneauId: this.selectedCreneauId,
             administrateurId: this.assignedAdminId,

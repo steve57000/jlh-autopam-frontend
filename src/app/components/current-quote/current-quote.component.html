@@ -33,12 +33,12 @@
       <div class="row container-select-type">
         <span class="label">Type de demande</span>
         <select name="type" [(ngModel)]="type">
-          <option value="Devis">Devis</option>
-          <option value="Service">Service</option>
-          <option value="RendezVous">Rendez-vous</option>
+          <option value="Libre">Demander un rendez-vous</option>
+          <option value="Service">Demander un service</option>
+          <option value="Devis">Demander un devis</option>
         </select>
       </div>
-      @if (type === 'RendezVous' || type === 'Service') {
+      @if (type === 'Libre' || type === 'Service') {
         <div class="row">
           <span class="label">Nature du rendez-vous</span>
           <textarea
@@ -73,9 +73,21 @@
       <strong>{{ total() | number:'1.2-2' }} €</strong>
     </div>
 
+    @if (type === 'Service' || type === 'Devis') {
+      <div class="quote__validation">
+        <label class="checkbox">
+          <input type="checkbox" [(ngModel)]="validationPrix" name="validationPrix" />
+          <span>Je valide le prix estimé avant la planification du rendez-vous.</span>
+        </label>
+      </div>
+    }
+
     <!-- ✅ formulaire local déclenchant l’@Output submit -->
     <form (ngSubmit)="onSubmitForm()">
-      <button class="cta-btn" type="submit" [disabled]="!(($any(d).services?.length || 0) > 0)">
+      <button
+        class="cta-btn"
+        type="submit"
+        [disabled]="type !== 'Libre' && !(($any(d).services?.length || 0) > 0)">
         Valider ma demande
       </button>
     </form>

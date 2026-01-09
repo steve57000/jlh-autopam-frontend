@@ -25,6 +25,11 @@ export interface ClientStatsDto {
   traitees: number;
   annulees: number;
   rdvAvenir: number;
+  demandesLibres: number;
+  demandesService: number;
+  demandesDevis: number;
+  rdvLies: number;
+  rdvNonLies: number;
 }
 
 export interface ProchainRdvDto {
@@ -83,7 +88,7 @@ export class ClientDashboardComponent implements OnInit {
   private readonly fallbackTypeOptions: Array<FilterOption<AnyTypeOrAll>> = [
     { value: 'Devis', label: 'Devis' },
     { value: 'Service', label: 'Service' },
-    { value: 'RendezVous', label: 'Rendez-vous' }
+    { value: 'Libre', label: 'Rendez-vous libre' }
   ];
 
   private readonly fallbackStatutOptions: Array<FilterOption<AnyStatutOrAll>> = [

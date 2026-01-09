@@ -354,7 +354,7 @@
           </div>
       </section>
 
-      @if (draft.code_type === 'RendezVous' && rdvForm(); as rdv) {
+      @if ((draft.code_type === 'Libre' || draft.code_type === 'Service') && rdvForm(); as rdv) {
           <section class="details-block details-block--editable">
             <h4>Planification du rendez-vous</h4>
             <div class="detail-grid">

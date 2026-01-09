@@ -21,12 +21,14 @@ export class CurrentQuoteComponent {
     type: TypeCode;
     immatriculation?: string | null;
     rendezVousCommentaire?: string | null;
+    validationPrix?: boolean;
   }>();
 
   // champs du formulaire local (brouillon)
   type: TypeCode = 'Devis';
   immatOverride: string | null = null;
   rendezVousCommentaire: string | null = null;
+  validationPrix = false;
 
   total(): number {
     const s = this.demande?.services ?? [];
@@ -43,7 +45,8 @@ export class CurrentQuoteComponent {
     this.submit.emit({
       type: this.type,
       immatriculation: (this.immatOverride && this.immatOverride.trim()) || null,
-      rendezVousCommentaire: this.rendezVousCommentaire?.trim() || null
+      rendezVousCommentaire: this.rendezVousCommentaire?.trim() || null,
+      validationPrix: this.validationPrix
     });
   }
 }

@@ -46,22 +46,22 @@ export class AdminDashboardComponent implements OnInit {
   readonly stats = computed<DashboardStats>(() => {
     const rows = this.demandes();
     const total = rows.length;
-    const typeOrder: DemandeType[] = ['Devis', 'RendezVous', 'Service'];
+    const typeOrder: DemandeType[] = ['Devis', 'Libre', 'Service'];
     const labels: Record<DemandeType, string> = {
       Devis: 'Demandes de devis',
-      RendezVous: 'Rendez-vous',
+      Libre: 'Rendez-vous libres',
       Service: 'Demandes de service'
     };
 
     const typeTotals: Record<DemandeType, number> = {
       Devis: 0,
-      RendezVous: 0,
+      Libre: 0,
       Service: 0
     };
 
     const typeAmounts: Record<DemandeType, number> = {
       Devis: 0,
-      RendezVous: 0,
+      Libre: 0,
       Service: 0
     };
 

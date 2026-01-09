@@ -27,6 +27,22 @@ export class RendezVousService {
     return this.http.post<RendezVousSummary>(this.base, payload, this.skipToastOptions());
   }
 
+  createForService(serviceId: number, payload: RendezVousUpsertPayload) {
+    return this.http.post<RendezVousSummary>(
+      `${environment.apiBaseUrl}/services/${serviceId}/rendezvous`,
+      payload,
+      this.skipToastOptions()
+    );
+  }
+
+  createForDevis(devisId: number, payload: RendezVousUpsertPayload) {
+    return this.http.post<RendezVousSummary>(
+      `${environment.apiBaseUrl}/devis/${devisId}/rendezvous`,
+      payload,
+      this.skipToastOptions()
+    );
+  }
+
   update(id: number, payload: RendezVousUpsertPayload) {
     return this.http.put<RendezVousSummary>(`${this.base}/${id}`, payload, this.skipToastOptions());
   }

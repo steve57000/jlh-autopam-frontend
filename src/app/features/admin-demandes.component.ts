@@ -68,7 +68,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   private readonly fallbackTypeOptions: Array<FilterOption<TypeFilterValue>> = [
     { value: 'Devis', label: 'Devis' },
     { value: 'Service', label: 'Service' },
-    { value: 'RendezVous', label: 'Rendez-vous' }
+    { value: 'Libre', label: 'Rendez-vous libre' }
   ];
 
   private readonly fallbackStatutOptions: Array<FilterOption<StatutFilterValue>> = [
@@ -765,12 +765,19 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       commentaire: form.commentaire
     };
 
+    const draft = this.draft();
+    if (!form.idRdv && draft?.code_type === 'Service' && !draft?.services?.[0]?.id_service) {
+      this.rdvFeedback.set('Aucun service associé pour planifier le rendez-vous.');
+      this.toast.error('Erreur', 'Aucun service associé pour planifier le rendez-vous.');
+      return;
+    }
+
     this.rdvSaving.set(true);
     this.rdvFeedback.set(null);
 
     const request = form.idRdv
       ? this.rendezVousApi.update(form.idRdv, payload)
-      : this.rendezVousApi.create(payload);
+      : this.createRendezVousFromDraft(payload, draft?.code_type, draft?.services?.[0]?.id_service ?? null);
 
     request.subscribe({
       next: rdv => {
@@ -794,6 +801,17 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
         this.toast.error('Erreur', msg);
       }
     });
+  }
+
+  private createRendezVousFromDraft(
+    payload: RendezVousUpsertPayload,
+    type: DemandeWithServices['code_type'] | null | undefined,
+    serviceId: number | null
+  ) {
+    if (type === 'Service' && serviceId) {
+      return this.rendezVousApi.createForService(serviceId, payload);
+    }
+    return this.rendezVousApi.create(payload);
   }
 
   private formatDateInput(value: string | null): string {

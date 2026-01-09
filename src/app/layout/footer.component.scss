@@ -156,6 +156,21 @@
         color: variables.$color-tertiary;
       }
     }
+    .footer__logout {
+      background: none;
+      border: none;
+      padding: 0;
+      text-align: left;
+      color: variables.$color-quaternary;
+      font-family: variables.$font-body;
+      font-weight: 400;
+      margin-bottom: 0.1rem;
+      cursor: pointer;
+      transition: color 0.18s;
+      &:hover {
+        color: variables.$color-tertiary;
+      }
+    }
   }
 
   &__bottom {

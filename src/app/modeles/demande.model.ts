@@ -1,4 +1,4 @@
-export type DemandeTypeCode = 'Devis' | 'Service' | 'RendezVous';
+export type DemandeTypeCode = 'Devis' | 'Service' | 'Libre';
 
 export interface ServiceItem {
   id_service: number;

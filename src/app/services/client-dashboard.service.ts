@@ -18,7 +18,15 @@ interface RequestOptions {
 }
 
 export interface ClientStatsDto {
-  enAttente: number; traitees: number; annulees: number; rdvAvenir: number;
+  enAttente: number;
+  traitees: number;
+  annulees: number;
+  rdvAvenir: number;
+  demandesLibres: number;
+  demandesService: number;
+  demandesDevis: number;
+  rdvLies: number;
+  rdvNonLies: number;
 }
 export interface ProchainRdvDto {
   idRdv: number;

@@ -37,7 +37,7 @@ export class DemandesServiceService {
             // Normalisation du type sur l’union attendue par le modèle
             const rawType: string | undefined = d?.typeDemande?.codeType;
             const code_type: DemandeWithServices['code_type'] =
-              rawType === 'Devis' || rawType === 'RendezVous' || rawType === 'Service'
+              rawType === 'Devis' || rawType === 'Libre' || rawType === 'Service'
                 ? rawType
                 : 'Service';
 
