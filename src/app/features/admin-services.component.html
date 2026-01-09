@@ -56,8 +56,12 @@
             }
           </div>
           <div class="field">
-            <label for="service-description">Description</label>
-            <textarea id="service-description" formControlName="description" rows="3" maxlength="2000" placeholder="Décrivez la prestation et ses spécificités"></textarea>
+            <label for="service-description">Description courte (aperçu sur la page d'accueil)</label>
+            <textarea id="service-description" formControlName="description" rows="3" maxlength="2000" placeholder="Résumé affiché sur la page d'accueil"></textarea>
+          </div>
+          <div class="field">
+            <label for="service-description-long">Description détaillée (contenu complet sur la page services)</label>
+            <textarea id="service-description-long" formControlName="descriptionLongue" rows="4" maxlength="4000" placeholder="Description complète affichée sur la page service"></textarea>
           </div>
           <div class="field">
             <label for="service-icon">Icône (optionnel)</label>
@@ -75,19 +79,23 @@
             }
             @if (serviceIcons.length) {
               <div class="service-icon-library">
-                <p>Ou choisir une icône existante :</p>
-                <div class="service-icon-library__grid">
-                  @for (icon of serviceIcons; track icon.idIcon) {
-                    <button
-                      type="button"
-                      class="service-icon-library__item"
-                      (click)="selectIcon(icon)"
-                    >
-                      <img [src]="icon.url" [alt]="icon.label || 'Icône'" />
-                      <span class="service-icon-library__label">{{ icon.label || 'Icône' }}</span>
-                    </button>
-                  }
-                </div>
+                <button type="button" class="icon-library-toggle" (click)="toggleIconLibrary()">
+                  {{ showIconLibrary ? 'Masquer la bibliothèque' : 'Voir les icônes existantes' }}
+                </button>
+                @if (showIconLibrary) {
+                  <div class="service-icon-library__grid">
+                    @for (icon of serviceIcons; track icon.idIcon) {
+                      <button
+                        type="button"
+                        class="service-icon-library__item"
+                        (click)="selectIcon(icon)"
+                      >
+                        <img [src]="icon.url" [alt]="icon.label || 'Icône'" />
+                        <span class="service-icon-library__label">{{ icon.label || 'Icône' }}</span>
+                      </button>
+                    }
+                  </div>
+                }
               </div>
             }
           </div>

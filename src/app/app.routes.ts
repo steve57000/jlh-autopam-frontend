@@ -24,6 +24,7 @@ import { AuthGuard } from './guards/auth.guard';
 import { ClientOnlyGuard } from './guards/client-only.guard';
 import { HydrationReadyGuard } from './guards/hydration-ready.guard';
 import { AdminMatchGuard } from './guards/admin-match.guard'; // ⬅️ nouveau
+import { ManagerMatchGuard } from './guards/manager-match.guard';
 
 export const routes: Routes = [
   {
@@ -73,6 +74,11 @@ export const routes: Routes = [
     path: 'admin',
     canMatch: [AdminMatchGuard],
     loadChildren: () => import('./admin.routes').then(m => m.adminRoutes),
+  },
+  {
+    path: 'manager',
+    canMatch: [ManagerMatchGuard],
+    loadChildren: () => import('./manager.routes').then(m => m.managerRoutes),
   },
 
   { path: '**', redirectTo: '' },

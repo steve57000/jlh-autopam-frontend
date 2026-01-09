@@ -68,7 +68,7 @@
           <h3 id="edit-icon-title">Modifier l’icône</h3>
           <button type="button" class="modal-card__close" (click)="closeEditModal()">×</button>
         </div>
-        <form [formGroup]="editForm" (ngSubmit)="updateIcon()" novalidate>
+        <form class="icon-modal-form" [formGroup]="editForm" (ngSubmit)="updateIcon()" novalidate>
           <div class="icon-modal__preview">
             <img [src]="editPreviewUrl || editForm.value.url" [alt]="editForm.value.label || 'Icône'" />
           </div>

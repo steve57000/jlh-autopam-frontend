@@ -8,6 +8,7 @@ import { LookupsService } from '../services/lookups.service';
 import { ServicesService } from '../services/services.service';
 import { ServiceDto } from '../modeles/service.model';
 import { RendezVousService, RendezVousUpsertPayload } from '../services/rendezvous.service';
+import { AuthService } from '../services/auth.service';
 
 type TypeFilterValue = 'Tous' | DemandeWithServices['code_type'] | string;
 type StatutFilterValue = 'Tous' | DemandeWithServices['code_statut'] | string;
@@ -44,6 +45,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   private readonly lookups = inject(LookupsService);
   private readonly servicesApi = inject(ServicesService);
   private readonly rendezVousApi = inject(RendezVousService);
+  private readonly auth = inject(AuthService);
 
   // Données
   loading = signal(true);
@@ -68,7 +70,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   private readonly fallbackTypeOptions: Array<FilterOption<TypeFilterValue>> = [
     { value: 'Devis', label: 'Devis' },
     { value: 'Service', label: 'Service' },
-    { value: 'Libre', label: 'Rendez-vous libre' }
+    { value: 'RendezVous', label: 'Rendez-vous' }
   ];
 
   private readonly fallbackStatutOptions: Array<FilterOption<StatutFilterValue>> = [
@@ -155,6 +157,10 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.loadLookups();
     this.loadServicesCatalog();
     this.reload();
+  }
+
+  get canDeleteDemandes(): boolean {
+    return this.auth.getUserRole() !== 'MANAGER';
   }
 
   private loadLookups() {

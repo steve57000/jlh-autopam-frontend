@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
-import { ClientResponse, UpdateClientPayload } from '../modeles/client.model';
+import { ClientResponse, CreateClientPayload, UpdateClientPayload } from '../modeles/client.model';
 
 @Injectable({ providedIn: 'root' })
 export class AdminClientsService {
@@ -16,6 +16,10 @@ export class AdminClientsService {
   getAll(options?: { silentError?: boolean }): Observable<ClientResponse[]> {
     const httpOptions = options?.silentError ? this.skipToastOptions() : undefined;
     return this.http.get<ClientResponse[]>(this.api, httpOptions);
+  }
+
+  create(payload: CreateClientPayload) {
+    return this.http.post<ClientResponse>(this.api, payload, this.skipToastOptions());
   }
 
   update(idClient: number, payload: UpdateClientPayload) {

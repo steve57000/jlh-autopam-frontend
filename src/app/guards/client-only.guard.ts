@@ -10,6 +10,7 @@ export class ClientOnlyGuard implements CanActivate {
     const role = this.auth.getUserRole(); // 'ADMIN' | 'CLIENT' | null
     if (role === 'CLIENT') return true;
     if (role === 'ADMIN') return this.router.parseUrl('/admin');
+    if (role === 'MANAGER') return this.router.parseUrl('/manager');
     return this.router.parseUrl('/login');
   }
 }

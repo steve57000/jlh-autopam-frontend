@@ -24,6 +24,7 @@ export class AdminServicesComponent implements OnInit {
   form: FormGroup;
   showModal = false;
   iconPreview: string | null = null;
+  showIconLibrary = false;
   private iconLabelMap = new Map<string, string>();
 
   loading = false;
@@ -43,6 +44,7 @@ export class AdminServicesComponent implements OnInit {
     this.form = this.fb.group({
       libelle: ['', [Validators.required, Validators.maxLength(100)]],
       description: ['', [Validators.maxLength(2000)]],
+      descriptionLongue: ['', [Validators.maxLength(4000)]],
       icon: [''],
       prixUnitaire: ['', [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
       quantiteMax: [1, [Validators.required, Validators.min(1)]],
@@ -86,6 +88,7 @@ export class AdminServicesComponent implements OnInit {
     this.editingService = null;
     this.form.reset();
     this.iconPreview = null;
+    this.showIconLibrary = false;
     this.showModal = true;
   }
 
@@ -94,11 +97,13 @@ export class AdminServicesComponent implements OnInit {
     this.form.patchValue({
       libelle: service.libelle,
       description: service.description,
+      descriptionLongue: service.descriptionLongue,
       icon: service.icon ?? '',
       prixUnitaire: service.prixUnitaire,
       quantiteMax: service.quantiteMax ?? 1,
     });
     this.iconPreview = service.icon ?? null;
+    this.showIconLibrary = false;
     this.showModal = true;
   }
 
@@ -107,6 +112,7 @@ export class AdminServicesComponent implements OnInit {
     this.editingService = null;
     this.form.reset();
     this.iconPreview = null;
+    this.showIconLibrary = false;
   }
 
   onIconSelected(event: Event) {
@@ -146,18 +152,23 @@ export class AdminServicesComponent implements OnInit {
     this.form.patchValue({ icon: '' });
   }
 
+  toggleIconLibrary() {
+    this.showIconLibrary = !this.showIconLibrary;
+  }
+
   submitForm() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    const { libelle, description, prixUnitaire, quantiteMax } = this.form.value;
+    const { libelle, description, descriptionLongue, prixUnitaire, quantiteMax } = this.form.value;
     const prixValue = typeof prixUnitaire === 'number' ? prixUnitaire : Number(prixUnitaire);
     const quantiteValue = typeof quantiteMax === 'number' ? quantiteMax : Number(quantiteMax);
     const body = {
       libelle,
       description,
+      descriptionLongue,
       icon: this.iconPreview ? this.iconPreview.trim() : null,
       prixUnitaire: prixValue,
       quantiteMax: quantiteValue

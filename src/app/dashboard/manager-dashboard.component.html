@@ -1,15 +1,15 @@
 <section class="dashboard">
   <header class="dashboard__intro">
     <div>
-      <p class="dashboard__eyebrow">Tableau de bord administrateur</p>
-      <h2 class="dashboard__subtitle">Bienvenue dans l'espace administration</h2>
+      <p class="dashboard__eyebrow">Tableau de bord gestionnaire</p>
+      <h2 class="dashboard__subtitle">Bienvenue dans l'espace gestion</h2>
       <p class="dashboard__hint">
-        Gardez un œil sur les dernières demandes, les rendez-vous et l'activité commerciale avant de passer à l'action.
+        Suivez les demandes et les rendez-vous en cours pour accompagner les clients au quotidien.
       </p>
     </div>
     <div class="dashboard__actions">
       <button type="button" class="btn" (click)="refresh()" [disabled]="loading()">Actualiser</button>
-      <a class="btn btn-outline" routerLink="/admin/demandes">Gérer les demandes</a>
+      <a class="btn btn-outline" routerLink="/manager/demandes">Voir les demandes</a>
     </div>
   </header>
 
@@ -44,7 +44,7 @@
               <dd>{{ overview.annulees }}</dd>
             </div>
           </dl>
-          <p class="summary-card__hint">Tous les chiffres sont calculés à partir des demandes synchronisées via l'API.</p>
+          <p class="summary-card__hint">Ces indicateurs sont calculés à partir des demandes synchronisées.</p>
         </article>
 
         <article class="card chart-card">
@@ -151,7 +151,7 @@
             <ul class="activity-card__list">
               @for (demande of latestDemandes(); track getDemandeId(demande)) {
                 <li>
-                  <a routerLink="/admin/demandes" [queryParams]="{ focus: getDemandeId(demande) }">
+                  <a routerLink="/manager/demandes" [queryParams]="{ focus: getDemandeId(demande) }">
                     <div>
                       <strong>Demande #{{ getDemandeId(demande) }}</strong>
                       <span class="badge">{{ demande.code_type }}</span>
@@ -166,7 +166,7 @@
             <p class="dashboard__state">Pas encore de demande récente.</p>
           }
           <div class="activity-card__footer">
-            <a routerLink="/admin/demandes" class="btn-link">Accéder à la liste complète</a>
+            <a routerLink="/manager/demandes" class="btn-link">Accéder à la liste complète</a>
           </div>
         </article>
       </div>

@@ -17,3 +17,18 @@ export interface ClientResponse {
 }
 
 export type UpdateClientPayload = Partial<Omit<ClientResponse, 'idClient'>>;
+
+export interface CreateClientPayload {
+  nom: string;
+  prenom: string;
+  email: string;
+  motDePasse: string;
+  telephone: string;
+  immatriculation: string;
+  vehiculeMarque: string;
+  vehiculeModele: string;
+  adresseLigne1: string;
+  adresseLigne2?: string | null;
+  codePostal: string;
+  ville: string;
+}

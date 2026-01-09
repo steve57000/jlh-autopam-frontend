@@ -8,17 +8,17 @@ import { filter } from 'rxjs';
 import { ToastContainerComponent } from '../shared/toast/toast-container.component';
 
 @Component({
-  selector: 'app-admin-layout',
+  selector: 'app-manager-layout',
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastContainerComponent],
-  templateUrl: './admin-layout.component.html',
-  styleUrls: ['./admin-layout.component.scss']
+  templateUrl: './manager-layout.component.html',
+  styleUrls: ['./manager-layout.component.scss']
 })
-export class AdminLayoutComponent {
+export class ManagerLayoutComponent {
   menuOpen = true;
   isMobileView = false;
-  readonly navId = 'admin-nav';
-  readonly pageTitle = signal('Administration');
+  readonly navId = 'manager-nav';
+  readonly pageTitle = signal('Gestion');
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly breakpoint = inject(BreakpointObserver);
@@ -29,18 +29,12 @@ export class AdminLayoutComponent {
     this.observeRouteTitle();
   }
 
-  // ✅ Synchronous: évite le flicker et les soucis d’init
   get isAuth(): boolean {
     return this.auth.isAuthenticated();
   }
 
-  get isAdminPrincipal(): boolean {
-    return this.auth.isAdminPrincipal();
-  }
-
   logout() {
     this.auth.logout();
-    // Choisis UNE seule route de login pour tout le monde (recommandé: '/login')
     this.router.navigate(['/login']);
   }
 
@@ -91,7 +85,7 @@ export class AdminLayoutComponent {
       }
 
       const dataTitle = snapshot?.data?.['title'];
-      this.pageTitle.set(dataTitle ?? 'Administration');
+      this.pageTitle.set(dataTitle ?? 'Gestion');
     };
 
     updateTitle();

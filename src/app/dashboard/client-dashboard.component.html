@@ -6,6 +6,9 @@
         <button class="cta-btn-secondary" (click)="refresh()">Rafraîchir</button>
         <a routerLink="/services" class="cta-btn-secondary">Ajouter un service</a>
         <a routerLink="/account" class="cta-btn-secondary">Mon compte</a>
+        <button class="cta-btn-secondary" type="button" (click)="showArchived = !showArchived">
+          {{ showArchived ? 'Masquer les archives' : 'Voir les archives' }}
+        </button>
       </div>
     </div>
 
@@ -132,11 +135,11 @@
         </article>
       }
 
-      @if (filteredDemandes().length === 0) {
-        <p>Aucune demande ne correspond à vos filtres.</p>
+      @if (activeDemandes().length === 0) {
+        <p>Aucune demande active ne correspond à vos filtres.</p>
       } @else {
         <div class="list">
-          @for (d of filteredDemandes(); track d.idDemande) {
+          @for (d of activeDemandes(); track d.idDemande) {
             <article class="card">
               <header>
                 <strong>Demande #{{ d.idDemande }}</strong>
@@ -277,6 +280,54 @@
                 </div>
               }
             </article>
+          }
+        </div>
+      }
+
+      @if (showArchived) {
+        <div class="archive-section">
+          <div class="archive-section__header">
+            <h3>Archives</h3>
+            <p>Retrouvez vos demandes traitées ou annulées.</p>
+          </div>
+          @if (archivedDemandes().length === 0) {
+            <p>Aucune demande archivée ne correspond à vos filtres.</p>
+          } @else {
+            <div class="list list--archive">
+              @for (d of archivedDemandes(); track d.idDemande) {
+                <article class="card card--archive">
+                  <header>
+                    <strong>Demande #{{ d.idDemande }}</strong>
+                    <span class="chip type">{{ d.typeDemande?.libelle || d.typeDemande?.codeType || '—' }}</span>
+                    <span class="badge" [class]="badgeClassForDemande(d.statutDemande?.codeStatut)">
+                      {{ d.statutDemande?.libelle || d.statutDemande?.codeStatut || '—' }}
+                    </span>
+                  </header>
+                  <div class="row">
+                    <span>Créée le :</span>
+                    <span>{{ demandeDate(d) | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  @if (d.services?.length) {
+                    <div class="services">
+                      <div class="services-head">Services réalisés</div>
+                      <ul>
+                        @for (s of d.services; track s.idService) {
+                          <li>
+                            <span class="svc-label">{{ s.libelle }}</span>
+                            <span class="svc-prix">
+                              {{ s.quantite }} × {{ s.prixUnitaire | number:'1.2-2' }} €
+                            </span>
+                          </li>
+                        }
+                      </ul>
+                      <div class="total">
+                        Total estimatif : <strong>{{ totalDemande(d) | number:'1.2-2' }} €</strong>
+                      </div>
+                    </div>
+                  }
+                </article>
+              }
+            </div>
           }
         </div>
       }

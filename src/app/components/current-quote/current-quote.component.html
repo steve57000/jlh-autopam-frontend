@@ -33,12 +33,12 @@
       <div class="row container-select-type">
         <span class="label">Type de demande</span>
         <select name="type" [(ngModel)]="type">
-          <option value="Libre">Demander un rendez-vous</option>
+          <option value="RendezVous">Demander un rendez-vous</option>
           <option value="Service">Demander un service</option>
           <option value="Devis">Demander un devis</option>
         </select>
       </div>
-      @if (type === 'Libre' || type === 'Service') {
+      @if (type === 'RendezVous' || type === 'Service') {
         <div class="row">
           <span class="label">Nature du rendez-vous</span>
           <textarea
@@ -87,7 +87,7 @@
       <button
         class="cta-btn"
         type="submit"
-        [disabled]="type !== 'Libre' && !(($any(d).services?.length || 0) > 0)">
+        [disabled]="type !== 'RendezVous' && !(($any(d).services?.length || 0) > 0)">
         Valider ma demande
       </button>
     </form>

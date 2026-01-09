@@ -4,7 +4,7 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
 
-type UserRole = 'ADMIN' | 'CLIENT' | null;
+type UserRole = 'ADMIN' | 'CLIENT' | 'MANAGER' | null;
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -85,11 +85,26 @@ export class AuthService {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const authorities: string[] = payload?.authorities ?? [];
-      if (authorities.includes('ROLE_ADMIN') || authorities.includes('ADMIN')) return 'ADMIN';
+      if (authorities.includes('ROLE_ADMIN') || authorities.includes('ROLE_ADMIN_PRINCIPAL') || authorities.includes('ADMIN')) {
+        return 'ADMIN';
+      }
+      if (authorities.includes('ROLE_MANAGER') || authorities.includes('MANAGER')) return 'MANAGER';
       if (authorities.includes('ROLE_CLIENT') || authorities.includes('CLIENT')) return 'CLIENT';
       return null;
     } catch {
       return null;
+    }
+  }
+
+  isAdminPrincipal(): boolean {
+    const token = this.getToken();
+    if (!token) return false;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const authorities: string[] = payload?.authorities ?? [];
+      return authorities.includes('ROLE_ADMIN_PRINCIPAL') || authorities.includes('ADMIN_PRINCIPAL');
+    } catch {
+      return false;
     }
   }
 

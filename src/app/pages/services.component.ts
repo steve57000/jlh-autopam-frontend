@@ -98,10 +98,10 @@ export class ServicesComponent implements OnInit, OnDestroy {
   }
 
   castType(v: string): TypeCode {
-    if (v === 'Libre' || v === 'Service' || v === 'Devis') {
+    if (v === 'RendezVous' || v === 'Service' || v === 'Devis') {
       return v;
     }
-    return 'Libre';
+    return 'RendezVous';
   }
 
   async onSubmitDemand(payload: {
@@ -194,7 +194,7 @@ export class ServicesComponent implements OnInit, OnDestroy {
       }
 
       if (
-        payload.type === 'Libre' &&
+        payload.type === 'RendezVous' &&
         this.selectedCreneauId &&
         this.assignedAdminId
       ) {

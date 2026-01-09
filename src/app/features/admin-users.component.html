@@ -1,0 +1,113 @@
+<section class="admin-users">
+  <header class="admin-users__header">
+    <div>
+      <h2>Gestion des utilisateurs</h2>
+      <p>Créez des clients, des gestionnaires ou des administrateurs secondaires.</p>
+    </div>
+  </header>
+
+  <div class="admin-users__grid">
+    <article class="card">
+      <header>
+        <p class="card__eyebrow">Administrateurs & gestionnaires</p>
+        <h3>Nouveau compte interne</h3>
+      </header>
+      <form [formGroup]="adminForm" (ngSubmit)="submitAdmin()" novalidate>
+        <div class="form-grid">
+          <label>
+            <span>Email</span>
+            <input type="email" formControlName="email" />
+          </label>
+          <label>
+            <span>Nom d'utilisateur (optionnel)</span>
+            <input type="text" formControlName="username" />
+          </label>
+          <label>
+            <span>Mot de passe</span>
+            <input type="password" formControlName="motDePasse" />
+          </label>
+          <label>
+            <span>Nom</span>
+            <input type="text" formControlName="nom" />
+          </label>
+          <label>
+            <span>Prénom</span>
+            <input type="text" formControlName="prenom" />
+          </label>
+          <label>
+            <span>Niveau d'accès</span>
+            <select formControlName="niveauAcces">
+              <option value="ADMIN">Administrateur</option>
+              <option value="GESTIONNAIRE">Gestionnaire</option>
+            </select>
+          </label>
+        </div>
+        <button class="btn" type="submit" [disabled]="adminSubmitting()">
+          @if (adminSubmitting()) { Création… } @else { Créer le compte interne }
+        </button>
+      </form>
+    </article>
+
+    <article class="card">
+      <header>
+        <p class="card__eyebrow">Clients</p>
+        <h3>Nouveau client</h3>
+      </header>
+      <form [formGroup]="clientForm" (ngSubmit)="submitClient()" novalidate>
+        <div class="form-grid">
+          <label>
+            <span>Nom</span>
+            <input type="text" formControlName="nom" />
+          </label>
+          <label>
+            <span>Prénom</span>
+            <input type="text" formControlName="prenom" />
+          </label>
+          <label>
+            <span>Email</span>
+            <input type="email" formControlName="email" />
+          </label>
+          <label>
+            <span>Mot de passe</span>
+            <input type="password" formControlName="motDePasse" />
+          </label>
+          <label>
+            <span>Téléphone</span>
+            <input type="tel" formControlName="telephone" />
+          </label>
+          <label>
+            <span>Immatriculation</span>
+            <input type="text" formControlName="immatriculation" />
+          </label>
+          <label>
+            <span>Marque véhicule</span>
+            <input type="text" formControlName="vehiculeMarque" />
+          </label>
+          <label>
+            <span>Modèle véhicule</span>
+            <input type="text" formControlName="vehiculeModele" />
+          </label>
+          <label>
+            <span>Adresse</span>
+            <input type="text" formControlName="adresseLigne1" />
+          </label>
+          <label>
+            <span>Complément d'adresse</span>
+            <input type="text" formControlName="adresseLigne2" />
+          </label>
+          <label>
+            <span>Code postal</span>
+            <input type="text" formControlName="codePostal" />
+          </label>
+          <label>
+            <span>Ville</span>
+            <input type="text" formControlName="ville" />
+          </label>
+        </div>
+        <button class="btn" type="submit" [disabled]="clientSubmitting()">
+          @if (clientSubmitting()) { Création… } @else { Créer le client }
+        </button>
+      </form>
+    </article>
+  </div>
+</section>

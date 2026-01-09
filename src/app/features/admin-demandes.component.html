@@ -106,7 +106,9 @@
               <td class="actions">
                 <button type="button" (click)="openDetails(d)">Voir / Modifier</button>
                 <button type="button" (click)="marquerTraitee(d)" [disabled]="d.code_statut==='Traitee'">Traiter</button>
-                <button type="button" class="danger" (click)="supprimer(d)">Supprimer</button>
+                @if (canDeleteDemandes) {
+                  <button type="button" class="danger" (click)="supprimer(d)">Supprimer</button>
+                }
               </td>
             </tr>
           }
@@ -354,7 +356,7 @@
           </div>
       </section>
 
-      @if ((draft.code_type === 'Libre' || draft.code_type === 'Service') && rdvForm(); as rdv) {
+      @if ((draft.code_type === 'RendezVous' || draft.code_type === 'Service') && rdvForm(); as rdv) {
           <section class="details-block details-block--editable">
             <h4>Planification du rendez-vous</h4>
             <div class="detail-grid">

@@ -45,13 +45,13 @@ interface DashboardStats {
 }
 
 @Component({
-  selector: 'app-admin-dashboard',
-  templateUrl: './admin-dashboard.component.html',
-  styleUrls: ['./admin-dashboard.component.scss'],
+  selector: 'app-manager-dashboard',
+  templateUrl: './manager-dashboard.component.html',
+  styleUrls: ['./manager-dashboard.component.scss'],
   standalone: true,
   imports: [CommonModule, DatePipe, RouterLink]
 })
-export class AdminDashboardComponent implements OnInit {
+export class ManagerDashboardComponent implements OnInit {
   private readonly demandesApi = inject(DemandesServiceService);
 
   readonly loading = signal(true);

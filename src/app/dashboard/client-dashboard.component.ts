@@ -82,13 +82,14 @@ export class ClientDashboardComponent implements OnInit {
   prochainRdv: ProchainRdvDto | null = null;
 
   submittingId: number | null = null;
+  showArchived = false;
   // safe api base (no trailing slash)
   private api = environment.apiBaseUrl ? environment.apiBaseUrl.replace(/\/+$/, '') : '';
 
   private readonly fallbackTypeOptions: Array<FilterOption<AnyTypeOrAll>> = [
     { value: 'Devis', label: 'Devis' },
     { value: 'Service', label: 'Service' },
-    { value: 'Libre', label: 'Rendez-vous libre' }
+    { value: 'RendezVous', label: 'Rendez-vous' }
   ];
 
   private readonly fallbackStatutOptions: Array<FilterOption<AnyStatutOrAll>> = [
@@ -174,6 +175,14 @@ export class ClientDashboardComponent implements OnInit {
       });
   });
 
+  readonly activeDemandes = computed<DemandeResponse[]>(() =>
+    this.filteredDemandes().filter(d => !this.isArchived(d))
+  );
+
+  readonly archivedDemandes = computed<DemandeResponse[]>(() =>
+    this.filteredDemandes().filter(d => this.isArchived(d))
+  );
+
   constructor(
     private srv: ClientDashboardService,
     private http: HttpClient,
@@ -183,7 +192,7 @@ export class ClientDashboardComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.refresh();
+    this.refresh({ delayMs: 200, retries: 2 });
     this.bootstrapLookups();
   }
 
@@ -257,10 +266,18 @@ export class ClientDashboardComponent implements OnInit {
     }
 
     const httpOptions = { silentError: true } as const;
+    let pending = 3;
+    const finalize = () => {
+      pending -= 1;
+      if (pending <= 0) {
+        this.loading = false;
+      }
+    };
 
     this.srv.getMyDemandes(httpOptions).subscribe({
       next: list => {
         this.demandes = list ?? [];
+        finalize();
       },
       error: err => {
         if (!silent) {
@@ -269,27 +286,35 @@ export class ClientDashboardComponent implements OnInit {
         if (retries > 0) {
           this.refresh({ silent: true, retries: retries - 1, delayMs: 600 });
         }
+        finalize();
       }
     });
 
     this.srv.getMyStats(httpOptions).subscribe({
-      next: s => { this.stats = s; },
+      next: s => {
+        this.stats = s;
+        finalize();
+      },
       error: err => {
         if (!silent) {
           this.error ||= err?.error?.message || err.message || 'Erreur de chargement des statistiques';
         }
+        finalize();
       }
     });
 
     this.srv.getProchainRdv(httpOptions).subscribe({
-      next: rdv => { this.prochainRdv = rdv || null; },
+      next: rdv => {
+        this.prochainRdv = rdv || null;
+        finalize();
+      },
       error: err => {
         if (err.status !== 204 && err.status !== 404 && !silent) {
           this.error ||= err?.error?.message || err.message || 'Erreur de chargement du prochain RDV';
         }
-        this.loading = false;
+        finalize();
       },
-      complete: () => { this.loading = false; }
+      complete: () => { }
     });
   }
 
@@ -439,6 +464,11 @@ export class ClientDashboardComponent implements OnInit {
     }
     const entry = this.visibleTimeline(d).find(item => !!item.rendezVous);
     return entry?.rendezVous ?? null;
+  }
+
+  isArchived(d?: DemandeResponse): boolean {
+    const status = d?.statutDemande?.codeStatut;
+    return status === 'Traitee' || status === 'Annulee';
   }
 
   clientVehicle(d?: DemandeResponse): string | null {
