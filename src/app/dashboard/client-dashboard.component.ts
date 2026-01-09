@@ -77,12 +77,12 @@ export class ClientDashboardComponent implements OnInit {
   loading = false;
   error = '';
 
-  demandes: DemandeResponse[] = [];
+  demandes = signal<DemandeResponse[]>([]);
   stats: ClientStatsDto | null = null;
   prochainRdv: ProchainRdvDto | null = null;
 
   submittingId: number | null = null;
-  showArchived = false;
+  showArchived = true;
   // safe api base (no trailing slash)
   private api = environment.apiBaseUrl ? environment.apiBaseUrl.replace(/\/+$/, '') : '';
 
@@ -133,7 +133,7 @@ export class ClientDashboardComponent implements OnInit {
     const from = f.dateFrom ? new Date(f.dateFrom + 'T00:00:00').getTime() : null;
     const to   = f.dateTo   ? new Date(f.dateTo   + 'T23:59:59').getTime() : null;
 
-    return (this.demandes ?? [])
+    return (this.demandes() ?? [])
       .filter(d => {
         // type
         if (f.type !== 'ALL') {
@@ -276,7 +276,7 @@ export class ClientDashboardComponent implements OnInit {
 
     this.srv.getMyDemandes(httpOptions).subscribe({
       next: list => {
-        this.demandes = list ?? [];
+        this.demandes.set(list ?? []);
         finalize();
       },
       error: err => {

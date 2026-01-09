@@ -1,17 +1,126 @@
-.client-dashboard {
+@use '../../styles/variables' as v;
+
+$card-radius: 20px;
+$card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
+
+.dashboard {
   padding: clamp(1rem, 3vw, 2.5rem);
-  background: radial-gradient(circle at top, rgba(77, 134, 141, 0.08), transparent 60%);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2vw, 1.75rem);
+  background: radial-gradient(circle at top, rgba(v.$color-secondary, 0.08), transparent 60%);
   min-height: calc(100vh - 120px);
 
-  .container-max { flex-direction: column; }
-  .header {
-    display: flex; flex-wrap: wrap;
-    justify-content: space-between; align-items: center;
-    margin-bottom: 2rem; gap: 1rem;
-    h2 { margin: 0; }
-    .toolbar { display: flex; flex-wrap: wrap; gap: 1rem; }
+  &__intro {
+    background: #fff;
+    border-radius: $card-radius;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    border: 1px solid rgba(v.$color-secondary, 0.15);
+    box-shadow: $card-shadow;
   }
 
+  &__eyebrow {
+    margin: 0 0 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    color: rgba(v.$color-secondary, 0.8);
+    font-weight: 600;
+  }
+
+  &__subtitle {
+    margin: 0 0 0.4rem;
+    font-size: clamp(1.4rem, 2.6vw, 2rem);
+    font-family: v.$font-title;
+    color: v.$color-primary;
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: 1rem;
+    color: rgba(v.$color-primary, 0.8);
+    max-width: 640px;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: clamp(1rem, 2vw, 1.5rem);
+  }
+
+  &__state {
+    padding: 1rem 1.25rem;
+    border-radius: v.$border-radius-high;
+    border: 1px dashed rgba(v.$color-secondary, 0.35);
+    background: rgba(v.$color-secondary, 0.05);
+    color: v.$color-primary;
+
+    &--error {
+      border-color: rgba(v.$alert-color, 0.5);
+      background: rgba(v.$alert-color, 0.08);
+      color: v.$alert-color;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+  }
+}
+
+.btn {
+  border-radius: v.$border-radius-high;
+  border: 1px solid rgba(v.$color-secondary, 0.4);
+  padding: 0.6rem 1.3rem;
+  font-weight: 600;
+  background: linear-gradient(120deg, v.$color-secondary, v.$color-sixt);
+  color: #fff;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.18);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &-outline {
+    background: transparent;
+    color: v.$color-secondary;
+  }
+
+  &-small {
+    padding: 0.45rem 1rem;
+  }
+}
+
+.card {
+  background: #fff;
+  border-radius: $card-radius;
+  padding: clamp(1.25rem, 2vw, 1.75rem);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: $card-shadow;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.client-dashboard {
+
+  .container-max { flex-direction: column; }
   /* ====== Filtres ====== */
   .filters {
     margin-bottom: 1rem;
@@ -61,11 +170,11 @@
   .card {
     position: relative;
     border:1px solid rgba(77, 134, 141, 0.15);
-    border-radius:1rem;
-    padding:.9rem;
     margin-bottom:.5rem;
-    background:#fff;
-    box-shadow: 0 14px 24px rgba(15, 23, 42, 0.08);
+    min-width: 260px;
+    max-width: 520px;
+    width: 100%;
+    justify-self: center;
   }
   header { display:flex; align-items:center; gap:.5rem; justify-content:space-between; flex-wrap:wrap; margin-bottom:.5rem; }
   .chip.type { background:#eef; border-radius:999px; padding:.15rem .5rem; font-size:.85rem; }
@@ -180,25 +289,10 @@
     }
   }
   .next-rdv header { justify-content:flex-start; gap:.5rem; margin-bottom: .5rem; }
-  .actions { margin-top:.5rem; display: flex; gap: 1rem; }
+  .actions { margin-top:.5rem; display: flex; gap: 1rem; flex-wrap: wrap; }
 }
 
 .client-dashboard {
-  .header {
-    background: #fff;
-    padding: 1rem 1.25rem;
-    border-radius: 1rem;
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-  }
-
-  .toolbar {
-    gap: 0.75rem;
-
-    .cta-btn-secondary {
-      border-radius: 999px;
-    }
-  }
-
   .stats-grid {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   }
@@ -209,11 +303,7 @@
     gap: 1rem;
   }
 
-  .card {
-    margin-bottom: 0;
-    border-radius: 0.9rem;
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
-  }
+  .card { margin-bottom: 0; }
 
   .card--archive {
     opacity: 0.92;
