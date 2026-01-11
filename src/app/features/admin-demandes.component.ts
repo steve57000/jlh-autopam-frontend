@@ -26,6 +26,7 @@ interface NewServiceSelection {
 
 interface RendezVousFormState {
   idRdv: number | null;
+  creneauId: number | null;
   dateDebut: string;
   dateFin: string;
   codeStatut: string;
@@ -721,6 +722,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   private syncRendezVousForm(rdv: RendezVousSummary | null) {
     const template: RendezVousFormState = {
       idRdv: rdv?.idRdv ?? null,
+      creneauId: rdv?.creneau?.idCreneau ?? null,
       dateDebut: this.formatDateInput(rdv?.dateDebut ?? null),
       dateFin: this.formatDateInput(rdv?.dateFin ?? null),
       codeStatut: rdv?.codeStatut ?? (this.rdvStatusOptions()[0]?.value ?? 'Confirme'),
@@ -737,6 +739,9 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       next.commentaire = value?.trim().length ? value : null;
     } else {
       (next as any)[field] = value;
+      if (field === 'dateDebut' || field === 'dateFin') {
+        next.creneauId = null;
+      }
     }
     this.rdvForm.set(next);
   }
@@ -768,7 +773,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       dateDebut: dateDebutIso,
       dateFin: dateFinIso,
       codeStatut: form.codeStatut || 'Confirme',
-      commentaire: form.commentaire
+      commentaire: form.commentaire,
+      creneauId: form.creneauId
     };
 
     const draft = this.draft();
