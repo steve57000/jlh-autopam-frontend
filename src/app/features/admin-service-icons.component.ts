@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ToastService } from '../shared/toast/toast.service';
 import { ServiceIconsService } from '../services/service-icons.service';
 import { ServiceIconDto } from '../modeles/service-icon.model';
+import { MediaUrlService } from '../services/media-url.service';
 
 @Component({
   selector: 'admin-service-icons',
@@ -30,6 +31,7 @@ export class AdminServiceIconsComponent implements OnInit {
   editPreviewUrl: string | null = null;
 
   private readonly toast = inject(ToastService);
+  private readonly mediaUrl = inject(MediaUrlService);
 
   constructor(private iconsService: ServiceIconsService, private fb: FormBuilder) {
     this.form = this.fb.group({
@@ -97,7 +99,7 @@ export class AdminServiceIconsComponent implements OnInit {
 
   selectIcon(icon: ServiceIconDto) {
     this.selectedFile = null;
-    this.previewUrl = icon.url;
+    this.previewUrl = this.resolveIconUrl(icon.url);
     this.form.patchValue({
       url: icon.url,
       label: icon.label ?? ''
@@ -107,7 +109,7 @@ export class AdminServiceIconsComponent implements OnInit {
   openEditModal(icon: ServiceIconDto) {
     this.editingIcon = icon;
     this.editSelectedFile = null;
-    this.editPreviewUrl = icon.url;
+    this.editPreviewUrl = this.resolveIconUrl(icon.url);
     this.editForm.reset({
       label: icon.label ?? '',
       url: icon.url
@@ -153,7 +155,7 @@ export class AdminServiceIconsComponent implements OnInit {
 
   selectEditIcon(icon: ServiceIconDto) {
     this.editSelectedFile = null;
-    this.editPreviewUrl = icon.url;
+    this.editPreviewUrl = this.resolveIconUrl(icon.url);
     this.editForm.patchValue({
       url: icon.url,
       label: icon.label ?? this.editForm.value.label ?? ''
@@ -180,7 +182,7 @@ export class AdminServiceIconsComponent implements OnInit {
       next: created => {
         this.icons = [...this.icons.filter(icon => icon.idIcon !== created.idIcon), created];
         this.toast.success('Icône ajoutée avec succès.');
-        this.previewUrl = created.url;
+        this.previewUrl = this.resolveIconUrl(created.url);
         this.form.patchValue({ url: created.url, label: created.label ?? '' });
         this.selectedFile = null;
       },
@@ -239,7 +241,7 @@ export class AdminServiceIconsComponent implements OnInit {
       next: () => {
         this.icons = this.icons.filter(icon => icon.idIcon !== id);
         this.toast.success('Icône supprimée définitivement.');
-        if (this.previewUrl === this.iconToDelete?.url) {
+        if (this.previewUrl === this.resolveIconUrl(this.iconToDelete?.url)) {
           this.clearSelection();
         }
         this.cancelDeletion();
@@ -249,5 +251,9 @@ export class AdminServiceIconsComponent implements OnInit {
         this.toast.error('Erreur lors de la suppression.', err.error?.message || err.message);
       }
     });
+  }
+
+  resolveIconUrl(url?: string | null): string | null {
+    return this.mediaUrl.resolve(url);
   }
 }

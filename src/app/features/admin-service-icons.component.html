@@ -17,7 +17,7 @@
     @for (icon of icons; track icon.idIcon) {
       <button type="button" class="icon-card" (click)="openEditModal(icon)">
         <div class="icon-card__preview">
-          <img [src]="icon.url" [alt]="icon.label || 'Icône service'" />
+          <img [src]="resolveIconUrl(icon.url)" [alt]="icon.label || 'Icône service'" />
         </div>
         <div class="icon-card__meta">
           <span class="icon-card__label">{{ icon.label || 'Icône' }}</span>
@@ -70,7 +70,7 @@
         </div>
         <form class="icon-modal-form" [formGroup]="editForm" (ngSubmit)="updateIcon()" novalidate>
           <div class="icon-modal__preview">
-            <img [src]="editPreviewUrl || editForm.value.url" [alt]="editForm.value.label || 'Icône'" />
+            <img [src]="editPreviewUrl || resolveIconUrl(editForm.value.url)" [alt]="editForm.value.label || 'Icône'" />
           </div>
           <div class="field">
             <label for="edit-icon-label">Libellé</label>
@@ -94,7 +94,7 @@
                 <div class="icon-library__grid">
                   @for (icon of icons; track icon.idIcon) {
                     <button type="button" class="icon-library__item" (click)="selectEditIcon(icon)">
-                      <img [src]="icon.url" [alt]="icon.label || 'Icône'" />
+                      <img [src]="resolveIconUrl(icon.url)" [alt]="icon.label || 'Icône'" />
                       <span class="icon-library__label">{{ icon.label || 'Icône' }}</span>
                     </button>
                   }

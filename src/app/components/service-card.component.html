@@ -1,7 +1,7 @@
 <!-- src/app/components/service-card.component.html -->
 <article class="service-card">
-  @if (service.icon) {
-    <img class="service-icon" [src]="service.icon" [alt]="service.libelle" loading="lazy" />
+  @if (iconUrl) {
+    <img class="service-icon" [src]="iconUrl" [alt]="service.libelle" loading="lazy" />
   }
   <span class="service-tag">
     À partir de :

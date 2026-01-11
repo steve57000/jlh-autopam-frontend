@@ -6,6 +6,7 @@ import { ServiceDto } from '../modeles/service.model';
 import { ToastService } from '../shared/toast/toast.service';
 import { ServiceIconsService } from '../services/service-icons.service';
 import { ServiceIconDto } from '../modeles/service-icon.model';
+import { MediaUrlService } from '../services/media-url.service';
 
 @Component({
   selector: 'admin-services',
@@ -35,6 +36,7 @@ export class AdminServicesComponent implements OnInit {
   serviceToDelete: ServiceDto | null = null;
 
   private readonly toast = inject(ToastService);
+  private readonly mediaUrl = inject(MediaUrlService);
 
   constructor(
     private srv: ServicesService,
@@ -102,7 +104,7 @@ export class AdminServicesComponent implements OnInit {
       prixUnitaire: service.prixUnitaire,
       quantiteMax: service.quantiteMax ?? 1,
     });
-    this.iconPreview = service.icon ?? null;
+    this.iconPreview = this.resolveIconUrl(service.icon);
     this.showIconLibrary = false;
     this.showModal = true;
   }
@@ -135,16 +137,17 @@ export class AdminServicesComponent implements OnInit {
   }
 
   selectIcon(icon: ServiceIconDto) {
-    this.iconPreview = icon.url;
+    this.iconPreview = this.resolveIconUrl(icon.url);
     this.form.patchValue({ icon: icon.url });
   }
 
   getServiceIcon(service: ServiceDto): string | null {
     if (service.icon) {
-      return service.icon;
+      return this.resolveIconUrl(service.icon);
     }
     const lookupKey = this.normalizeLabel(service.libelle);
-    return this.iconLabelMap.get(lookupKey) ?? null;
+    const matched = this.iconLabelMap.get(lookupKey) ?? null;
+    return this.resolveIconUrl(matched);
   }
 
   clearIcon() {
@@ -165,11 +168,12 @@ export class AdminServicesComponent implements OnInit {
     const { libelle, description, descriptionLongue, prixUnitaire, quantiteMax } = this.form.value;
     const prixValue = typeof prixUnitaire === 'number' ? prixUnitaire : Number(prixUnitaire);
     const quantiteValue = typeof quantiteMax === 'number' ? quantiteMax : Number(quantiteMax);
+    const iconValue = typeof this.form.value.icon === 'string' ? this.form.value.icon.trim() : '';
     const body = {
       libelle,
       description,
       descriptionLongue,
-      icon: this.iconPreview ? this.iconPreview.trim() : null,
+      icon: iconValue || null,
       prixUnitaire: prixValue,
       quantiteMax: quantiteValue
     };
@@ -235,5 +239,9 @@ export class AdminServicesComponent implements OnInit {
 
   private normalizeLabel(label: string) {
     return label.trim().toLowerCase();
+  }
+
+  resolveIconUrl(url?: string | null): string | null {
+    return this.mediaUrl.resolve(url);
   }
 }

@@ -90,7 +90,7 @@
                         class="service-icon-library__item"
                         (click)="selectIcon(icon)"
                       >
-                        <img [src]="icon.url" [alt]="icon.label || 'Icône'" />
+                        <img [src]="resolveIconUrl(icon.url)" [alt]="icon.label || 'Icône'" />
                         <span class="service-icon-library__label">{{ icon.label || 'Icône' }}</span>
                       </button>
                     }

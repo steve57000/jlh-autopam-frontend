@@ -8,6 +8,7 @@ import { firstValueFrom } from 'rxjs';
 import { HasRoleDirective } from '../directives/has-role.directive';
 import { ToastService } from '../shared/toast/toast.service';
 import { AuthService } from '../services/auth.service';
+import { MediaUrlService } from '../services/media-url.service';
 
 @Component({
   selector: 'app-service-card',
@@ -28,9 +29,11 @@ export class ServiceCardComponent {
   private dsSrv        = inject(DemandesServiceService);
   private toast        = inject(ToastService);
   private auth         = inject(AuthService);
+  private mediaUrl     = inject(MediaUrlService);
 
   @HostBinding('style.--delay') get cssDelay() { return `${this.delay}s`; }
   @HostBinding('style.animation-delay') get animationDelay() { return `var(--delay)`; }
+  get iconUrl() { return this.mediaUrl.resolve(this.service?.icon); }
 
   openConfirm() { this.dialogRef?.nativeElement.showModal(); }
   closeConfirm() { this.dialogRef?.nativeElement.close(); }

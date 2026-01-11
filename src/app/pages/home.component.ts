@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 
 import { PromotionService } from '../services/promotion.service';
 import { ServicesService } from '../services/services.service';
+import { MediaUrlService } from '../services/media-url.service';
 
 import { PromotionModel } from '../modeles/promotion.model';
 import { ServiceDto } from '../modeles/service.model';
@@ -22,62 +23,62 @@ type MetiersPicto = {
 
 const DEFAULT_METIERS_PICTOS: MetiersPicto[] = [
   {
-    img: '/uploads/icones/picto-metier-pneu.png',
+    img: '/icons/pictos-metiers/picto-metier-pneu.png',
     label: 'Pneumatiques',
     description: `Montage, équilibrage et réparation de pneumatiques été, hiver ou 4 saisons pour toutes marques de véhicules.`
   },
   {
-    img: '/uploads/icones/picto-metier-hybride.png',
+    img: '/icons/pictos-metiers/picto-metier-hybride.png',
     label: 'Véhicules hybrides',
     description: `Interventions sécurisées sur les chaînes de traction et batteries haute tension grâce à nos techniciens habilités.`
   },
   {
-    img: '/uploads/icones/picto-metier-geometrie.png',
+    img: '/icons/pictos-metiers/picto-metier-geometrie.png',
     label: 'Géométrie',
     description: `Réglage précis du parallélisme et du carrossage pour préserver vos pneus et garantir une tenue de route optimale.`
   },
   {
-    img: '/uploads/icones/picto-metier-freinage.png',
+    img: '/icons/pictos-metiers/picto-metier-freinage.png',
     label: 'Freinage',
     description: `Contrôle et remplacement des plaquettes, disques et liquides afin d’assurer un freinage réactif et sécurisant.`
   },
   {
-    img: '/uploads/icones/picto-metier-embrayage.png',
+    img: '/icons/pictos-metiers/picto-metier-embrayage.png',
     label: 'Embrayage',
     description: `Diagnostic et remplacement des embrayages, volants moteurs et butées pour une transmission souple et fiable.`
   },
   {
-    img: '/uploads/icones/picto-metier-echappement.png',
+    img: '/icons/pictos-metiers/picto-metier-echappement.png',
     label: 'Échappement',
     description: `Inspection, réparation et remplacement des lignes d’échappement et filtres à particules pour un moteur sain.`
   },
   {
-    img: '/uploads/icones/picto-metier-distribution.png',
+    img: '/icons/pictos-metiers/picto-metier-distribution.png',
     label: 'Distribution',
     description: `Remplacement de courroies ou de chaînes de distribution selon les préconisations constructeur.`
   },
   {
-    img: '/uploads/icones/picto-metier-climatisation.png',
+    img: '/icons/pictos-metiers/picto-metier-climatisation.png',
     label: 'Climatisation',
     description: `Entretien complet du circuit : recharge, nettoyage, contrôle d’étanchéité et désinfection de l’habitacle.`
   },
   {
-    img: '/uploads/icones/picto-metier-amortisseur.png',
+    img: '/icons/pictos-metiers/picto-metier-amortisseur.png',
     label: 'Amortisseurs',
     description: `Remplacement des amortisseurs, ressorts et biellettes pour une conduite confortable et maîtrisée.`
   },
   {
-    img: '/uploads/icones/picto-metier-pre_controle.png',
+    img: '/icons/pictos-metiers/picto-metier-pre_controle.png',
     label: 'Pré-contrôle technique',
     description: `Préparation complète au contrôle technique avec diagnostic des points de sécurité et corrections nécessaires.`
   },
   {
-    img: '/uploads/icones/picto-metier-revision_constructeur.png',
+    img: '/icons/pictos-metiers/picto-metier-revision_constructeur.png',
     label: 'Révision constructeur',
     description: `Révisions certifiées respectant le carnet d’entretien constructeur et l’utilisation de pièces d’origine ou équivalentes.`
   },
   {
-    img: '/uploads/icones/picto-metier-vidange.png',
+    img: '/icons/pictos-metiers/picto-metier-vidange.png',
     label: 'Vidange',
     description: `Vidanges moteur avec huiles adaptées, remplacement des filtres et remise à zéro des indicateurs d’entretien.`
   },
@@ -114,6 +115,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private promoService: PromotionService,
     private servicesService: ServicesService,
+    private mediaUrl: MediaUrlService,
     @Inject(PLATFORM_ID) private platformId: Object // <-- pour SSR
   ) {}
 
@@ -158,10 +160,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.servicesService.getPublicServices().subscribe({
       next: services => {
         const fromServices = this.buildMetiersFromServices(services || []);
-        this.metiersPictos = fromServices.length > 0 ? fromServices : [...DEFAULT_METIERS_PICTOS];
+        this.metiersPictos = fromServices.length > 0 ? fromServices : this.getDefaultMetiersPictos();
       },
       error: () => {
-        this.metiersPictos = [...DEFAULT_METIERS_PICTOS];
+        this.metiersPictos = this.getDefaultMetiersPictos();
       }
     });
   }
@@ -220,15 +222,28 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       .slice()
       .sort((a, b) => (a.idService ?? 0) - (b.idService ?? 0));
 
+    const defaults = this.getDefaultMetiersPictos();
+
     return sorted.map((service, index) => {
       const icon = typeof service.icon === 'string' ? service.icon.trim() : '';
-      const fallbackIcon = DEFAULT_METIERS_PICTOS[index % DEFAULT_METIERS_PICTOS.length]?.img;
+      const fallbackIcon = defaults[index % defaults.length]?.img;
       return {
-        img: icon || fallbackIcon,
+        img: this.resolveIcon(icon) || fallbackIcon,
         label: service.libelle,
         description: service.description ?? ''
       };
     });
+  }
+
+  private getDefaultMetiersPictos(): MetiersPicto[] {
+    return DEFAULT_METIERS_PICTOS.map(item => ({
+      ...item,
+      img: this.resolveIcon(item.img) || item.img
+    }));
+  }
+
+  private resolveIcon(url: string): string | null {
+    return this.mediaUrl.resolve(url);
   }
   clearMetiersSlide() {
     if (this.metiersInterval) {
