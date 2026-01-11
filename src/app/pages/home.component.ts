@@ -22,62 +22,62 @@ type MetiersPicto = {
 
 const DEFAULT_METIERS_PICTOS: MetiersPicto[] = [
   {
-    img: '/uploads/icons/picto-metier-pneu.png',
+    img: '/uploads/icones/picto-metier-pneu.png',
     label: 'Pneumatiques',
     description: `Montage, équilibrage et réparation de pneumatiques été, hiver ou 4 saisons pour toutes marques de véhicules.`
   },
   {
-    img: '/uploads/icons/picto-metier-hybride.png',
+    img: '/uploads/icones/picto-metier-hybride.png',
     label: 'Véhicules hybrides',
     description: `Interventions sécurisées sur les chaînes de traction et batteries haute tension grâce à nos techniciens habilités.`
   },
   {
-    img: '/uploads/icons/picto-metier-geometrie.png',
+    img: '/uploads/icones/picto-metier-geometrie.png',
     label: 'Géométrie',
     description: `Réglage précis du parallélisme et du carrossage pour préserver vos pneus et garantir une tenue de route optimale.`
   },
   {
-    img: '/uploads/icons/picto-metier-freinage.png',
+    img: '/uploads/icones/picto-metier-freinage.png',
     label: 'Freinage',
     description: `Contrôle et remplacement des plaquettes, disques et liquides afin d’assurer un freinage réactif et sécurisant.`
   },
   {
-    img: '/uploads/icons/picto-metier-embrayage.png',
+    img: '/uploads/icones/picto-metier-embrayage.png',
     label: 'Embrayage',
     description: `Diagnostic et remplacement des embrayages, volants moteurs et butées pour une transmission souple et fiable.`
   },
   {
-    img: '/uploads/icons/picto-metier-echappement.png',
+    img: '/uploads/icones/picto-metier-echappement.png',
     label: 'Échappement',
     description: `Inspection, réparation et remplacement des lignes d’échappement et filtres à particules pour un moteur sain.`
   },
   {
-    img: '/uploads/icons/picto-metier-distribution.png',
+    img: '/uploads/icones/picto-metier-distribution.png',
     label: 'Distribution',
     description: `Remplacement de courroies ou de chaînes de distribution selon les préconisations constructeur.`
   },
   {
-    img: '/uploads/icons/picto-metier-climatisation.png',
+    img: '/uploads/icones/picto-metier-climatisation.png',
     label: 'Climatisation',
     description: `Entretien complet du circuit : recharge, nettoyage, contrôle d’étanchéité et désinfection de l’habitacle.`
   },
   {
-    img: '/uploads/icons/picto-metier-amortisseur.png',
+    img: '/uploads/icones/picto-metier-amortisseur.png',
     label: 'Amortisseurs',
     description: `Remplacement des amortisseurs, ressorts et biellettes pour une conduite confortable et maîtrisée.`
   },
   {
-    img: '/uploads/icons/picto-metier-pre_controle.png',
+    img: '/uploads/icones/picto-metier-pre_controle.png',
     label: 'Pré-contrôle technique',
     description: `Préparation complète au contrôle technique avec diagnostic des points de sécurité et corrections nécessaires.`
   },
   {
-    img: '/uploads/icons/picto-metier-revision_constructeur.png',
+    img: '/uploads/icones/picto-metier-revision_constructeur.png',
     label: 'Révision constructeur',
     description: `Révisions certifiées respectant le carnet d’entretien constructeur et l’utilisation de pièces d’origine ou équivalentes.`
   },
   {
-    img: '/uploads/icons/picto-metier-vidange.png',
+    img: '/uploads/icones/picto-metier-vidange.png',
     label: 'Vidange',
     description: `Vidanges moteur avec huiles adaptées, remplacement des filtres et remise à zéro des indicateurs d’entretien.`
   },
