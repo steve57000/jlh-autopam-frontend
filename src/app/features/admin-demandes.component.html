@@ -408,7 +408,7 @@
               @if (rdvFeedback()) {
                 <p
                   class="feedback"
-                  [class.feedback--error]="rdvFeedback()?.startsWith('Impossible')"
+                  [class.feedback--error]="rdvFeedbackType()==='error'"
                 >
                   {{ rdvFeedback() }}
                 </p>

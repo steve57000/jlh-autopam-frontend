@@ -1,6 +1,6 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../environments/environment';
@@ -13,7 +13,7 @@ import {
 } from '../services/client-dashboard.service';
 import type { DemandeTypeCode } from '../modeles/demande.model';
 import { ToastService } from '../shared/toast/toast.service';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, filter, Subscription } from 'rxjs';
 import { LookupsService } from '../services/lookups.service';
 import { ServicesComponent } from '../pages/services.component';
 import { AccountComponent } from '../account/account.component/account.component';
@@ -80,7 +80,7 @@ interface FilterOption<T extends string> {
   templateUrl: './client-dashboard.component.html',
   styleUrls: ['./client-dashboard.component.scss']
 })
-export class ClientDashboardComponent implements OnInit {
+export class ClientDashboardComponent implements OnInit, OnDestroy {
   // ----- état existant -----
   loading = false;
   error = '';
@@ -200,9 +200,18 @@ export class ClientDashboardComponent implements OnInit {
     private lookups: LookupsService
   ) {}
 
+  private navSub?: Subscription;
+
   ngOnInit() {
     this.refresh({ delayMs: 200, retries: 2 });
     this.bootstrapLookups();
+    this.navSub = this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => this.refresh({ silent: true }));
+  }
+
+  ngOnDestroy(): void {
+    this.navSub?.unsubscribe();
   }
 
   private bootstrapLookups() {

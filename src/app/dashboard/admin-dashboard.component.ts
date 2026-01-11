@@ -1,8 +1,9 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { DemandeWithServices } from '../modeles/demande.model';
 import { DemandesServiceService } from '../services/demandes-services.service';
+import { filter, Subscription } from 'rxjs';
 
 type DemandeType = DemandeWithServices['code_type'];
 
@@ -51,8 +52,10 @@ interface DashboardStats {
   standalone: true,
   imports: [CommonModule, DatePipe, RouterLink]
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent implements OnInit, OnDestroy {
   private readonly demandesApi = inject(DemandesServiceService);
+  private readonly router = inject(Router);
+  private navSub?: Subscription;
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -177,6 +180,13 @@ export class AdminDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDemandes();
+    this.navSub = this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => this.loadDemandes(true));
+  }
+
+  ngOnDestroy(): void {
+    this.navSub?.unsubscribe();
   }
 
   refresh(): void {

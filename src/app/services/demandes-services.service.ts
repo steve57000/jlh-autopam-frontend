@@ -396,19 +396,39 @@ export class DemandesServiceService {
     if (!id || !dateDebut || !dateFin) {
       return null;
     }
+    const statut = raw?.statut ?? raw?.statutRendezVous ?? raw?.statut_rendez_vous ?? null;
+    const codeStatut =
+      raw?.codeStatut ??
+      raw?.statutCode ??
+      raw?.rendezVousStatutCode ??
+      statut?.codeStatut ??
+      statut?.code ??
+      statut ??
+      'Confirme';
+    const libelleStatut =
+      raw?.libelleStatut ??
+      raw?.rendezVousStatutLibelle ??
+      statut?.libelle ??
+      undefined;
+
+    const creneauId = this.toNumber(
+      raw?.creneauId ?? raw?.idCreneau ?? raw?.creneau?.idCreneau ?? raw?.creneau?.id ?? null,
+      null
+    );
+
     return {
       idRdv: id,
-      codeStatut: raw?.codeStatut ?? raw?.statut?.codeStatut ?? 'Confirme',
-      libelleStatut: raw?.libelleStatut ?? raw?.statut?.libelle ?? undefined,
+      codeStatut,
+      libelleStatut,
       dateDebut,
       dateFin,
       commentaire: raw?.commentaire ?? undefined,
-      creneau: raw?.creneau
+      creneau: creneauId
         ? {
-          idCreneau: this.toNumber(raw.creneau.idCreneau ?? raw.creneau.id ?? null, -1) ?? -1,
-          dateDebut: raw.creneau.dateDebut ?? raw.creneau.debut,
-          dateFin: raw.creneau.dateFin ?? raw.creneau.fin,
-          statut: raw.creneau.statut
+          idCreneau: creneauId,
+          dateDebut: raw?.creneau?.dateDebut ?? raw?.creneau?.debut ?? dateDebut,
+          dateFin: raw?.creneau?.dateFin ?? raw?.creneau?.fin ?? dateFin,
+          statut: raw?.creneau?.statut
             ? {
               codeStatut: raw.creneau.statut.codeStatut ?? raw.creneau.statut,
               libelle: raw.creneau.statut.libelle ?? undefined
