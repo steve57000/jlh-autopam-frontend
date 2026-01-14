@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use '../../styles/variables' as vars;
 @use '../../styles/animations' as anim;
 
@@ -37,6 +38,56 @@
 
     > app-service-card { display: block; height: 100%; }
     @include anim.staggered-list('> app-service-card', .1s, 20);
+  }
+
+  .services-details {
+    margin-top: 32px;
+
+    &__header {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 20px;
+
+      h2 {
+        margin-bottom: 0;
+      }
+
+      p {
+        margin: 0;
+        color: color.scale(vars.$color-quaternary, $alpha: -35%);
+        max-width: 720px;
+      }
+    }
+
+    &__grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    &__card {
+      background: vars.$color-quaternary;
+      border-radius: vars.$border-radius-high;
+      padding: 20px;
+      box-shadow: vars.$shadow-small-light;
+      display: grid;
+      gap: 12px;
+
+      h3 {
+        margin: 0;
+        color: vars.$color-primary;
+        font-size: 1.2rem;
+      }
+
+      p {
+        margin: 0;
+        color: color.scale(vars.$color-primary, $lightness: 18%);
+      }
+
+      a {
+        justify-self: start;
+      }
+    }
   }
 
   @media (min-width: 1280px) {
