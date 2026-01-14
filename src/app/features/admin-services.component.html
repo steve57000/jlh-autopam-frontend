@@ -64,13 +64,7 @@
             <textarea id="service-description-long" formControlName="descriptionLongue" rows="4" maxlength="4000" placeholder="Description complète affichée sur la page service"></textarea>
           </div>
           <div class="field">
-            <label for="service-icon">Icône (optionnel)</label>
-            <input
-              id="service-icon"
-              type="file"
-              accept="image/png,image/jpeg,image/webp,image/svg+xml"
-              (change)="onIconSelected($event)"
-            />
+            <label>Icône (optionnel)</label>
             @if (iconPreview) {
               <div class="service-icon-preview">
                 <img [src]="iconPreview" alt="Aperçu de l'icône du service" />

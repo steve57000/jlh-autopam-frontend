@@ -9,6 +9,7 @@ import { ServicesService } from '../services/services.service';
 import { ServiceDto } from '../modeles/service.model';
 import { RendezVousService, RendezVousUpsertPayload } from '../services/rendezvous.service';
 import { AuthService } from '../services/auth.service';
+import { VEHICLE_ENERGY_OPTIONS } from '../shared/vehicle-energy-options';
 
 type TypeFilterValue = 'Tous' | DemandeWithServices['code_type'] | string;
 type StatutFilterValue = 'Tous' | DemandeWithServices['code_statut'] | string;
@@ -109,6 +110,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   rdvSaving = signal(false);
   rdvFeedback = signal<string | null>(null);
   rdvFeedbackType = signal<'success' | 'error' | null>(null);
+  vehicleEnergyOptions = VEHICLE_ENERGY_OPTIONS;
 
   filtered = computed(() => {
     const t = this.type();
@@ -312,7 +314,15 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   }
 
   updateClientField(
-    field: 'telephone' | 'immatriculation' | 'adresseLigne1' | 'adresseLigne2' | 'adresseCodePostal' | 'adresseVille',
+    field: 'telephone'
+      | 'immatriculation'
+      | 'vehiculeMarque'
+      | 'vehiculeModele'
+      | 'vehiculeEnergie'
+      | 'adresseLigne1'
+      | 'adresseLigne2'
+      | 'adresseCodePostal'
+      | 'adresseVille',
     value: string | null
   ) {
     this.updateDraft(d => {
@@ -481,6 +491,9 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       codeType: draft.code_type,
       codeStatut: draft.code_statut,
       immatriculation: client?.immatriculation ?? null,
+      vehiculeMarque: client?.vehiculeMarque ?? null,
+      vehiculeModele: client?.vehiculeModele ?? null,
+      vehiculeEnergie: client?.vehiculeEnergie ?? null,
       telephone: this.trimOrEmpty(client?.telephone),
       adresseLigne1: this.trimOrEmpty(client?.adresseLigne1),
       adresseLigne2: this.trimOrEmpty(client?.adresseLigne2),
@@ -660,6 +673,9 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       ...base,
       telephone: this.trimOrNull(base.telephone),
       immatriculation: this.trimOrNull(base.immatriculation),
+      vehiculeMarque: this.trimOrNull(base.vehiculeMarque),
+      vehiculeModele: this.trimOrNull(base.vehiculeModele),
+      vehiculeEnergie: this.trimOrNull(base.vehiculeEnergie),
       adresseLigne1: this.trimOrNull(base.adresseLigne1),
       adresseLigne2: this.trimOrNull(base.adresseLigne2),
       adresseCodePostal: this.trimOrNull(base.adresseCodePostal),
@@ -672,6 +688,9 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   ): {
     telephone?: string | null;
     immatriculation?: string | null;
+    vehiculeMarque?: string | null;
+    vehiculeModele?: string | null;
+    vehiculeEnergie?: string | null;
     adresseLigne1?: string | null;
     adresseLigne2?: string | null;
     adresseCodePostal?: string | null;
@@ -685,6 +704,9 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     const payload = {
       telephone: this.trimOrNull(trimmed.telephone),
       immatriculation: this.trimOrNull(trimmed.immatriculation),
+      vehiculeMarque: this.trimOrNull(trimmed.vehiculeMarque),
+      vehiculeModele: this.trimOrNull(trimmed.vehiculeModele),
+      vehiculeEnergie: this.trimOrNull(trimmed.vehiculeEnergie),
       adresseLigne1: this.trimOrNull(trimmed.adresseLigne1),
       adresseLigne2: this.trimOrNull(trimmed.adresseLigne2),
       adresseCodePostal: this.trimOrNull(trimmed.adresseCodePostal),

@@ -7,6 +7,7 @@ export interface ClientResponse {
   immatriculation?: string | null;
   vehiculeMarque?: string | null;
   vehiculeModele?: string | null;
+  vehiculeEnergie?: string | null;
   adresseLigne1?: string | null;
   adresseLigne2?: string | null;
   codePostal?: string | null;
@@ -27,6 +28,7 @@ export interface CreateClientPayload {
   immatriculation: string;
   vehiculeMarque: string;
   vehiculeModele: string;
+  vehiculeEnergie?: string | null;
   adresseLigne1: string;
   adresseLigne2?: string | null;
   codePostal: string;

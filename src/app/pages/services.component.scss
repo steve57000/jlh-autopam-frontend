@@ -161,6 +161,17 @@
     }
   }
 
+  .services-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+    align-items: stretch;
+    grid-auto-rows: 1fr;
+
+    > app-service-card { display: block; height: 100%; }
+    @include anim.staggered-list('> app-service-card', .1s, 20);
+  }
+
   @media (min-width: 1280px) {
     .services-list {
       gap: 18px;
