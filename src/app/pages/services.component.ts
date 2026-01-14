@@ -35,8 +35,7 @@ export class ServicesComponent implements OnInit, OnDestroy {
       title: 'Nos services',
       description:
         'Découvrez l’ensemble de nos prestations et trouvez rapidement la solution adaptée à votre véhicule.',
-      anchor: '#services-list',
-      cta: 'Accéder aux services'
+      cta: 'Découvrir nos services'
     },
     {
       id: 'entretien',
@@ -45,7 +44,12 @@ export class ServicesComponent implements OnInit, OnDestroy {
       description:
         'Révisions complètes, contrôles de sécurité et mise à jour du carnet d’entretien digital, tout en respectant les préconisations constructeurs.',
       link: '/services/entretien',
-      cta: 'Voir la fiche entretien'
+      cta: 'Voir la fiche entretien',
+      highlights: [
+        'Révision complète selon le carnet constructeur.',
+        'Contrôle de sécurité et mise à jour du carnet digital.',
+        'Pièces d’origine ou équivalentes garanties.'
+      ]
     },
     {
       id: 'mecanique',
@@ -54,7 +58,12 @@ export class ServicesComponent implements OnInit, OnDestroy {
       description:
         'Réparations lourdes, distribution, transmission et motorisation : nos techniciens couvrent toutes les opérations mécaniques complexes.',
       link: '/services/mecanique',
-      cta: 'Voir la fiche mécanique'
+      cta: 'Voir la fiche mécanique',
+      highlights: [
+        'Diagnostic approfondi et interventions lourdes.',
+        'Transmission, embrayage et distribution.',
+        'Expertise multimarque et pièces garanties.'
+      ]
     },
     {
       id: 'pneumatiques',
@@ -63,7 +72,12 @@ export class ServicesComponent implements OnInit, OnDestroy {
       description:
         'Conseil sur vos pneus, montage rapide, équilibrage et géométrie 3D pour assurer tenue de route et sécurité.',
       link: '/services/pneumatiques',
-      cta: 'Voir la fiche pneumatiques'
+      cta: 'Voir la fiche pneumatiques',
+      highlights: [
+        'Montage, équilibrage et contrôle de pression.',
+        'Réglage de la géométrie 3D.',
+        'Conseil personnalisé sur la longévité des pneus.'
+      ]
     },
     {
       id: 'diagnostic',
@@ -72,7 +86,12 @@ export class ServicesComponent implements OnInit, OnDestroy {
       description:
         'Diagnostic multimarque, calibrations ADAS et mises à jour logicielles pour détecter et résoudre rapidement les anomalies.',
       link: '/services/diagnostic',
-      cta: 'Voir la fiche diagnostic'
+      cta: 'Voir la fiche diagnostic',
+      highlights: [
+        'Lecture des codes défauts multimarques.',
+        'Mises à jour logicielles et calibrations ADAS.',
+        'Rapport clair et recommandations ciblées.'
+      ]
     }
   ];
 

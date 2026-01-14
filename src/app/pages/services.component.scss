@@ -79,6 +79,7 @@
     &__panel {
       display: none;
       gap: 8px;
+      align-content: start;
 
       &.is-active {
         display: grid;
@@ -95,8 +96,67 @@
         color: color.scale(vars.$color-primary, $lightness: 18%);
       }
 
+      .services-tabs__highlights {
+        margin: 0;
+        padding-left: 1rem;
+        color: color.scale(vars.$color-primary, $lightness: 10%);
+        display: grid;
+        gap: 6px;
+      }
+
+      .services-tabs__cta {
+        font-weight: 600;
+        color: vars.$color-primary;
+      }
+
       a {
         justify-self: start;
+      }
+    }
+  }
+
+  .services-tab-content {
+    background: vars.$color-quaternary;
+    border-radius: vars.$border-radius-high;
+    box-shadow: vars.$shadow-small-light;
+    padding: 20px;
+  }
+
+  .services-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+    align-items: stretch;
+    grid-auto-rows: 1fr;
+
+    > app-service-card { display: block; height: 100%; }
+    @include anim.staggered-list('> app-service-card', .1s, 20);
+  }
+
+  .services-tab-detail {
+    display: grid;
+    gap: 12px;
+
+    &__content {
+      display: grid;
+      gap: 12px;
+      color: vars.$color-primary;
+
+      h3 {
+        margin: 0;
+        font-size: 1.4rem;
+      }
+
+      p {
+        margin: 0;
+        color: color.scale(vars.$color-primary, $lightness: 18%);
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 1rem;
+        display: grid;
+        gap: 6px;
       }
     }
   }
