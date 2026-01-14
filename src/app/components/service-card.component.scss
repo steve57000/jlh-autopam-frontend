@@ -111,9 +111,38 @@
     font-size:        1rem;
     color:            vars.$color-primary;
     line-height:      1.5;
+    margin: 0;
 
     @include anim.fade-in(.6s);
     animation-delay: calc(var(--delay) + 0.4s);
+
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::before {
+      content: '▸';
+      display: inline-block;
+      transition: transform vars.$transition-fast;
+    }
+
+    &[open] summary::before {
+      transform: rotate(90deg);
+    }
+
+    p {
+      margin: 0.6rem 0 0;
+      color: vars.$color-primary;
+    }
   }
 }
 
