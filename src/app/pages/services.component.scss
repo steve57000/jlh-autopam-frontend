@@ -24,59 +24,71 @@
     color: vars.$color-quaternary;
   }
 
+  .services-intro {
+    margin: 0 0 16px;
+    color: color.scale(vars.$color-quaternary, $alpha: -35%);
+    max-width: 760px;
+  }
+
   .aside {
     position: sticky;
     top: 12px;
   }
 
-  .services-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 14px;
-    align-items: stretch;
-    grid-auto-rows: 1fr;
+  .services-tabs {
+    background: vars.$color-quaternary;
+    border-radius: vars.$border-radius-high;
+    box-shadow: vars.$shadow-small-light;
+    padding: 16px;
+    margin-bottom: 24px;
 
-    > app-service-card { display: block; height: 100%; }
-    @include anim.staggered-list('> app-service-card', .1s, 20);
-  }
-
-  .services-details {
-    margin-top: 32px;
-
-    &__header {
-      display: grid;
+    &__list {
+      display: flex;
+      flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 20px;
+      border-bottom: 1px solid color.scale(vars.$color-primary, $alpha: -80%);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
 
-      h2 {
-        margin-bottom: 0;
+    &__tab {
+      border: none;
+      background: color.scale(vars.$color-primary, $alpha: -85%);
+      color: vars.$color-primary;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all vars.$transition-fast;
+
+      &:hover {
+        background: color.scale(vars.$color-primary, $alpha: -70%);
       }
 
-      p {
-        margin: 0;
-        color: color.scale(vars.$color-quaternary, $alpha: -35%);
-        max-width: 720px;
+      &.is-active {
+        background: vars.$color-primary;
+        color: vars.$color-tertiary;
+        box-shadow: vars.$shadow-btn;
       }
     }
 
-    &__grid {
+    &__panels {
       display: grid;
-      gap: 16px;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     }
 
-    &__card {
-      background: vars.$color-quaternary;
-      border-radius: vars.$border-radius-high;
-      padding: 20px;
-      box-shadow: vars.$shadow-small-light;
-      display: grid;
-      gap: 12px;
+    &__panel {
+      display: none;
+      gap: 8px;
+      align-content: start;
+
+      &.is-active {
+        display: grid;
+      }
 
       h3 {
         margin: 0;
+        font-size: 1.25rem;
         color: vars.$color-primary;
-        font-size: 1.2rem;
       }
 
       p {
@@ -88,6 +100,17 @@
         justify-self: start;
       }
     }
+  }
+
+  .services-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+    align-items: stretch;
+    grid-auto-rows: 1fr;
+
+    > app-service-card { display: block; height: 100%; }
+    @include anim.staggered-list('> app-service-card', .1s, 20);
   }
 
   @media (min-width: 1280px) {

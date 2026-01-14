@@ -15,18 +15,74 @@ import { DemandeResponse } from '../services/client-dashboard.service';
 import { ToastService} from '../shared/toast/toast.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import {Router} from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { ServiceEntretienComponent } from './service-entretien.component';
+import { ServiceMecaniqueComponent } from './service-mecanique.component';
+import { ServicePneumatiquesComponent } from './service-pneumatiques.component';
+import { ServiceDiagnosticComponent } from './service-diagnostic.component';
 
 @Component({
   standalone: true,
   selector: 'app-services',
-  imports: [CommonModule, ServiceCardComponent, CurrentQuoteComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    ServiceCardComponent,
+    CurrentQuoteComponent,
+    ServiceEntretienComponent,
+    ServiceMecaniqueComponent,
+    ServicePneumatiquesComponent,
+    ServiceDiagnosticComponent
+  ],
   templateUrl: './services.component.html',
   styleUrls: ['./services.component.scss']
 })
 export class ServicesComponent implements OnInit, OnDestroy {
   services: ServiceDto[] = [];
   draft?: DemandeResponse | null;
+  activeTab = 'services';
+  tabs = [
+    {
+      id: 'services',
+      label: 'Nos services',
+      title: 'Nos services',
+      description:
+        'Découvrez l’ensemble de nos prestations et trouvez rapidement la solution adaptée à votre véhicule.',
+      cta: 'Découvrir nos services'
+    },
+    {
+      id: 'entretien',
+      label: 'Entretien & révision',
+      title: 'Entretien & révision constructeur',
+      description:
+        'Révisions complètes, contrôles de sécurité et mise à jour du carnet d’entretien digital, tout en respectant les préconisations constructeurs.',
+      component: 'entretien'
+    },
+    {
+      id: 'mecanique',
+      label: 'Mécanique générale',
+      title: 'Mécanique générale',
+      description:
+        'Réparations lourdes, distribution, transmission et motorisation : nos techniciens couvrent toutes les opérations mécaniques complexes.',
+      component: 'mecanique'
+    },
+    {
+      id: 'pneumatiques',
+      label: 'Pneumatiques & géométrie',
+      title: 'Pneumatiques & géométrie',
+      description:
+        'Conseil sur vos pneus, montage rapide, équilibrage et géométrie 3D pour assurer tenue de route et sécurité.',
+      component: 'pneumatiques'
+    },
+    {
+      id: 'diagnostic',
+      label: 'Diagnostic électronique',
+      title: 'Diagnostic électronique',
+      description:
+        'Diagnostic multimarque, calibrations ADAS et mises à jour logicielles pour détecter et résoudre rapidement les anomalies.',
+      component: 'diagnostic'
+    }
+  ];
 
   private destroy$ = new Subject<void>();
   private sub?: Subscription;
@@ -69,6 +125,10 @@ export class ServicesComponent implements OnInit, OnDestroy {
 
   trackById(_i: number, svc: ServiceDto) {
     return svc.idService as number;
+  }
+
+  setActiveTab(tabId: string) {
+    this.activeTab = tabId;
   }
 
   async refreshDraft() {
