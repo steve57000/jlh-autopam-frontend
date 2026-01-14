@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use '../../styles/variables' as vars;
 @use '../../styles/animations' as anim;
 
@@ -53,7 +54,7 @@
 
       p {
         margin: 0;
-        color: vars.$color-text-muted;
+        color: color.scale(vars.$color-quaternary, $alpha: -35%);
         max-width: 720px;
       }
     }
@@ -65,22 +66,22 @@
     }
 
     &__card {
-      background: vars.$color-white;
-      border-radius: 16px;
+      background: vars.$color-quaternary;
+      border-radius: vars.$border-radius-high;
       padding: 20px;
-      box-shadow: 0 12px 24px rgba(13, 28, 52, 0.08);
+      box-shadow: vars.$shadow-small-light;
       display: grid;
       gap: 12px;
 
       h3 {
         margin: 0;
-        color: vars.$color-quaternary;
+        color: vars.$color-primary;
         font-size: 1.2rem;
       }
 
       p {
         margin: 0;
-        color: vars.$color-text-muted;
+        color: color.scale(vars.$color-primary, $lightness: 18%);
       }
 
       a {
