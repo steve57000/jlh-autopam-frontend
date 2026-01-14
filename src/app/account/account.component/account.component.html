@@ -20,12 +20,11 @@
           </div>
         </div>
 
-        <div>
-          <label>Email</label>
-          <input type="email" formControlName="email" [readonly]="true" />
-        </div>
-
         <div class="grid-2">
+          <div>
+            <label>Email</label>
+            <input type="email" formControlName="email" [readonly]="true" />
+          </div>
           <div>
             <label>Téléphone</label>
             <input type="text"
@@ -38,20 +37,57 @@
               <small class="field-error">Format attendu : 0X XX XX XX XX</small>
             }
           </div>
-
-          <div>
-            <label>Immatriculation</label>
-            <input type="text"
-                   formControlName="immatriculation"
-                   placeholder="AA-123-AA"
-                   [class.invalid]="f.immatriculation.touched && f.immatriculation.invalid" />
-            @if (f.immatriculation.errors?.['server']) {
-              <small class="field-error">{{ f.immatriculation.errors?.['server'] }}</small>
-            } @else if (f.immatriculation.touched && f.immatriculation.errors?.['pattern']) {
-              <small class="field-error">Format attendu : AA-123-AA</small>
-            }
-          </div>
         </div>
+
+        <fieldset class="group">
+          <legend>Véhicule</legend>
+
+          <div class="grid-2">
+            <div>
+              <label>Marque</label>
+              <select formControlName="vehiculeMarque">
+                <option value="">Sélectionner…</option>
+                @for (opt of vehicleBrandOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label>Modèle</label>
+              <select formControlName="vehiculeModele">
+                <option value="">Sélectionner…</option>
+                @for (opt of vehicleModelOptions(); track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div>
+              <label>Énergie</label>
+              <select formControlName="vehiculeEnergie">
+                <option value="">Sélectionner…</option>
+                @for (opt of vehicleEnergyOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label>Immatriculation</label>
+              <input type="text"
+                     formControlName="immatriculation"
+                     placeholder="AA-123-AA"
+                     [class.invalid]="f.immatriculation.touched && f.immatriculation.invalid" />
+              @if (f.immatriculation.errors?.['server']) {
+                <small class="field-error">{{ f.immatriculation.errors?.['server'] }}</small>
+              } @else if (f.immatriculation.touched && f.immatriculation.errors?.['pattern']) {
+                <small class="field-error">Format attendu : AA-123-AA</small>
+              }
+            </div>
+          </div>
+        </fieldset>
 
         <fieldset class="addr">
           <legend>Adresse postale</legend>
@@ -102,10 +138,29 @@
     <form [formGroup]="pwdForm" (ngSubmit)="submitPassword()">
       <div>
         <label>Ancien mot de passe</label>
-        <input type="password"
-               formControlName="oldPassword"
-               autocomplete="current-password"
-               [class.invalid]="fp.oldPassword.touched && fp.oldPassword.invalid" />
+        <div class="input-with-action">
+          <input [type]="showOldPassword() ? 'text' : 'password'"
+                 formControlName="oldPassword"
+                 autocomplete="off"
+                 [class.invalid]="fp.oldPassword.touched && fp.oldPassword.invalid" />
+          <button type="button"
+                  class="password-toggle"
+                  (click)="togglePassword('old')"
+                  [attr.aria-label]="showOldPassword() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+            @if (showOldPassword()) {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+                <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/>
+                <path d="M4 4l16 16"/>
+              </svg>
+            } @else {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+                <circle cx="12" cy="12" r="3.5"/>
+              </svg>
+            }
+          </button>
+        </div>
         @if (fp.oldPassword.touched && fp.oldPassword.errors?.['required']) {
           <small class="field-error">Ancien mot de passe requis</small>
         }
@@ -113,10 +168,29 @@
 
       <div>
         <label>Nouveau mot de passe</label>
-        <input type="password"
-               formControlName="newPassword"
-               autocomplete="new-password"
-               [class.invalid]="fp.newPassword.touched && fp.newPassword.invalid" />
+        <div class="input-with-action">
+          <input [type]="showNewPassword() ? 'text' : 'password'"
+                 formControlName="newPassword"
+                 autocomplete="new-password"
+                 [class.invalid]="fp.newPassword.touched && fp.newPassword.invalid" />
+          <button type="button"
+                  class="password-toggle"
+                  (click)="togglePassword('new')"
+                  [attr.aria-label]="showNewPassword() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+            @if (showNewPassword()) {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+                <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/>
+                <path d="M4 4l16 16"/>
+              </svg>
+            } @else {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+                <circle cx="12" cy="12" r="3.5"/>
+              </svg>
+            }
+          </button>
+        </div>
         @if (fp.newPassword.touched) {
           @if (fp.newPassword.errors?.['required']) {
             <small class="field-error">Nouveau mot de passe requis</small>
@@ -129,10 +203,29 @@
 
       <div>
         <label>Confirmer le nouveau mot de passe</label>
-        <input type="password"
-               formControlName="confirmPassword"
-               autocomplete="new-password"
-               [class.invalid]="fp.confirmPassword.touched && (fp.confirmPassword.invalid || pwdForm.errors?.['mismatch'])" />
+        <div class="input-with-action">
+          <input [type]="showConfirmPassword() ? 'text' : 'password'"
+                 formControlName="confirmPassword"
+                 autocomplete="new-password"
+                 [class.invalid]="fp.confirmPassword.touched && (fp.confirmPassword.invalid || pwdForm.errors?.['mismatch'])" />
+          <button type="button"
+                  class="password-toggle"
+                  (click)="togglePassword('confirm')"
+                  [attr.aria-label]="showConfirmPassword() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
+            @if (showConfirmPassword()) {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+                <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/>
+                <path d="M4 4l16 16"/>
+              </svg>
+            } @else {
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+                <circle cx="12" cy="12" r="3.5"/>
+              </svg>
+            }
+          </button>
+        </div>
         @if (fp.confirmPassword.touched) {
           @if (fp.confirmPassword.errors?.['required']) {
             <small class="field-error">Confirmation requise</small>

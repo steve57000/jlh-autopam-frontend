@@ -47,7 +47,7 @@ export class AdminServicesComponent implements OnInit {
       libelle: ['', [Validators.required, Validators.maxLength(100)]],
       description: ['', [Validators.maxLength(2000)]],
       descriptionLongue: ['', [Validators.maxLength(4000)]],
-      icon: [''],
+      iconId: [null],
       prixUnitaire: ['', [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
       quantiteMax: [1, [Validators.required, Validators.min(1)]],
     });
@@ -100,11 +100,11 @@ export class AdminServicesComponent implements OnInit {
       libelle: service.libelle,
       description: service.description,
       descriptionLongue: service.descriptionLongue,
-      icon: service.icon ?? '',
+      iconId: service.iconId ?? null,
       prixUnitaire: service.prixUnitaire,
       quantiteMax: service.quantiteMax ?? 1,
     });
-    this.iconPreview = this.resolveIconUrl(service.icon);
+    this.iconPreview = this.resolveIconUrl(service.iconUrl);
     this.showIconLibrary = false;
     this.showModal = true;
   }
@@ -117,33 +117,14 @@ export class AdminServicesComponent implements OnInit {
     this.showIconLibrary = false;
   }
 
-  onIconSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) {
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      this.toast.error('Le fichier doit être une image.');
-      input.value = '';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.iconPreview = typeof reader.result === 'string' ? reader.result : null;
-      this.form.patchValue({ icon: this.iconPreview || '' });
-    };
-    reader.readAsDataURL(file);
-  }
-
   selectIcon(icon: ServiceIconDto) {
     this.iconPreview = this.resolveIconUrl(icon.url);
-    this.form.patchValue({ icon: icon.url });
+    this.form.patchValue({ iconId: icon.idIcon });
   }
 
   getServiceIcon(service: ServiceDto): string | null {
-    if (service.icon) {
-      return this.resolveIconUrl(service.icon);
+    if (service.iconUrl) {
+      return this.resolveIconUrl(service.iconUrl);
     }
     const lookupKey = this.normalizeLabel(service.libelle);
     const matched = this.iconLabelMap.get(lookupKey) ?? null;
@@ -152,7 +133,7 @@ export class AdminServicesComponent implements OnInit {
 
   clearIcon() {
     this.iconPreview = null;
-    this.form.patchValue({ icon: '' });
+    this.form.patchValue({ iconId: null });
   }
 
   toggleIconLibrary() {
@@ -168,12 +149,11 @@ export class AdminServicesComponent implements OnInit {
     const { libelle, description, descriptionLongue, prixUnitaire, quantiteMax } = this.form.value;
     const prixValue = typeof prixUnitaire === 'number' ? prixUnitaire : Number(prixUnitaire);
     const quantiteValue = typeof quantiteMax === 'number' ? quantiteMax : Number(quantiteMax);
-    const iconValue = typeof this.form.value.icon === 'string' ? this.form.value.icon.trim() : '';
     const body = {
       libelle,
       description,
       descriptionLongue,
-      icon: iconValue || null,
+      iconId: this.form.value.iconId ?? null,
       prixUnitaire: prixValue,
       quantiteMax: quantiteValue
     };

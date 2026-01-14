@@ -109,11 +109,56 @@
               </label>
               <label>
                 <span>Marque</span>
-                <input type="text" [ngModel]="draft.vehiculeMarque || ''" (ngModelChange)="updateField('vehiculeMarque', $event)" />
+                <select
+                  [ngModel]="brandSelectValue(draft.vehiculeMarque)"
+                  (ngModelChange)="updateBrandSelection($event)"
+                >
+                  <option value="">Sélectionner…</option>
+                  @for (opt of vehicleBrandOptions(); track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                  <option value="__custom__">Autre (saisir)</option>
+                </select>
+                @if (isBrandCustom(draft.vehiculeMarque)) {
+                  <input
+                    type="text"
+                    [ngModel]="draft.vehiculeMarque || ''"
+                    (ngModelChange)="updateField('vehiculeMarque', $event)"
+                    placeholder="Marque personnalisée"
+                  />
+                }
               </label>
               <label>
                 <span>Modèle</span>
-                <input type="text" [ngModel]="draft.vehiculeModele || ''" (ngModelChange)="updateField('vehiculeModele', $event)" />
+                @if (!isBrandCustom(draft.vehiculeMarque)) {
+                  <select
+                    [ngModel]="modelSelectValue(brandSelectValue(draft.vehiculeMarque), draft.vehiculeModele)"
+                    (ngModelChange)="updateModelSelection(brandSelectValue(draft.vehiculeMarque), $event)"
+                  >
+                    <option value="">Sélectionner…</option>
+                    @for (opt of modelOptionsForBrand(brandSelectValue(draft.vehiculeMarque)); track opt.value) {
+                      <option [value]="opt.value">{{ opt.label }}</option>
+                    }
+                    <option value="__custom__">Autre (saisir)</option>
+                  </select>
+                }
+                @if (isBrandCustom(draft.vehiculeMarque) || isModelCustom(brandSelectValue(draft.vehiculeMarque), draft.vehiculeModele)) {
+                  <input
+                    type="text"
+                    [ngModel]="draft.vehiculeModele || ''"
+                    (ngModelChange)="updateField('vehiculeModele', $event)"
+                    placeholder="Modèle personnalisé"
+                  />
+                }
+              </label>
+              <label>
+                <span>Énergie</span>
+                <select [ngModel]="draft.vehiculeEnergie || ''" (ngModelChange)="updateField('vehiculeEnergie', $event)">
+                  <option value="">Sélectionner…</option>
+                  @for (opt of vehicleEnergyOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
               </label>
             </section>
 

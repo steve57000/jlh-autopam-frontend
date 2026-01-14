@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // ✅ nécessaire pour [(ngModel)]
 import { DemandeResponse } from '../../services/client-dashboard.service';
@@ -13,13 +13,14 @@ export type TypeCode = DemandeTypeCode;
   templateUrl: './current-quote.component.html',
   styleUrls: ['./current-quote.component.scss']
 })
-export class CurrentQuoteComponent {
+export class CurrentQuoteComponent implements OnChanges {
   @Input() demande?: DemandeResponse | null;
 
   @Output() remove = new EventEmitter<{ idDemande: number; idService: number }>();
   @Output() submit = new EventEmitter<{
     type: TypeCode;
     immatriculation?: string | null;
+    telephone?: string | null;
     rendezVousCommentaire?: string | null;
     validationPrix?: boolean;
   }>();
@@ -27,8 +28,16 @@ export class CurrentQuoteComponent {
   // champs du formulaire local (brouillon)
   type: TypeCode = 'Devis';
   immatOverride: string | null = null;
+  telephoneOverride: string | null = null;
   rendezVousCommentaire: string | null = null;
   validationPrix = false;
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['demande'] && this.demande?.client) {
+      this.immatOverride = this.demande.client.immatriculation ?? null;
+      this.telephoneOverride = this.demande.client.telephone ?? null;
+    }
+  }
 
   total(): number {
     const s = this.demande?.services ?? [];
@@ -45,6 +54,7 @@ export class CurrentQuoteComponent {
     this.submit.emit({
       type: this.type,
       immatriculation: (this.immatOverride && this.immatOverride.trim()) || null,
+      telephone: (this.telephoneOverride && this.telephoneOverride.trim()) || null,
       rendezVousCommentaire: this.rendezVousCommentaire?.trim() || null,
       validationPrix: this.validationPrix
     });
