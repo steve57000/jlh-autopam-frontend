@@ -12,59 +12,65 @@
 
     <div class="col content">
       <h2>Nos services</h2>
-      <div class="services-list">
-        @for (svc of services; track trackById($index, svc)) {
-          <app-service-card
-            [service]="svc"
-            [delay]="$index * 0.2"
-            [showAdd]="isClient">
-          </app-service-card>
-        } @empty {
-          <p>Aucun service disponible pour le moment.</p>
-        }
-      </div>
+      <p class="services-intro">
+        Explorez toutes nos prestations et accédez en un clic aux expertises détaillées grâce à une navigation
+        par onglets.
+      </p>
 
-      <section class="services-details">
-        <div class="services-details__header">
-          <h2>Nos expertises détaillées</h2>
-          <p>
-            Retrouvez ici les prestations mises en avant dans le footer. Chaque fiche détaille nos méthodes,
-            équipements et bénéfices pour votre véhicule.
-          </p>
+      <section class="services-tabs" aria-label="Nos services et expertises détaillées">
+        <div class="services-tabs__list" role="tablist">
+          @for (tab of tabs; track tab.id) {
+            <button
+              type="button"
+              role="tab"
+              class="services-tabs__tab"
+              [class.is-active]="activeTab === tab.id"
+              [attr.aria-selected]="activeTab === tab.id"
+              [attr.aria-controls]="'panel-' + tab.id"
+              [attr.id]="'tab-' + tab.id"
+              (click)="setActiveTab(tab.id)">
+              {{ tab.label }}
+            </button>
+          }
         </div>
-        <div class="services-details__grid">
-          <article class="services-details__card">
-            <h3>Entretien &amp; révision constructeur</h3>
-            <p>
-              Révisions complètes, contrôles de sécurité et mise à jour du carnet d’entretien digital, tout en
-              respectant les préconisations constructeurs.
-            </p>
-            <a class="cta-btn-secondary" routerLink="/services/entretien">Voir la fiche entretien</a>
-          </article>
-          <article class="services-details__card">
-            <h3>Mécanique générale</h3>
-            <p>
-              Réparations lourdes, distribution, transmission et motorisation : nos techniciens couvrent toutes
-              les opérations mécaniques complexes.
-            </p>
-            <a class="cta-btn-secondary" routerLink="/services/mecanique">Voir la fiche mécanique</a>
-          </article>
-          <article class="services-details__card">
-            <h3>Pneumatiques &amp; géométrie</h3>
-            <p>
-              Conseil sur vos pneus, montage rapide, équilibrage et géométrie 3D pour assurer tenue de route et
-              sécurité.
-            </p>
-            <a class="cta-btn-secondary" routerLink="/services/pneumatiques">Voir la fiche pneumatiques</a>
-          </article>
-          <article class="services-details__card">
-            <h3>Diagnostic électronique</h3>
-            <p>
-              Diagnostic multimarque, calibrations ADAS et mises à jour logicielles pour détecter et résoudre
-              rapidement les anomalies.
-            </p>
-            <a class="cta-btn-secondary" routerLink="/services/diagnostic">Voir la fiche diagnostic</a>
-          </article>
+        <div class="services-tabs__panels">
+          @for (tab of tabs; track tab.id) {
+            <div
+              class="services-tabs__panel"
+              role="tabpanel"
+              [class.is-active]="activeTab === tab.id"
+              [attr.id]="'panel-' + tab.id"
+              [attr.aria-labelledby]="'tab-' + tab.id">
+              @if (tab.id === 'services') {
+                <h3>{{ tab.title }}</h3>
+                <p>{{ tab.description }}</p>
+                <div class="services-list">
+                  @for (svc of services; track trackById($index, svc)) {
+                    <app-service-card
+                      [service]="svc"
+                      [delay]="$index * 0.2"
+                      [showAdd]="isClient">
+                    </app-service-card>
+                  } @empty {
+                    <p>Aucun service disponible pour le moment.</p>
+                  }
+                </div>
+              } @else {
+                <h3>{{ tab.title }}</h3>
+                <p>{{ tab.description }}</p>
+                @if (tab.highlights?.length) {
+                  <ul class="services-tabs__highlights">
+                    @for (item of tab.highlights; track item) {
+                      <li>{{ item }}</li>
+                    }
+                  </ul>
+                }
+                @if (tab.link) {
+                  <a class="cta-btn-secondary" [routerLink]="tab.link">{{ tab.cta }}</a>
+                }
+              }
+            </div>
+          }
         </div>
       </section>
     </div>
