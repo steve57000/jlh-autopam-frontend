@@ -39,6 +39,56 @@
     @include anim.staggered-list('> app-service-card', .1s, 20);
   }
 
+  .services-details {
+    margin-top: 32px;
+
+    &__header {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 20px;
+
+      h2 {
+        margin-bottom: 0;
+      }
+
+      p {
+        margin: 0;
+        color: vars.$color-text-muted;
+        max-width: 720px;
+      }
+    }
+
+    &__grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    &__card {
+      background: vars.$color-white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 12px 24px rgba(13, 28, 52, 0.08);
+      display: grid;
+      gap: 12px;
+
+      h3 {
+        margin: 0;
+        color: vars.$color-quaternary;
+        font-size: 1.2rem;
+      }
+
+      p {
+        margin: 0;
+        color: vars.$color-text-muted;
+      }
+
+      a {
+        justify-self: start;
+      }
+    }
+  }
+
   @media (min-width: 1280px) {
     .services-list {
       gap: 18px;
