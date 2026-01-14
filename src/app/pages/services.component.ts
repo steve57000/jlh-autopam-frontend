@@ -15,18 +15,66 @@ import { DemandeResponse } from '../services/client-dashboard.service';
 import { ToastService} from '../shared/toast/toast.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import {Router} from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   standalone: true,
   selector: 'app-services',
-  imports: [CommonModule, ServiceCardComponent, CurrentQuoteComponent],
+  imports: [CommonModule, RouterModule, ServiceCardComponent, CurrentQuoteComponent],
   templateUrl: './services.component.html',
   styleUrls: ['./services.component.scss']
 })
 export class ServicesComponent implements OnInit, OnDestroy {
   services: ServiceDto[] = [];
   draft?: DemandeResponse | null;
+  activeTab = 'services';
+  tabs = [
+    {
+      id: 'services',
+      label: 'Nos services',
+      title: 'Nos services',
+      description:
+        'Découvrez l’ensemble de nos prestations et trouvez rapidement la solution adaptée à votre véhicule.',
+      anchor: '#services-list',
+      cta: 'Accéder aux services'
+    },
+    {
+      id: 'entretien',
+      label: 'Entretien & révision',
+      title: 'Entretien & révision constructeur',
+      description:
+        'Révisions complètes, contrôles de sécurité et mise à jour du carnet d’entretien digital, tout en respectant les préconisations constructeurs.',
+      link: '/services/entretien',
+      cta: 'Voir la fiche entretien'
+    },
+    {
+      id: 'mecanique',
+      label: 'Mécanique générale',
+      title: 'Mécanique générale',
+      description:
+        'Réparations lourdes, distribution, transmission et motorisation : nos techniciens couvrent toutes les opérations mécaniques complexes.',
+      link: '/services/mecanique',
+      cta: 'Voir la fiche mécanique'
+    },
+    {
+      id: 'pneumatiques',
+      label: 'Pneumatiques & géométrie',
+      title: 'Pneumatiques & géométrie',
+      description:
+        'Conseil sur vos pneus, montage rapide, équilibrage et géométrie 3D pour assurer tenue de route et sécurité.',
+      link: '/services/pneumatiques',
+      cta: 'Voir la fiche pneumatiques'
+    },
+    {
+      id: 'diagnostic',
+      label: 'Diagnostic électronique',
+      title: 'Diagnostic électronique',
+      description:
+        'Diagnostic multimarque, calibrations ADAS et mises à jour logicielles pour détecter et résoudre rapidement les anomalies.',
+      link: '/services/diagnostic',
+      cta: 'Voir la fiche diagnostic'
+    }
+  ];
 
   private destroy$ = new Subject<void>();
   private sub?: Subscription;
@@ -69,6 +117,10 @@ export class ServicesComponent implements OnInit, OnDestroy {
 
   trackById(_i: number, svc: ServiceDto) {
     return svc.idService as number;
+  }
+
+  setActiveTab(tabId: string) {
+    this.activeTab = tabId;
   }
 
   async refreshDraft() {
