@@ -21,68 +21,68 @@ type MetiersPicto = {
   description: string;
 };
 
-const DEFAULT_METIERS_PICTOS: MetiersPicto[] = [
-  {
-    img: '/icons/pictos-metiers/picto-metier-pneu.png',
-    label: 'Pneumatiques',
-    description: `Montage, équilibrage et réparation de pneumatiques été, hiver ou 4 saisons pour toutes marques de véhicules.`
-  },
-  {
-    img: '/icons/pictos-metiers/picto-metier-hybride.png',
-    label: 'Véhicules hybrides',
-    description: `Interventions sécurisées sur les chaînes de traction et batteries haute tension grâce à nos techniciens habilités.`
-  },
-  {
-    img: '/icons/pictos-metiers/picto-metier-geometrie.png',
-    label: 'Géométrie',
-    description: `Réglage précis du parallélisme et du carrossage pour préserver vos pneus et garantir une tenue de route optimale.`
-  },
-  {
-    img: '/icons/pictos-metiers/picto-metier-freinage.png',
-    label: 'Freinage',
-    description: `Contrôle et remplacement des plaquettes, disques et liquides afin d’assurer un freinage réactif et sécurisant.`
-  },
-  {
-    img: '/icons/pictos-metiers/picto-metier-embrayage.png',
-    label: 'Embrayage',
-    description: `Diagnostic et remplacement des embrayages, volants moteurs et butées pour une transmission souple et fiable.`
-  },
-  {
-    img: '/icons/pictos-metiers/picto-metier-echappement.png',
-    label: 'Échappement',
-    description: `Inspection, réparation et remplacement des lignes d’échappement et filtres à particules pour un moteur sain.`
-  },
-  {
-    img: '/icons/pictos-metiers/picto-metier-distribution.png',
-    label: 'Distribution',
-    description: `Remplacement de courroies ou de chaînes de distribution selon les préconisations constructeur.`
-  },
-  {
-    img: '/icons/pictos-metiers/picto-metier-climatisation.png',
-    label: 'Climatisation',
-    description: `Entretien complet du circuit : recharge, nettoyage, contrôle d’étanchéité et désinfection de l’habitacle.`
-  },
-  {
-    img: '/icons/pictos-metiers/picto-metier-amortisseur.png',
-    label: 'Amortisseurs',
-    description: `Remplacement des amortisseurs, ressorts et biellettes pour une conduite confortable et maîtrisée.`
-  },
-  {
-    img: '/icons/pictos-metiers/picto-metier-pre_controle.png',
-    label: 'Pré-contrôle technique',
-    description: `Préparation complète au contrôle technique avec diagnostic des points de sécurité et corrections nécessaires.`
-  },
-  {
-    img: '/icons/pictos-metiers/picto-metier-revision_constructeur.png',
-    label: 'Révision constructeur',
-    description: `Révisions certifiées respectant le carnet d’entretien constructeur et l’utilisation de pièces d’origine ou équivalentes.`
-  },
-  {
-    img: '/icons/pictos-metiers/picto-metier-vidange.png',
-    label: 'Vidange',
-    description: `Vidanges moteur avec huiles adaptées, remplacement des filtres et remise à zéro des indicateurs d’entretien.`
-  },
-];
+// const DEFAULT_METIERS_PICTOS: MetiersPicto[] = [
+//   {
+//     img: '/icons/pictos-metiers/picto-metier-pneu.png',
+//     label: 'Pneumatiques',
+//     description: `Montage, équilibrage et réparation de pneumatiques été, hiver ou 4 saisons pour toutes marques de véhicules.`
+//   },
+//   {
+//     img: '/icons/pictos-metiers/picto-metier-hybride.png',
+//     label: 'Véhicules hybrides',
+//     description: `Interventions sécurisées sur les chaînes de traction et batteries haute tension grâce à nos techniciens habilités.`
+//   },
+//   {
+//     img: '/icons/pictos-metiers/picto-metier-geometrie.png',
+//     label: 'Géométrie',
+//     description: `Réglage précis du parallélisme et du carrossage pour préserver vos pneus et garantir une tenue de route optimale.`
+//   },
+//   {
+//     img: '/icons/pictos-metiers/picto-metier-freinage.png',
+//     label: 'Freinage',
+//     description: `Contrôle et remplacement des plaquettes, disques et liquides afin d’assurer un freinage réactif et sécurisant.`
+//   },
+//   {
+//     img: '/icons/pictos-metiers/picto-metier-embrayage.png',
+//     label: 'Embrayage',
+//     description: `Diagnostic et remplacement des embrayages, volants moteurs et butées pour une transmission souple et fiable.`
+//   },
+//   {
+//     img: '/icons/pictos-metiers/picto-metier-echappement.png',
+//     label: 'Échappement',
+//     description: `Inspection, réparation et remplacement des lignes d’échappement et filtres à particules pour un moteur sain.`
+//   },
+//   {
+//     img: '/icons/pictos-metiers/picto-metier-distribution.png',
+//     label: 'Distribution',
+//     description: `Remplacement de courroies ou de chaînes de distribution selon les préconisations constructeur.`
+//   },
+//   {
+//     img: '/icons/pictos-metiers/picto-metier-climatisation.png',
+//     label: 'Climatisation',
+//     description: `Entretien complet du circuit : recharge, nettoyage, contrôle d’étanchéité et désinfection de l’habitacle.`
+//   },
+//   {
+//     img: '/icons/pictos-metiers/picto-metier-amortisseur.png',
+//     label: 'Amortisseurs',
+//     description: `Remplacement des amortisseurs, ressorts et biellettes pour une conduite confortable et maîtrisée.`
+//   },
+//   {
+//     img: '/icons/pictos-metiers/picto-metier-pre_controle.png',
+//     label: 'Pré-contrôle technique',
+//     description: `Préparation complète au contrôle technique avec diagnostic des points de sécurité et corrections nécessaires.`
+//   },
+//   {
+//     img: '/icons/pictos-metiers/picto-metier-revision_constructeur.png',
+//     label: 'Révision constructeur',
+//     description: `Révisions certifiées respectant le carnet d’entretien constructeur et l’utilisation de pièces d’origine ou équivalentes.`
+//   },
+//   {
+//     img: '/icons/pictos-metiers/picto-metier-vidange.png',
+//     label: 'Vidange',
+//     description: `Vidanges moteur avec huiles adaptées, remplacement des filtres et remise à zéro des indicateurs d’entretien.`
+//   },
+// ];
 
 @Component({
   selector: 'app-home',
@@ -136,22 +136,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   ];
 
-  metiersCards: { title: string; content: string; color: "light" | "dark" }[] = [
-    {
-      title: 'ENTRETIEN',
-      content: `Votre centre entretien JLH Auto Pam offre un service complet pour l’entretien et la réparation de véhicules.Nous proposons des services variés, tels que révisions, vidanges, changements de pneus, diagnostics de moteur, réparations de freins et suspension, et contrôles de géométrie.
-      Les clients bénéficient de techniciens qualifiés, d’outils modernes, d’un excellent rapport qualité-prix et d’un service personnalisé.`,
-      color: 'dark'
-    },
-    {
-      title: 'VITRAGE',
-      content: `Un impact, une fissure ? Pas de stress, JLH Auto Pam s’engage à changer ou réparer votre pare-brise. Nous offrons une large gamme de services de vitrage,
-      utilisant des fournisseurs de qualité  pour des résultats fiables et durables.
-      Nos techniciens expérimentés, équipés des derniers outils, assurent une installation rapide et efficace, avec une garantie de qualité pour votre tranquillité d’esprit.`,
-      color: 'dark'
-    }
-  ];
-
   metiersPictos: MetiersPicto[] = [];
 
 
@@ -170,21 +154,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     if (!isPlatformBrowser(this.platformId)) return; // <-- Empêche le code côté serveur
-
-    // Observer métiers
-    this.metiersObserver = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          this.startMetiersSlide();
-        } else {
-          this.clearMetiersSlide();
-        }
-      },
-      { threshold: 0.4 }
-    );
-    if (this.sectionMetiersRef?.nativeElement) {
-      this.metiersObserver.observe(this.sectionMetiersRef.nativeElement);
-    }
 
     // Observer agréments
     this.agrementsObserver = new IntersectionObserver(
@@ -209,14 +178,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.agrementsObserver) this.agrementsObserver.disconnect();
   }
 
-  startMetiersSlide() {
-    if (!this.metiersInterval) {
-      this.metiersInterval = setInterval(() => {
-        this.activeIndexMetiers = (this.activeIndexMetiers + 1) % this.metiersCards.length;
-      }, 8000);
-    }
-  }
-
   private buildMetiersFromServices(services: ServiceDto[]): MetiersPicto[] {
     const sorted = services
       .slice()
@@ -225,7 +186,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const defaults = this.getDefaultMetiersPictos();
 
     return sorted.map((service, index) => {
-      const icon = typeof service.icon === 'string' ? service.icon.trim() : '';
+      const icon = typeof service.iconUrl === 'string' ? service.iconUrl.trim() : '';
       const fallbackIcon = defaults[index % defaults.length]?.img;
       return {
         img: this.resolveIcon(icon) || fallbackIcon,
@@ -236,7 +197,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private getDefaultMetiersPictos(): MetiersPicto[] {
-    return DEFAULT_METIERS_PICTOS.map(item => ({
+    return this.metiersPictos.map(item => ({
       ...item,
       img: this.resolveIcon(item.img) || item.img
     }));

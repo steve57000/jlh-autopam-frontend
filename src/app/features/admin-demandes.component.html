@@ -168,6 +168,37 @@
 
         <section class="details-block details-grid details-block--editable">
           <label>
+            <span>Marque véhicule</span>
+            <input
+              type="text"
+              [ngModel]="draft.client?.vehiculeMarque ?? ''"
+              (ngModelChange)="updateClientField('vehiculeMarque', $event)"
+            />
+          </label>
+          <label>
+            <span>Modèle véhicule</span>
+            <input
+              type="text"
+              [ngModel]="draft.client?.vehiculeModele ?? ''"
+              (ngModelChange)="updateClientField('vehiculeModele', $event)"
+            />
+          </label>
+          <label>
+            <span>Énergie</span>
+            <select
+              [ngModel]="draft.client?.vehiculeEnergie ?? ''"
+              (ngModelChange)="updateClientField('vehiculeEnergie', $event)"
+            >
+              <option value="">Non renseigné</option>
+              @for (opt of vehicleEnergyOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </label>
+        </section>
+
+        <section class="details-block details-grid details-block--editable">
+          <label>
             <span>Adresse — ligne 1</span>
             <input
               type="text"

@@ -30,6 +30,7 @@ export interface DemandeDto {
     adresseVille?: string | null;
     vehiculeMarque?: string | null;
     vehiculeModele?: string | null;
+    vehiculeEnergie?: string | null;
   };
 }
 
@@ -49,6 +50,7 @@ export interface ClientSummaryDto {
   immatriculation?: string | null;
   vehiculeMarque?: string | null;
   vehiculeModele?: string | null;
+  vehiculeEnergie?: string | null;
   adresseLigne1?: string | null;
   adresseLigne2?: string | null;
   codePostal?: string | null;

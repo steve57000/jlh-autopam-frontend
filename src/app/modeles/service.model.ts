@@ -3,7 +3,8 @@ export interface ServiceDto {
   libelle: string;
   description?: string | null;
   descriptionLongue?: string | null;
-  icon?: string | null;
+  iconId?: number | null;
+  iconUrl?: string | null;
   prixUnitaire: number | string;
   quantiteMax?: number | null;
   archived?: boolean;

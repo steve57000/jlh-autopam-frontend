@@ -70,11 +70,18 @@
         color: vars.$color-tertiary;
         box-shadow: vars.$shadow-btn;
       }
-    }
 
     &__panels {
       display: grid;
     }
+  }
+
+  .services-tab-content {
+    background: vars.$color-quaternary;
+    border-radius: vars.$border-radius-high;
+    box-shadow: vars.$shadow-small-light;
+    padding: 20px;
+  }
 
     &__panel {
       display: none;

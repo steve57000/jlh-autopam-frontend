@@ -178,6 +178,7 @@ export class ServicesComponent implements OnInit, OnDestroy {
   async onSubmitDemand(payload: {
     type: TypeCode;
     immatriculation?: string | null;
+    telephone?: string | null;
     rendezVousCommentaire?: string | null;
     validationPrix?: boolean;
   }) {
@@ -187,21 +188,34 @@ export class ServicesComponent implements OnInit, OnDestroy {
     const api = environment.apiBaseUrl;
     const skipErrorOptions = { headers: new HttpHeaders({ 'X-Skip-Error-Toast': '1' }) };
 
-    const fallback: { codeType?: TypeCode; immatriculation?: string | null } = {};
+    const fallback: { codeType?: TypeCode; immatriculation?: string | null; telephone?: string | null } = {};
 
     const immat = (payload.immatriculation || '').trim();
+    const telephone = (payload.telephone || '').trim();
     try {
-      if (immat.length > 0) {
+      const clientPatch: { immatriculation?: string | null; telephone?: string | null } = {};
+      if (payload.immatriculation !== undefined) {
+        clientPatch.immatriculation = immat.length > 0 ? immat : null;
+      }
+      if (payload.telephone !== undefined) {
+        clientPatch.telephone = telephone.length > 0 ? telephone : null;
+      }
+      if (Object.keys(clientPatch).length > 0) {
         try {
           await firstValueFrom(
             this.http.patch<void>(
-              `${api}/demandes/${id}/immatriculation`,
-              { immatriculation: immat },
+              `${api}/demandes/${id}/client`,
+              clientPatch,
               skipErrorOptions
             )
           );
         } catch {
-          fallback.immatriculation = immat;
+          if (payload.immatriculation !== undefined) {
+            fallback.immatriculation = immat.length > 0 ? immat : null;
+          }
+          if (payload.telephone !== undefined) {
+            fallback.telephone = telephone.length > 0 ? telephone : null;
+          }
         }
       }
 
@@ -217,7 +231,7 @@ export class ServicesComponent implements OnInit, OnDestroy {
         fallback.codeType = payload.type;
       }
 
-      if (fallback.codeType || 'immatriculation' in fallback) {
+      if (fallback.codeType || 'immatriculation' in fallback || 'telephone' in fallback) {
         const services = (this.draft?.services ?? []).map(s => ({
           idService: s.idService,
           quantite: s.quantite,
@@ -232,6 +246,7 @@ export class ServicesComponent implements OnInit, OnDestroy {
               {
                 ...(fallback.codeType ? { codeType: fallback.codeType } : {}),
                 ...('immatriculation' in fallback ? { immatriculation: fallback.immatriculation ?? null } : {}),
+                ...('telephone' in fallback ? { telephone: fallback.telephone ?? null } : {}),
                 ...(hasServices ? { services } : {}),
               },
               { silentError: true }

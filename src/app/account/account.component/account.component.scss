@@ -4,38 +4,41 @@
 :host {
   display: block;
   color: v.$color-primary;
+  background: linear-gradient(180deg, rgba(246,249,251,.8), rgba(255,255,255,0));
 }
 
 /* ===== Layout ===== */
 .account {
   width: 100%;
   display: grid;
-  gap: 1.5rem;
-  padding: 2.5rem 1.5rem 3.5rem 1.5rem;
+  gap: 2rem;
+  padding: 2.75rem 1.75rem 3.5rem 1.75rem;
 
   h2 {
     font-family: v.$font-title;
-    font-size: 2rem;
+    font-size: 2.1rem;
     margin: 0;
     color: v.$color-secondary;
+    letter-spacing: .01em;
   }
 }
 
 /* ===== Card ===== */
 .card {
-  max-width: 720px;
+  max-width: 760px;
   width: 100%;
   background: #fff;
+  border: 1px solid rgba(37, 74, 86, 0.08);
   border-radius: v.$border-radius-high;
-  box-shadow: v.$shadow-box-form;
-  padding: 1.75rem 1.5rem;
+  box-shadow: 0 12px 30px rgba(17, 43, 60, 0.08);
+  padding: 1.85rem 1.65rem;
   margin: 0 auto;
 
   h3 {
     font-family: v.$font-subtitle;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     color: v.$color-primary;
-    margin: 0 0 1rem;
+    margin: 0 0 1.1rem;
   }
 }
 
@@ -54,7 +57,8 @@ form {
 
   input[type="text"],
   input[type="email"],
-  input[type="password"] {
+  input[type="password"],
+  select {
     width: 100%;
     padding: 0.85rem 0.9rem;
     border-radius: v.$border-radius-small;
@@ -62,6 +66,8 @@ form {
     background: #fff;
     color: v.$color-primary;
     transition: border-color v.$transition-fast, box-shadow v.$transition-fast;
+    font-family: inherit;
+    font-size: 0.98rem;
 
     &:focus {
       outline: none;
@@ -81,11 +87,25 @@ form {
     }
   }
 
-  fieldset.addr {
+  select {
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, v.$color-secondary 50%),
+      linear-gradient(135deg, v.$color-secondary 50%, transparent 50%);
+    background-position:
+      calc(100% - 18px) calc(50% - 2px),
+      calc(100% - 12px) calc(50% - 2px);
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+    padding-right: 2.2rem;
+  }
+
+  fieldset.addr,
+  fieldset.group {
     margin-top: .4rem;
-    border: 1px dashed rgba(0,0,0,.12);
+    border: 1px dashed rgba(0,0,0,.18);
     border-radius: v.$border-radius-small;
-    padding: .9rem;
+    padding: 1rem;
 
     legend {
       padding: 0 .5rem;
@@ -105,7 +125,7 @@ form {
     align-items: center;
     justify-content: flex-end;
     gap: 1rem;
-    margin-top: .25rem;
+    margin-top: .5rem;
 
     button[type="submit"] {
       // Vos CTA globaux
@@ -113,6 +133,47 @@ form {
       @include m.btn-3d-chrome(v.$color-tertiary);
       @include m.press-depth(2px);
     }
+  }
+}
+
+.input-with-action {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  input {
+    padding-right: 3rem;
+  }
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  padding: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: v.$color-secondary;
+  cursor: pointer;
+
+  svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:focus-visible {
+    outline: 2px solid v.$color-secondary;
+    outline-offset: 2px;
+    border-radius: 999px;
   }
 }
 
@@ -150,9 +211,16 @@ form {
   .card { padding: 1.25rem 1rem; }
   .account h2 { font-size: 1.6rem; }
   form .grid-2 { grid-template-columns: 1fr; }
+  form { gap: 0.75rem; }
 
   form .row {
     justify-content: stretch;
     button[type="submit"] { width: 100%; }
   }
+}
+
+@media (max-width: 480px) {
+  .account { padding: 2.25rem 1rem 3rem; }
+  .card { border-radius: v.$border-radius-high; }
+  form label { font-size: 0.95rem; }
 }

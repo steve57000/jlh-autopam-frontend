@@ -33,7 +33,7 @@ export class ServiceCardComponent {
 
   @HostBinding('style.--delay') get cssDelay() { return `${this.delay}s`; }
   @HostBinding('style.animation-delay') get animationDelay() { return `var(--delay)`; }
-  get iconUrl() { return this.mediaUrl.resolve(this.service?.icon); }
+  get iconUrl() { return this.mediaUrl.resolve(this.service?.iconUrl); }
 
   openConfirm() { this.dialogRef?.nativeElement.showModal(); }
   closeConfirm() { this.dialogRef?.nativeElement.close(); }
