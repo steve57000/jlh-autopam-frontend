@@ -70,11 +70,11 @@
         color: vars.$color-tertiary;
         box-shadow: vars.$shadow-btn;
       }
-    }
 
     &__panels {
       display: grid;
     }
+  }
 
     &__panel {
       display: none;
@@ -94,6 +94,14 @@
       p {
         margin: 0;
         color: color.scale(vars.$color-primary, $lightness: 18%);
+      }
+
+      .services-tabs__highlights {
+        margin: 0;
+        padding-left: 1rem;
+        color: color.scale(vars.$color-primary, $lightness: 10%);
+        display: grid;
+        gap: 6px;
       }
 
       a {

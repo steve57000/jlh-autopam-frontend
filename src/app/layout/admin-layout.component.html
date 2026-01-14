@@ -31,10 +31,6 @@
       </div>
       <ul>
         <li><a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="closeMenu()">Dashboard</a></li>
-        <li class="nav-quick-actions">
-          <a routerLink="/" class="nav-action nav-action--site">Retour au site</a>
-          <button class="nav-action nav-action--logout" type="button" (click)="logout(); collapseMenu()">Déconnexion</button>
-        </li>
         <li><a routerLink="/admin/demandes" routerLinkActive="active" (click)="closeMenu()">Demandes</a></li>
         <li><a routerLink="/admin/clients" routerLinkActive="active" (click)="closeMenu()">Clients</a></li>
         @if (isAdminPrincipal) {
@@ -43,6 +39,10 @@
         <li><a routerLink="/admin/services" routerLinkActive="active" (click)="closeMenu()">Services</a></li>
         <li><a routerLink="/admin/icons" routerLinkActive="active" (click)="closeMenu()">Icônes</a></li>
         <li><a routerLink="/admin/promotions" routerLinkActive="active" (click)="closeMenu()">Promotions</a></li>
+        <li class="nav-quick-actions">
+          <a routerLink="/" class="nav-action nav-action--site">Retour au site</a>
+          <button class="nav-action nav-action--logout" type="button" (click)="logout(); collapseMenu()">Déconnexion</button>
+        </li>
       </ul>
     </nav>
 

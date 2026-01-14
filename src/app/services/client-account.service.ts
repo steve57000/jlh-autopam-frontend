@@ -10,6 +10,9 @@ export interface ClientMeDto {
   email: string;
   telephone?: string | null;
   immatriculation?: string | null;
+  vehiculeMarque?: string | null;
+  vehiculeModele?: string | null;
+  vehiculeEnergie?: string | null;
   adresse?: {
     ligne1?: string | null;
     ligne2?: string | null;
@@ -21,6 +24,9 @@ export interface ClientMeDto {
 export interface UpdateMePayload {
   telephone?: string | null;
   immatriculation?: string | null;
+  vehiculeMarque?: string | null;
+  vehiculeModele?: string | null;
+  vehiculeEnergie?: string | null;
   adresse?: {
     ligne1?: string | null;
     ligne2?: string | null;

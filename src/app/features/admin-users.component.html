@@ -81,11 +81,40 @@
           </label>
           <label>
             <span>Marque véhicule</span>
-            <input type="text" formControlName="vehiculeMarque" />
+            <select formControlName="vehiculeMarque">
+              <option value="">Sélectionner…</option>
+              @for (opt of vehicleBrandOptions(); track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+              <option value="__custom__">Autre (saisir)</option>
+            </select>
+            @if (isBrandCustom()) {
+              <input type="text" formControlName="vehiculeMarqueCustom" placeholder="Marque personnalisée" />
+            }
           </label>
           <label>
             <span>Modèle véhicule</span>
-            <input type="text" formControlName="vehiculeModele" />
+            @if (!isBrandCustom()) {
+              <select formControlName="vehiculeModele">
+                <option value="">Sélectionner…</option>
+                @for (opt of vehicleModelOptions(); track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+                <option value="__custom__">Autre (saisir)</option>
+              </select>
+            }
+            @if (isBrandCustom() || isModelCustom()) {
+              <input type="text" formControlName="vehiculeModeleCustom" placeholder="Modèle personnalisé" />
+            }
+          </label>
+          <label>
+            <span>Énergie véhicule</span>
+            <select formControlName="vehiculeEnergie">
+              <option value="">Sélectionner…</option>
+              @for (opt of vehicleEnergyOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
           </label>
           <label>
             <span>Adresse</span>
