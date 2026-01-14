@@ -11,7 +11,10 @@
   </span>
 
   <h3 class="service-title">{{ service.libelle }}</h3>
-  <p class="service-description">{{ service.descriptionLongue || service.description }}</p>
+  <details class="service-description">
+    <summary>Voir la description</summary>
+    <p>{{ service.descriptionLongue || service.description }}</p>
+  </details>
   <ng-container *appHasRole="'CLIENT'">
     <button class="cta-btn" type="button" (click)="openConfirm()">
       Ajouter à ma demande
