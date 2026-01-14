@@ -21,6 +21,17 @@ import { ServiceMecaniqueComponent } from './service-mecanique.component';
 import { ServicePneumatiquesComponent } from './service-pneumatiques.component';
 import { ServiceDiagnosticComponent } from './service-diagnostic.component';
 
+type ServicesTab = {
+  id: string;
+  label: string;
+  title: string;
+  description: string;
+  component?: 'entretien' | 'mecanique' | 'pneumatiques' | 'diagnostic';
+  cta?: string;
+  highlights?: string[];
+  link?: string;
+};
+
 @Component({
   standalone: true,
   selector: 'app-services',
@@ -41,7 +52,7 @@ export class ServicesComponent implements OnInit, OnDestroy {
   services: ServiceDto[] = [];
   draft?: DemandeResponse | null;
   activeTab = 'services';
-  tabs = [
+  tabs: ServicesTab[] = [
     {
       id: 'services',
       label: 'Nos services',
