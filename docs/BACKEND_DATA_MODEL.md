@@ -1,6 +1,6 @@
 # Guide d'intégration Frontend – modèle de données & API
 
-Ce document résume le modèle métier exposé par le backend Spring Boot et décrit comment le frontend (client comme administrateur) doit consommer les entités et endpoints critiques : clients, demandes, services et rendez-vous.
+Ce document résume le modèle métier exposé par le backend Spring Boot (persisté sur PostgreSQL en dev/prod) et décrit comment le frontend (client comme administrateur) doit consommer les entités et endpoints critiques : clients, demandes, services et rendez-vous. Pour les aspects de configuration locale, d’authentification et de CORS, voir aussi `FRONTEND_DEVELOPMENT.md`.
 
 ## 1. Vue d'ensemble du domaine
 
@@ -51,7 +51,7 @@ Ces tables de référence sont consultables/modifiables via les endpoints `/api/
 
 ### 3.2 Demandes
 
-`DemandeRequest` sert aux créations/mises à jour : date, `clientId` (admin uniquement), `codeType`, `codeStatut`, informations véhicule/contact et la collection `services` (chaque entrée reprend `idService`, `quantite`, libellés et prix déjà figés).
+`DemandeRequest` sert aux créations/mises à jour : date, `clientId` (admin uniquement), `codeType`, `codeStatut`, informations véhicule/contact et la collection `services` (chaque entrée reprend `idService`, `quantite`, libellés et prix déjà figés). L'immatriculation est figée par demande (la modification d'une demande n'altère pas l'immatriculation par défaut du client, et inversement).
 
 `DemandeResponse` renvoie :
 - métadonnées (id, `dateDemande`),
@@ -88,11 +88,13 @@ Chaque entrée (`DemandeTimelineEntryDto`) expose :
 2. **Consultation**
    - `GET /api/demandes/mes-demandes` : liste paginée côté frontend (le backend renvoie toutes les demandes du client). Filtrer la timeline via `visibleClient=true` (le contrôleur le fait déjà).
    - `GET /api/demandes/mes-demandes/stats` & `/prochain-rdv` pour alimenter tableaux de bord.
+   - `GET /api/demandes/mes-documents` : liste des documents visibles côté client, regroupés par demande (type, statut, RDV lié).
 
 3. **Mise à jour**
    - `PATCH /api/demandes/{id}/type` : change `codeType` (payload `{ "codeType": "RendezVous" }`).
    - `PATCH /api/demandes/{id}/submit` : passe la demande du client de `Brouillon` à `En_attente`.
    - `PATCH /api/rendezvous/{id}/submit` : même transition mais à partir d'un RDV créé (vérifie l'appartenance du client).
+   - Les demandes traitées/annulées ou dont le RDV est passé sont verrouillées côté client (modification impossible, seuls les documents restent accessibles).
 
 4. **Rendez-vous**
    - Lecture : `GET /api/rendezvous/{id}` (restreint au propriétaire) et `GET /api/demandes/mes-demandes/prochain-rdv.ics` / `/api/demandes/rendezvous/{id}/ics` pour exporter un fichier calendrier.
@@ -100,6 +102,13 @@ Chaque entrée (`DemandeTimelineEntryDto`) expose :
 
 5. **Documents & timeline**
    - `GET /api/demandes/{id}` renvoie déjà `documents` + `timeline`. Pour ajouter un document, le frontend client doit passer par le workflow géré par `DemandeDocumentController` (upload multipart).
+
+## 7. RGPD : anonymisation
+
+- **Automatique** : un job planifié anonymise les clients inactifs au-delà de la durée de conservation configurée.
+- **Manuel (ADMIN_PRINCIPAL)** : `POST /api/clients/{id}/anonymize`.
+- Données anonymisées : identité, coordonnées, immatriculation des demandes, métadonnées des documents.
+- Configuration : `rgpd.retentionDays`, `rgpd.anonymizationEnabled`, `rgpd.anonymizationCron` dans `application.yml`.
 
 ## 5. Flux côté administrateur (ROLE_ADMIN)
 

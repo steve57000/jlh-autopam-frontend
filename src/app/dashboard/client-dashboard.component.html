@@ -11,6 +11,7 @@
       <button class="btn" (click)="refresh()">Actualiser</button>
       <button class="btn btn-outline" type="button" (click)="showServices()">Ajouter un service</button>
       <button class="btn btn-outline" type="button" (click)="showAccount()">Mon compte</button>
+      <button class="btn btn-outline" type="button" (click)="showDocuments()">Mes documents</button>
       <button class="btn btn-outline" type="button" (click)="toggleArchivesSection()">
         {{ showArchived ? 'Masquer les archives' : 'Voir les archives' }}
       </button>
@@ -33,6 +34,44 @@
       <app-services class="client-dashboard__embedded"></app-services>
     } @else if (activeSection() === 'account') {
       <app-account class="client-dashboard__embedded"></app-account>
+    } @else if (activeSection() === 'documents') {
+      <article class="card activity-card activity-card--client">
+        <header>
+          <p class="card__eyebrow">Documents</p>
+          <h3>Mes documents</h3>
+        </header>
+        @if (documents().length === 0) {
+          <p class="dashboard__state">Aucun document partagé pour le moment.</p>
+        } @else {
+          <div class="documents-list">
+            @for (entry of documents(); track entry.document.idDocument ?? entry.document.nomFichier) {
+              <div class="documents-list__item">
+                <div class="documents-list__meta">
+                  <strong>{{ entry.document.nomFichier }}</strong>
+                  @if (documentSize(entry.document); as size) {
+                    <small>{{ size }}</small>
+                  }
+                  <div class="documents-list__details">
+                    <span>Demande #{{ entry.demandeId }}</span>
+                    <span>
+                      {{ entry.typeDemande?.libelle || entry.typeDemande?.codeType || '—' }}
+                      · {{ entry.statutDemande?.libelle || entry.statutDemande?.codeStatut || '—' }}
+                    </span>
+                    @if (entry.rendezVous?.dateDebut) {
+                      <span>RDV : {{ entry.rendezVous?.dateDebut | date:'dd/MM/yyyy HH:mm' }}</span>
+                    }
+                  </div>
+                </div>
+                <div class="documents-list__actions">
+                  <button class="btn btn-outline btn-small" type="button" (click)="openClientDocument(entry)">
+                    Voir
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </article>
     } @else {
       <div class="dashboard__grid">
         <article class="card chart-card chart-card--client-filters">

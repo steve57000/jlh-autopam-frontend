@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AdminClientsService } from '../services/admin-clients.service';
 import { ClientResponse, UpdateClientPayload } from '../modeles/client.model';
 import { ToastService } from '../shared/toast/toast.service';
+import { AuthService } from '../services/auth.service';
 import {
   VEHICLE_BRAND_OPTIONS,
   VEHICLE_MODEL_OPTIONS
@@ -20,6 +21,7 @@ import { VEHICLE_ENERGY_OPTIONS } from '../shared/vehicle-energy-options';
 export class AdminClientsComponent implements OnInit {
   private api = inject(AdminClientsService);
   private toast = inject(ToastService);
+  private auth = inject(AuthService);
 
   loading = signal(true);
   error = signal<string | null>(null);
@@ -67,6 +69,7 @@ export class AdminClientsComponent implements OnInit {
   });
 
   readonly selectedClient = computed(() => this.draft());
+  readonly canAnonymize = computed(() => this.auth.isAdminPrincipal());
 
   readonly hasChanges = computed(() => {
     const a = this.original();
@@ -151,6 +154,33 @@ export class AdminClientsComponent implements OnInit {
       error: err => {
         this.saving.set(false);
         const msg = err?.error?.message || err.message || 'Échec de la mise à jour du client.';
+        this.toast.error('Erreur', msg);
+      }
+    });
+  }
+
+  anonymizeSelected() {
+    const id = this.selectedId();
+    const client = this.draft();
+    if (id == null || !client || this.saving()) {
+      return;
+    }
+    const confirmLabel = client.nom || 'ce client';
+    const confirmed = window.confirm(`Confirmer l'anonymisation de ${confirmLabel} ? Cette action est irréversible.`);
+    if (!confirmed) {
+      return;
+    }
+    this.saving.set(true);
+    this.api.anonymize(id).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.toast.success('Client anonymisé avec succès.');
+        this.loadClients();
+        this.closeDetails();
+      },
+      error: err => {
+        this.saving.set(false);
+        const msg = err?.error?.message || err.message || 'Impossible d’anonymiser ce client.';
         this.toast.error('Erreur', msg);
       }
     });

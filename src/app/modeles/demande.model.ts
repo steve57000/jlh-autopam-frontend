@@ -92,6 +92,15 @@ export interface DemandeDocumentDto {
 
 }
 
+export interface ClientDocumentDto {
+  demandeId: number;
+  dateDemande?: string | null;
+  typeDemande?: { codeType: DemandeTypeCode | string; libelle?: string };
+  statutDemande?: { codeStatut: string; libelle?: string };
+  rendezVous?: RendezVousSummary | null;
+  document: DemandeDocumentDto;
+}
+
 export interface RendezVousSummary {
   idRdv: number;
   codeStatut: string;

@@ -152,6 +152,46 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
   }
 }
 
+.documents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  &__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: v.$border-radius-high;
+    background: rgba(v.$color-secondary, 0.06);
+    border: 1px solid rgba(v.$color-secondary, 0.15);
+
+    @media (max-width: 640px) {
+      flex-direction: column;
+    }
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.9rem;
+    color: rgba(v.$color-primary, 0.75);
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+  }
+}
+
 .btn {
   border-radius: v.$border-radius-high;
   border: 1px solid rgba(v.$color-secondary, 0.4);

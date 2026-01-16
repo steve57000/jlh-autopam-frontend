@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { environment } from '../../environments/environment';
 import {
   ClientDashboardService,
+  ClientDocumentDto,
   DemandeDocumentDto,
   DemandeResponse,
   DemandeTimelineEntryDto,
@@ -91,7 +92,8 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
 
   submittingId: number | null = null;
   showArchived = true;
-  readonly activeSection = signal<'overview' | 'services' | 'account'>('overview');
+  readonly activeSection = signal<'overview' | 'services' | 'account' | 'documents'>('overview');
+  documents = signal<ClientDocumentDto[]>([]);
   // safe api base (no trailing slash)
   private api = environment.apiBaseUrl ? environment.apiBaseUrl.replace(/\/+$/, '') : '';
 
@@ -284,7 +286,7 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     }
 
     const httpOptions = { silentError: true } as const;
-    let pending = 3;
+    let pending = 4;
     const finalize = () => {
       pending -= 1;
       if (pending <= 0) {
@@ -334,6 +336,19 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
       },
       complete: () => { }
     });
+
+    this.srv.getMyDocuments(httpOptions).subscribe({
+      next: docs => {
+        this.documents.set(docs ?? []);
+        finalize();
+      },
+      error: err => {
+        if (!silent) {
+          this.error ||= err?.error?.message || err.message || 'Erreur de chargement des documents';
+        }
+        finalize();
+      }
+    });
   }
 
   /**
@@ -362,6 +377,34 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
       window.open(blobUrl, '_blank');
 
       // Nettoyage après ouverture
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+    } catch (err: any) {
+      const msg = err?.error?.message || err?.message || 'Téléchargement impossible';
+      this.toast.error('Erreur', msg);
+    }
+  }
+
+  async openClientDocument(entry: ClientDocumentDto) {
+    try {
+      const demandeId = entry?.demandeId;
+      const documentId = entry?.document?.idDocument;
+      if (!demandeId || !documentId) {
+        this.toast.error('Erreur', 'Identifiants du document manquants.');
+        return;
+      }
+
+      const res = await firstValueFrom(
+        this.srv.downloadDocumentResponse(demandeId, documentId)
+      );
+
+      const blob = res.body as Blob;
+      if (!blob) {
+        this.toast.error('Erreur', 'Fichier vide.');
+        return;
+      }
+
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, '_blank');
       setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
     } catch (err: any) {
       const msg = err?.error?.message || err?.message || 'Téléchargement impossible';
@@ -610,6 +653,10 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
       return;
     }
     this.showArchived = !this.showArchived;
+  }
+
+  showDocuments() {
+    this.activeSection.set('documents');
   }
 
 }

@@ -183,6 +183,10 @@ export class ServicesComponent implements OnInit, OnDestroy {
     validationPrix?: boolean;
   }) {
     if (!this.draft?.idDemande) return;
+    if (this.isDemandeLocked(this.draft)) {
+      this.toast.error('Demande verrouillée', 'Cette demande ne peut plus être modifiée.');
+      return;
+    }
 
     const id = this.draft.idDemande;
     const api = environment.apiBaseUrl;
@@ -335,5 +339,21 @@ export class ServicesComponent implements OnInit, OnDestroy {
     } catch (navErr) {
       console.warn('Navigation after demande submission failed', navErr);
     }
+  }
+
+  isDemandeLocked(demande?: DemandeResponse | null): boolean {
+    if (!demande) {
+      return false;
+    }
+    const statut = demande.statutDemande?.codeStatut;
+    const rdvDate = demande.rendezVous?.dateDebut ? new Date(demande.rendezVous.dateDebut) : null;
+    const rdvPasse = rdvDate ? rdvDate.getTime() <= Date.now() : false;
+    if (statut === 'Annulee') {
+      return true;
+    }
+    if (statut === 'Traitee' && (rdvPasse || !rdvDate)) {
+      return true;
+    }
+    return rdvPasse;
   }
 }

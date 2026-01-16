@@ -15,6 +15,7 @@ export type TypeCode = DemandeTypeCode;
 })
 export class CurrentQuoteComponent implements OnChanges {
   @Input() demande?: DemandeResponse | null;
+  @Input() locked = false;
 
   @Output() remove = new EventEmitter<{ idDemande: number; idService: number }>();
   @Output() submit = new EventEmitter<{
@@ -45,11 +46,13 @@ export class CurrentQuoteComponent implements OnChanges {
   }
 
   onRemove(idService: number) {
+    if (this.locked) return;
     if (!this.demande?.idDemande) return;
     this.remove.emit({ idDemande: this.demande.idDemande, idService });
   }
 
   onSubmitForm() {
+    if (this.locked) return;
     // émet vers la page services (type + immat éventuelle)
     this.submit.emit({
       type: this.type,

@@ -197,6 +197,11 @@
                 @if (saving()) { Sauvegarde… } @else { Enregistrer }
               </button>
               <button type="button" class="btn btn-ghost" (click)="resetDraft()" [disabled]="saving() || !hasChanges()">Réinitialiser</button>
+              @if (canAnonymize()) {
+                <button type="button" class="btn btn-ghost danger" (click)="anonymizeSelected()" [disabled]="saving()">
+                  Anonymiser (RGPD)
+                </button>
+              }
             </div>
           </div>
         } @else {

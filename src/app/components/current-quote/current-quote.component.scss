@@ -1,4 +1,5 @@
-@use '../../../styles/variables' as v;
+@use 'sass:color';
+@use '../../../styles/variables.scss' as v;
 
 .quote { background:#fff; border-radius:v.$border-radius-small; box-shadow:v.$shadow-small-light; padding:1rem; }
 .quote.empty { text-align:center; color:#666; }
@@ -7,9 +8,17 @@
   h3 { margin:0; font-family:v.$font-title; color:v.$color-primary; }
   .badge { background:#eef; color:#223; border-radius:.35rem; padding:.2rem .5rem; font-size:.85rem; }
 }
+.quote__notice {
+  margin-bottom: 0.75rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: v.$border-radius-small;
+  background: rgba(v.$alert-color, 0.1);
+  color: v.$alert-color;
+  font-size: 0.9rem;
+}
 
 .row { display:grid; grid-template-columns: 140px 1fr; gap:.5rem; align-items:center; margin:.25rem 0; }
-.label { color:#6c757d; }
+.label { color:v.$color-secondary; }
 .value { color:v.$color-primary; }
 .row textarea {
   resize: vertical;

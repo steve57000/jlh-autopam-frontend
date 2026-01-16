@@ -4,6 +4,7 @@ import {Observable, throwError} from 'rxjs';
 import { environment } from '../../environments/environment';
 import type {
   ClientSummaryDto,
+  ClientDocumentDto,
   DemandeDocumentDto,
   DemandeResponse,
   DemandeServiceDto,
@@ -64,6 +65,10 @@ export class ClientDashboardService {
     return this.http.get<ProchainRdvDto | null>(`${this.base}/mes-demandes/prochain-rdv`, this.buildOptions(options));
   }
 
+  getMyDocuments(options?: RequestOptions): Observable<ClientDocumentDto[]> {
+    return this.http.get<ClientDocumentDto[]>(`${this.base}/mes-documents`, this.buildOptions(options));
+  }
+
   getProchainRdvIcs() {
     return this.http.get(`${this.base}/mes-demandes/prochain-rdv.ics`, {
       responseType: 'blob',
@@ -101,6 +106,7 @@ export type {
   DemandeResponse,
   DemandeServiceDto,
   ClientSummaryDto,
+  ClientDocumentDto,
   DemandeDocumentDto,
   DemandeTimelineEntryDto,
   RendezVousSummary

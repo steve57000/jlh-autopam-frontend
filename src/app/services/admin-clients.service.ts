@@ -25,4 +25,12 @@ export class AdminClientsService {
   update(idClient: number, payload: UpdateClientPayload) {
     return this.http.put<ClientResponse>(`${this.api}/${idClient}`, payload, this.skipToastOptions());
   }
+
+  anonymize(idClient: number) {
+    return this.http.post<{ idClient: number; anonymizedAt: string }>(
+      `${this.api}/${idClient}/anonymize`,
+      {},
+      this.skipToastOptions()
+    );
+  }
 }

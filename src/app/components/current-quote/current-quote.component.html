@@ -6,6 +6,11 @@
         {{ d.statutDemande?.libelle || d.statutDemande?.codeStatut || 'Brouillon' }}
       </span>
     </div>
+    @if (locked) {
+      <div class="quote__notice">
+        Votre demande est verrouillée : seules les pièces justificatives peuvent être ajoutées.
+      </div>
+    }
 
     <!-- Infos client -->
     <div class="quote__client">
@@ -24,6 +29,7 @@
           name="telephone"
           [(ngModel)]="telephoneOverride"
           placeholder="06 00 00 00 00"
+          [disabled]="locked"
         />
       </div>
       <div class="row">
@@ -33,11 +39,12 @@
           name="immat"
           [(ngModel)]="immatOverride"
           placeholder="AA-123-BB"
+          [disabled]="locked"
         />
       </div>
       <div class="row container-select-type">
         <span class="label">Type de demande</span>
-        <select name="type" [(ngModel)]="type">
+        <select name="type" [(ngModel)]="type" [disabled]="locked">
           <option value="RendezVous">Demander un rendez-vous</option>
           <option value="Service">Demander un service</option>
           <option value="Devis">Demander un devis</option>
@@ -51,6 +58,7 @@
             [(ngModel)]="rendezVousCommentaire"
             rows="3"
             placeholder="Décrivez la raison du rendez-vous (ex: bruit moteur, entretien complet...)"
+            [disabled]="locked"
           ></textarea>
         </div>
       }
@@ -63,7 +71,7 @@
             <div class="line__libelle">{{ s.libelle }}</div>
             <div class="line__qty">x{{ s.quantite }}</div>
             <div class="line__price">{{ s.prixUnitaire | number:'1.2-2' }} €</div>
-            <button type="button" class="link danger" (click)="onRemove(s.idService)">
+            <button type="button" class="link danger" (click)="onRemove(s.idService)" [disabled]="locked">
               Retirer
             </button>
           </div>
@@ -81,7 +89,7 @@
     @if (type === 'Service' || type === 'Devis') {
       <div class="quote__validation">
         <label class="checkbox">
-          <input type="checkbox" [(ngModel)]="validationPrix" name="validationPrix" />
+          <input type="checkbox" [(ngModel)]="validationPrix" name="validationPrix" [disabled]="locked" />
           <span>Je valide le prix estimé avant la planification du rendez-vous.</span>
         </label>
       </div>
@@ -92,7 +100,7 @@
       <button
         class="cta-btn"
         type="submit"
-        [disabled]="type !== 'RendezVous' && !(($any(d).services?.length || 0) > 0)">
+        [disabled]="locked || (type !== 'RendezVous' && !(($any(d).services?.length || 0) > 0))">
         Valider ma demande
       </button>
     </form>

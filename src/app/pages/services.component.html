@@ -4,6 +4,7 @@
       <aside class="aside">
         <app-current-quote
           [demande]="draft"
+          [locked]="isDemandeLocked(draft)"
           (remove)="onRemoveLine($event)"
           (submit)="onSubmitDemand($event)">
         </app-current-quote>
@@ -76,42 +77,42 @@
         </div>
       </section>
 
-      <div class="services-tab-content" id="services-list">
-        @if (activeTab === 'services') {
-          <div class="services-list">
-            @for (svc of services; track trackById($index, svc)) {
-              <app-service-card
-                [service]="svc"
-                [delay]="$index * 0.2"
-                [showAdd]="isClient">
-              </app-service-card>
-            } @empty {
-              <p>Aucun service disponible pour le moment.</p>
-            }
-          </div>
-        } @else {
-          <div class="services-tab-detail">
-            @for (tab of tabs; track tab.id) {
-              @if (tab.id === activeTab) {
-                <div class="services-tab-detail__content">
-                  <h3>{{ tab.title }}</h3>
-                  <p>{{ tab.description }}</p>
-                  @if (tab.highlights?.length) {
-                    <ul>
-                      @for (item of tab.highlights; track item) {
-                        <li>{{ item }}</li>
-                      }
-                    </ul>
-                  }
-                  @if (tab.link) {
-                    <a class="cta-btn-secondary" [routerLink]="tab.link">{{ tab.cta }}</a>
-                  }
-                </div>
-              }
-            }
-          </div>
-        }
-      </div>
+<!--      <div class="services-tab-content" id="services-list">-->
+<!--        @if (activeTab === 'services') {-->
+<!--          <div class="services-list">-->
+<!--            @for (svc of services; track trackById($index, svc)) {-->
+<!--              <app-service-card-->
+<!--                [service]="svc"-->
+<!--                [delay]="$index * 0.2"-->
+<!--                [showAdd]="isClient">-->
+<!--              </app-service-card>-->
+<!--            } @empty {-->
+<!--              <p>Aucun service disponible pour le moment.</p>-->
+<!--            }-->
+<!--          </div>-->
+<!--        } @else {-->
+<!--          <div class="services-tab-detail">-->
+<!--            @for (tab of tabs; track tab.id) {-->
+<!--              @if (tab.id === activeTab) {-->
+<!--                <div class="services-tab-detail__content">-->
+<!--                  <h3>{{ tab.title }}</h3>-->
+<!--                  <p>{{ tab.description }}</p>-->
+<!--                  @if (tab.highlights?.length) {-->
+<!--                    <ul>-->
+<!--                      @for (item of tab.highlights; track item) {-->
+<!--                        <li>{{ item }}</li>-->
+<!--                      }-->
+<!--                    </ul>-->
+<!--                  }-->
+<!--                  @if (tab.link) {-->
+<!--                    <a class="cta-btn-secondary" [routerLink]="tab.link">{{ tab.cta }}</a>-->
+<!--                  }-->
+<!--                </div>-->
+<!--              }-->
+<!--            }-->
+<!--          </div>-->
+<!--        }-->
+<!--      </div>-->
     </div>
   </div>
 </section>
