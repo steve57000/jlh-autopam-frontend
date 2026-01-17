@@ -78,7 +78,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   private readonly fallbackStatutOptions: Array<FilterOption<StatutFilterValue>> = [
     { value: 'Brouillon', label: 'Brouillon' },
     { value: 'En_attente', label: 'En attente' },
-    { value: 'Traitee', label: 'Traitée' },
+    { value: 'Traitee', label: 'Confirmée' },
     { value: 'Annulee', label: 'Annulée' }
   ];
 
@@ -155,6 +155,27 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     const baseline = this.original();
     if (!current || !baseline) return false;
     return JSON.stringify(this.normalize(baseline)) !== JSON.stringify(this.normalize(current));
+  });
+
+  readonly isLockedForEdit = computed(() => {
+    const draft = this.draft();
+    if (!draft) {
+      return false;
+    }
+    return draft.code_statut === 'Traitee' || draft.code_statut === 'Annulee';
+  });
+
+  readonly isRdvConfirmed = computed(() => {
+    const draft = this.draft();
+    return draft?.rendezVous?.codeStatut === 'Confirme';
+  });
+
+  readonly autoConfirmOnSave = computed(() => {
+    const draft = this.draft();
+    if (!draft) {
+      return false;
+    }
+    return this.hasChanges() && this.isRdvConfirmed() && draft.code_statut !== 'Traitee' && draft.code_statut !== 'Annulee';
   });
 
   ngOnInit() {
@@ -486,11 +507,14 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.feedbackType.set(null);
 
     const client = this.buildClientPayload(draft.client);
+    const shouldAutoConfirm = this.autoConfirmOnSave();
+    const nextStatut = (shouldAutoConfirm ? 'Traitee' : draft.code_statut) as DemandeWithServices['code_statut'];
+    const effectiveDraft = shouldAutoConfirm ? { ...draft, code_statut: nextStatut } : draft;
 
-    const payload = {
-      codeType: draft.code_type,
-      codeStatut: draft.code_statut,
-      immatriculation: client?.immatriculation ?? null,
+    const payload: Parameters<DemandesServiceService['updateDemande']>[1] = {
+      codeType: effectiveDraft.code_type,
+      codeStatut: nextStatut,
+      immatriculation: effectiveDraft.client?.immatriculation ?? null,
       vehiculeMarque: client?.vehiculeMarque ?? null,
       vehiculeModele: client?.vehiculeModele ?? null,
       vehiculeEnergie: client?.vehiculeEnergie ?? null,
@@ -499,7 +523,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       adresseLigne2: this.trimOrEmpty(client?.adresseLigne2),
       adresseCodePostal: this.trimOrEmpty(client?.adresseCodePostal),
       adresseVille: this.trimOrEmpty(client?.adresseVille),
-      services: draft.services.map(s => ({
+      services: effectiveDraft.services.map(s => ({
         libelle: s.libelle,
         idService: s.id_service,
         quantite: s.quantite,
@@ -510,16 +534,22 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
 
     this.api.updateDemande(id, payload).subscribe({
       next: updated => {
-        const merged = this.mergeDraftWithResponse(draft, updated);
+        const merged = this.mergeDraftWithResponse(effectiveDraft, updated);
         this.demandes.update(list =>
           list.map(item => this.getDemandeId(item) === id ? merged : item)
         );
         this.original.set(this.clone(merged));
         this.draft.set(this.clone(merged));
         this.saving.set(false);
-        this.feedback.set('Demande mise à jour avec succès.');
+        this.feedback.set(shouldAutoConfirm
+          ? 'Demande confirmée et mise à jour avec succès.'
+          : 'Demande mise à jour avec succès.'
+        );
         this.feedbackType.set('success');
-        this.toast.success('Demande mise à jour avec succès.');
+        this.toast.success(shouldAutoConfirm
+          ? 'Demande confirmée et mise à jour.'
+          : 'Demande mise à jour avec succès.'
+        );
       },
       error: () => {
         this.saving.set(false);
@@ -543,12 +573,32 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
         this.demandes.update(list =>
           list.map(x => this.getDemandeId(x) === id ? { ...x, code_statut: 'Traitee' } : x)
         );
-        this.toast.success('Demande marquée comme traitée.');
+        if (this.selectedId() === id) {
+          this.updateDraft(draft => { draft.code_statut = 'Traitee'; });
+          const original = this.original();
+          if (original) {
+            this.original.set({ ...original, code_statut: 'Traitee' });
+          }
+        }
+        this.toast.success('Demande confirmée.');
       },
       error: () => {
         this.toast.error('Échec de la mise à jour du statut.');
       }
     });
+  }
+
+  confirmerSelection() {
+    const draft = this.draft();
+    if (!draft || this.isLockedForEdit()) return;
+    this.marquerTraitee(draft);
+  }
+
+  statutLabel(demande: DemandeWithServices): string {
+    if (demande.code_statut === 'Traitee') {
+      return 'Confirmée';
+    }
+    return demande.statut_libelle || demande.code_statut;
   }
 
   supprimer(d: any) {
@@ -687,7 +737,6 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     client: DemandeWithServices['client'] | undefined
   ): {
     telephone?: string | null;
-    immatriculation?: string | null;
     vehiculeMarque?: string | null;
     vehiculeModele?: string | null;
     vehiculeEnergie?: string | null;
@@ -703,7 +752,6 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
 
     const payload = {
       telephone: this.trimOrNull(trimmed.telephone),
-      immatriculation: this.trimOrNull(trimmed.immatriculation),
       vehiculeMarque: this.trimOrNull(trimmed.vehiculeMarque),
       vehiculeModele: this.trimOrNull(trimmed.vehiculeModele),
       vehiculeEnergie: this.trimOrNull(trimmed.vehiculeEnergie),
