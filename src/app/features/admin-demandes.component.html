@@ -104,13 +104,13 @@
                   </span>
               </td>
               <td class="actions">
-                <button type="button" (click)="openDetails(d)">Voir / Modifier</button>
+                <button type="button" (click)="openDetails(d)">Ouvrir la demande</button>
                 <button
                   type="button"
                   (click)="marquerTraitee(d)"
                   [disabled]="d.code_statut==='Traitee' || d.code_statut==='Annulee'"
                 >
-                  Confirmer
+                  Marquer confirmée
                 </button>
                 @if (canDeleteDemandes) {
                   <button type="button" class="danger" (click)="supprimer(d)">Supprimer</button>
@@ -155,12 +155,19 @@
 
         <section class="details-block details-block--steps">
           <h4>Étapes de la demande</h4>
+          <p class="muted">Suivez ce cheminement pour traiter la demande sans ambiguïté.</p>
           <ol class="steps">
             <li [class.step--done]="draft.services.length">Demande service</li>
             <li [class.step--done]="draft.rendezVous?.dateDebut">Prise de rendez-vous</li>
             <li [class.step--done]="draft.code_statut === 'Traitee'">Confirmation</li>
           </ol>
+          <div class="steps-guide">
+            <p><strong>1. Vérifier la demande</strong> : services, quantités, prix et pièces jointes.</p>
+            <p><strong>2. Fixer le rendez-vous</strong> : appelez le client ou proposez 1 à 3 créneaux via le site.</p>
+            <p><strong>3. Confirmer</strong> : verrouille la demande une fois le rendez-vous validé.</p>
+          </div>
           <p class="muted">Le statut <strong>Confirmée</strong> correspond à une demande validée et enregistrée.</p>
+          <p class="muted">Le client dispose de 24h pour accepter un créneau proposé via le site.</p>
           @if (autoConfirmOnSave()) {
             <p class="muted">L'enregistrement finalisera automatiquement la confirmation.</p>
           }
@@ -170,10 +177,12 @@
           <h4>Client</h4>
           <p>{{ draft.client?.nom }} {{ draft.client?.prenom }}</p>
           <p class="muted">{{ draft.client?.email }}</p>
+          <p class="muted">Contact principal pour la validation du rendez-vous.</p>
         </section>
 
         <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
           <h4>Coordonnées client</h4>
+          <p class="muted">À compléter si vous devez rappeler le client ou confirmer le rendez-vous.</p>
           <div class="details-grid">
           <label>
             <span>Téléphone</span>
@@ -184,59 +193,6 @@
               [disabled]="isLockedForEdit()"
             />
           </label>
-          <label>
-            <span>Immatriculation (demande)</span>
-            <input
-              type="text"
-              [ngModel]="draft.client?.immatriculation ?? ''"
-              (ngModelChange)="updateClientField('immatriculation', $event)"
-              [disabled]="isLockedForEdit()"
-            />
-            <small class="field-hint">Cette immatriculation reste liée à la demande, même si le profil client évolue.</small>
-          </label>
-          </div>
-        </section>
-
-        <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
-          <h4>Véhicule</h4>
-          <div class="details-grid">
-          <label>
-            <span>Marque véhicule</span>
-            <input
-              type="text"
-              [ngModel]="draft.client?.vehiculeMarque ?? ''"
-              (ngModelChange)="updateClientField('vehiculeMarque', $event)"
-              [disabled]="isLockedForEdit()"
-            />
-          </label>
-          <label>
-            <span>Modèle véhicule</span>
-            <input
-              type="text"
-              [ngModel]="draft.client?.vehiculeModele ?? ''"
-              (ngModelChange)="updateClientField('vehiculeModele', $event)"
-              [disabled]="isLockedForEdit()"
-            />
-          </label>
-          <label>
-            <span>Énergie</span>
-            <select
-              [ngModel]="draft.client?.vehiculeEnergie ?? ''"
-              (ngModelChange)="updateClientField('vehiculeEnergie', $event)"
-              [disabled]="isLockedForEdit()"
-            >
-              <option value="">Non renseigné</option>
-              @for (opt of vehicleEnergyOptions; track opt.value) {
-                <option [value]="opt.value">{{ opt.label }}</option>
-              }
-            </select>
-          </label>
-          </div>
-        </section>
-
-        <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
-          <h4>Adresse</h4>
-          <div class="details-grid">
           <label>
             <span>Adresse — ligne 1</span>
             <input
@@ -277,7 +233,55 @@
         </section>
 
         <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
+          <h4>Véhicule</h4>
+          <div class="details-grid">
+          <label>
+            <span>Immatriculation (demande)</span>
+            <input
+              type="text"
+              [ngModel]="draft.client?.immatriculation ?? ''"
+              (ngModelChange)="updateClientField('immatriculation', $event)"
+              [disabled]="isLockedForEdit()"
+            />
+            <small class="field-hint">Cette immatriculation reste liée à la demande, même si le profil client évolue.</small>
+          </label>
+          <label>
+            <span>Marque véhicule</span>
+            <input
+              type="text"
+              [ngModel]="draft.client?.vehiculeMarque ?? ''"
+              (ngModelChange)="updateClientField('vehiculeMarque', $event)"
+              [disabled]="isLockedForEdit()"
+            />
+          </label>
+          <label>
+            <span>Modèle véhicule</span>
+            <input
+              type="text"
+              [ngModel]="draft.client?.vehiculeModele ?? ''"
+              (ngModelChange)="updateClientField('vehiculeModele', $event)"
+              [disabled]="isLockedForEdit()"
+            />
+          </label>
+          <label>
+            <span>Énergie</span>
+            <select
+              [ngModel]="draft.client?.vehiculeEnergie ?? ''"
+              (ngModelChange)="updateClientField('vehiculeEnergie', $event)"
+              [disabled]="isLockedForEdit()"
+            >
+              <option value="">Non renseigné</option>
+              @for (opt of vehicleEnergyOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </label>
+          </div>
+        </section>
+
+        <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
           <h4>Paramètres de la demande</h4>
+          <p class="muted">Mettez à jour le type ou le statut si besoin avant la validation finale.</p>
           <div class="details-grid">
           <label>
             <span>Type de demande</span>
@@ -304,6 +308,7 @@
 
         <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
           <h4>Services inclus</h4>
+          <p class="muted">Vérifiez les quantités et les prix avant de confirmer la demande.</p>
           <table class="services-table">
             <thead>
             <tr>
@@ -397,6 +402,7 @@
 
         <section class="details-block">
           <h4>Documents</h4>
+          <p class="muted">Ajoutez des justificatifs (devis, photos, pièces) si nécessaire.</p>
           @if (draft.documents?.length) {
             <ul class="documents-list">
               @for (doc of draft.documents; track doc.idDocument ?? doc.nomFichier) {
@@ -440,9 +446,12 @@
           </div>
       </section>
 
-      @if ((draft.code_type === 'RendezVous' || draft.code_type === 'Service') && rdvForm(); as rdv) {
+        @if ((draft.code_type === 'RendezVous' || draft.code_type === 'Service') && rdvForm(); as rdv) {
           <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
             <h4>Planification du rendez-vous</h4>
+            <p class="muted">
+              Renseignez un rendez-vous confirmé ou attendez la validation client lorsqu'un créneau est proposé.
+            </p>
             <div class="detail-grid">
               <label>
                 <span>Date de début</span>
@@ -508,9 +517,12 @@
         <section class="details-block details-block--confirmation" [class.details-block--locked]="isLockedForEdit()">
           <h4>Confirmation</h4>
           <p class="muted">Statut actuel : <strong>{{ statutLabel(draft) }}</strong></p>
+          <p class="muted">
+            Utilisez cette action lorsque le rendez-vous est confirmé (par téléphone ou via la validation client).
+          </p>
           @if (!isLockedForEdit()) {
             <button type="button" class="btn btn-ghost" (click)="confirmerSelection()">
-              Confirmer et verrouiller la demande
+              Valider et verrouiller la demande
             </button>
             <p class="muted">Une demande confirmée devient non modifiable (hors documents).</p>
           }
@@ -533,6 +545,7 @@
           >
             Réinitialiser
           </button>
+          <p class="muted details-actions__hint">L'enregistrement sauvegarde vos changements sans valider la demande.</p>
         </div>
       </section>
     }
