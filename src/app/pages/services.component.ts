@@ -15,7 +15,7 @@ import { DemandesServiceService } from '../services/demandes-services.service';
 import { DemandeResponse } from '../services/client-dashboard.service';
 import { ToastService} from '../shared/toast/toast.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { environment } from 'environments/environment';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { ServiceEntretienComponent } from './service-entretien.component';
 import { ServiceMecaniqueComponent } from './service-mecanique.component';
