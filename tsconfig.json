@@ -15,7 +15,7 @@
     "baseUrl": "./src",
     "paths": {
       "@environments/*": [
-        "environments/*"
+        "src/environments/*"
       ]
     },
     "target": "ES2022",
