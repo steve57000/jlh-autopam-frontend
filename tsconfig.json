@@ -15,12 +15,12 @@
     "baseUrl": "./src",
     "paths": {
       "@environments/*": [
-        "./src/environments/*"
+        "environments/*"
       ]
     },
     "target": "ES2022",
     "module": "preserve",
-    "moduleResolution": "bundler"
+    "moduleResolution": "node16"
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
