@@ -110,7 +110,7 @@
           </p>
         </article>
 
-        <article class="card chart-card">
+        <article class="card chart-card" [class.card--full]="isWideView(chartViews().types)">
           <header>
             <p class="card__eyebrow">Types de demandes</p>
             <h3>Répartition et panier moyen</h3>
@@ -128,6 +128,13 @@
             </select>
           </div>
           <p class="chart-card__hint">Vue actuelle : {{ getChartViewLabel(chartViews().types) }}</p>
+          <div class="chart-legend chart-legend--categories">
+            @for (row of overview.typeStats; track row.type) {
+              <span class="chart-legend__item chart-legend__item--custom" [style.--series-color]="getTypeColor(row.type)">
+                {{ row.label }}
+              </span>
+            }
+          </div>
           @switch (chartViews().types) {
             @case ('histogram') {
               <div class="chart-histogram">
@@ -135,7 +142,8 @@
                   <div class="chart-histogram__item">
                     <div class="chart-histogram__bars">
                       <span
-                        class="chart-histogram__bar"
+                        class="chart-histogram__bar chart-series"
+                        [style.--series-color]="getTypeColor(row.type)"
                         [style.height.%]="getPercent(row.count, typeMaxCount())"
                       ></span>
                     </div>
@@ -155,11 +163,13 @@
                   <div class="chart-histogram__item">
                     <div class="chart-histogram__bars">
                       <span
-                        class="chart-histogram__bar"
+                        class="chart-histogram__bar chart-series"
+                        [style.--series-color]="getTypeColor(row.type)"
                         [style.height.%]="getPercent(row.count, typeMaxCount())"
                       ></span>
                       <span
-                        class="chart-histogram__bar chart-histogram__bar--secondary"
+                        class="chart-histogram__bar chart-histogram__bar--secondary chart-series chart-series--soft"
+                        [style.--series-color]="getTypeColor(row.type)"
                         [style.height.%]="getPercent(row.averageValue, typeMaxAverage())"
                       ></span>
                     </div>
@@ -180,7 +190,11 @@
                       <span>{{ row.count }} demandes • {{ row.percentage }}%</span>
                     </div>
                     <div class="type-chart__bar" aria-hidden="true">
-                      <span class="type-chart__value" [style.width.%]="row.percentage || 4"></span>
+                      <span
+                        class="type-chart__value chart-series"
+                        [style.--series-color]="getTypeColor(row.type)"
+                        [style.width.%]="row.percentage || 4"
+                      ></span>
                     </div>
                     <p class="type-chart__avg">Panier moyen : {{ row.averageValue | number:'1.0-0' }} €</p>
                   </div>
@@ -198,19 +212,45 @@
                     <div class="grouped-bars__bars">
                       <div class="grouped-bars__bar">
                         <span
-                          class="grouped-bars__fill"
+                          class="grouped-bars__fill chart-series"
+                          [style.--series-color]="getTypeColor(row.type)"
                           [style.width.%]="getPercent(row.count, typeMaxCount())"
                         ></span>
                         <span class="grouped-bars__value">{{ row.count }}</span>
                       </div>
                       <div class="grouped-bars__bar grouped-bars__bar--secondary">
                         <span
-                          class="grouped-bars__fill"
+                          class="grouped-bars__fill chart-series chart-series--soft"
+                          [style.--series-color]="getTypeColor(row.type)"
                           [style.width.%]="getPercent(row.averageValue, typeMaxAverage())"
                         ></span>
                         <span class="grouped-bars__value">{{ row.averageValue | number:'1.0-0' }} €</span>
                       </div>
                     </div>
+                  </div>
+                }
+              </div>
+            }
+            @case ('bar-grouped-vertical') {
+              <div class="grouped-columns">
+                @for (row of overview.typeStats; track row.type) {
+                  <div class="grouped-columns__group">
+                    <span class="grouped-columns__label">{{ row.label }}</span>
+                    <div class="grouped-columns__bars">
+                      <span
+                        class="grouped-columns__bar chart-series"
+                        [style.--series-color]="getTypeColor(row.type)"
+                        [style.height.%]="getPercent(row.count, typeMaxCount())"
+                      ></span>
+                      <span
+                        class="grouped-columns__bar grouped-columns__bar--secondary chart-series chart-series--soft"
+                        [style.--series-color]="getTypeColor(row.type)"
+                        [style.height.%]="getPercent(row.averageValue, typeMaxAverage())"
+                      ></span>
+                    </div>
+                    <span class="grouped-columns__value">
+                      {{ row.count }} • {{ row.averageValue | number:'1.0-0' }} €
+                    </span>
                   </div>
                 }
               </div>
@@ -225,11 +265,13 @@
                     </div>
                     <div class="stacked-bars__bar" aria-hidden="true">
                       <span
-                        class="stacked-bars__segment"
+                        class="stacked-bars__segment chart-series"
+                        [style.--series-color]="getTypeColor(row.type)"
                         [style.width.%]="getStackedPercents([row.count, row.averageValue])[0]"
                       ></span>
                       <span
-                        class="stacked-bars__segment stacked-bars__segment--secondary"
+                        class="stacked-bars__segment stacked-bars__segment--secondary chart-series chart-series--soft"
+                        [style.--series-color]="getTypeColor(row.type)"
                         [style.width.%]="getStackedPercents([row.count, row.averageValue])[1]"
                       ></span>
                     </div>
@@ -249,9 +291,83 @@
                       <span>{{ row.value }} demandes • {{ row.percentage | number:'1.0-0' }}%</span>
                     </div>
                     <div class="pareto-chart__bar" aria-hidden="true">
-                      <span class="pareto-chart__fill" [style.width.%]="row.percentage"></span>
+                      <span
+                        class="pareto-chart__fill chart-series"
+                        [style.--series-color]="getTypeColor(row.label)"
+                        [style.width.%]="row.percentage"
+                      ></span>
                       <span class="pareto-chart__marker" [style.left.%]="row.cumulative"></span>
                     </div>
+                  </div>
+                }
+              </div>
+            }
+            @case ('line') {
+              <div class="line-chart">
+                <svg class="line-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <polyline
+                    class="line-chart__path"
+                    [attr.points]="getTypeLinePoints()"
+                  ></polyline>
+                </svg>
+                <div class="line-chart__labels">
+                  @for (row of overview.typeStats; track row.type) {
+                    <span>{{ row.label }}</span>
+                  }
+                </div>
+              </div>
+            }
+            @case ('line-categories') {
+              <div class="line-chart line-chart--categories">
+                <svg class="line-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <polyline
+                    class="line-chart__path line-chart__path--neutral"
+                    [attr.points]="getTypeLinePoints()"
+                  ></polyline>
+                  @for (row of overview.typeStats; track row.type; let index = $index) {
+                    <circle
+                      class="line-chart__point"
+                      [attr.cx]="getLinePointX(index, overview.typeStats.length)"
+                      [attr.cy]="getLinePointY(row.count, typeMaxCount())"
+                      [attr.fill]="getTypeColor(row.type)"
+                    ></circle>
+                  }
+                </svg>
+                <div class="line-chart__labels line-chart__labels--colored">
+                  @for (row of overview.typeStats; track row.type) {
+                    <span [style.color]="getTypeColor(row.type)">{{ row.label }}</span>
+                  }
+                </div>
+              </div>
+            }
+            @case ('pie') {
+              <div class="pie-chart">
+                <div
+                  class="pie-chart__visual"
+                  [style.background]="getTypePieGradient()"
+                ></div>
+                <div class="pie-chart__details">
+                  @for (row of overview.typeStats; track row.type) {
+                    <div class="pie-chart__row">
+                      <span class="pie-chart__dot" [style.--series-color]="getTypeColor(row.type)"></span>
+                      <span>{{ row.label }}</span>
+                      <strong>{{ row.percentage }}%</strong>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+            @case ('heatmap') {
+              <div class="heatmap heatmap--single">
+                @for (row of overview.typeStats; track row.type) {
+                  <div
+                    class="heatmap__cell"
+                    [style.--series-color]="getTypeColor(row.type)"
+                    [style.--heatmap-strength]="getHeatmapStrength(row.count, typeMaxCount())"
+                  >
+                    <span class="heatmap__label">{{ row.label }}</span>
+                    <strong>{{ row.count }}</strong>
+                    <em>{{ row.percentage }}%</em>
                   </div>
                 }
               </div>
@@ -259,7 +375,11 @@
             @case ('mosaic') {
               <div class="type-tiles">
                 @for (row of overview.typeStats; track row.type) {
-                  <div class="type-tiles__item" [style.flexGrow]="row.percentage || 10">
+                  <div
+                    class="type-tiles__item chart-series"
+                    [style.--series-color]="getTypeColor(row.type)"
+                    [style.flexGrow]="row.percentage || 10"
+                  >
                     <strong>{{ row.label }}</strong>
                     <span>{{ row.count }} demandes • {{ row.percentage }}%</span>
                     <em>Panier moyen : {{ row.averageValue | number:'1.0-0' }} €</em>
@@ -270,7 +390,11 @@
             @case ('treemap') {
               <div class="type-tiles">
                 @for (row of overview.typeStats; track row.type) {
-                  <div class="type-tiles__item" [style.flexGrow]="row.percentage || 10">
+                  <div
+                    class="type-tiles__item chart-series"
+                    [style.--series-color]="getTypeColor(row.type)"
+                    [style.flexGrow]="row.percentage || 10"
+                  >
                     <strong>{{ row.label }}</strong>
                     <span>{{ row.count }} demandes • {{ row.percentage }}%</span>
                     <em>Panier moyen : {{ row.averageValue | number:'1.0-0' }} €</em>
@@ -308,7 +432,7 @@
           }
         </article>
 
-        <article class="card chart-card chart-card--services">
+        <article class="card chart-card chart-card--services" [class.card--full]="isWideView(chartViews().services)">
           <header>
             <p class="card__eyebrow">Types de services</p>
             <h3>Répartition par prestation</h3>
@@ -326,15 +450,23 @@
             </select>
           </div>
           <p class="chart-card__hint">Vue actuelle : {{ getChartViewLabel(chartViews().services) }}</p>
+          <div class="chart-legend chart-legend--categories">
+            @for (row of overview.serviceStats; track row.label; let index = $index) {
+              <span class="chart-legend__item chart-legend__item--custom" [style.--series-color]="getSeriesColor(index)">
+                {{ row.label }}
+              </span>
+            }
+          </div>
           @if (overview.serviceStats.length) {
             @switch (chartViews().services) {
               @case ('histogram') {
                 <div class="chart-histogram">
-                  @for (row of overview.serviceStats; track row.label) {
+                  @for (row of overview.serviceStats; track row.label; let index = $index) {
                     <div class="chart-histogram__item">
                       <div class="chart-histogram__bars">
                         <span
-                          class="chart-histogram__bar"
+                          class="chart-histogram__bar chart-series"
+                          [style.--series-color]="getSeriesColor(index)"
                           [style.height.%]="getPercent(row.count, serviceMaxCount())"
                         ></span>
                       </div>
@@ -350,15 +482,17 @@
                   <span class="chart-legend__item chart-legend__item--secondary">CA</span>
                 </div>
                 <div class="chart-histogram chart-histogram--dual">
-                  @for (row of overview.serviceStats; track row.label) {
+                  @for (row of overview.serviceStats; track row.label; let index = $index) {
                     <div class="chart-histogram__item">
                       <div class="chart-histogram__bars">
                         <span
-                          class="chart-histogram__bar"
+                          class="chart-histogram__bar chart-series"
+                          [style.--series-color]="getSeriesColor(index)"
                           [style.height.%]="getPercent(row.count, serviceMaxCount())"
                         ></span>
                         <span
-                          class="chart-histogram__bar chart-histogram__bar--secondary"
+                          class="chart-histogram__bar chart-histogram__bar--secondary chart-series chart-series--soft"
+                          [style.--series-color]="getSeriesColor(index)"
                           [style.height.%]="getPercent(row.revenue, serviceMaxRevenue())"
                         ></span>
                       </div>
@@ -372,14 +506,18 @@
               }
               @case ('bar') {
                 <div class="type-chart">
-                  @for (row of overview.serviceStats; track row.label) {
+                  @for (row of overview.serviceStats; track row.label; let index = $index) {
                     <div class="type-chart__row">
                       <div class="type-chart__info">
                         <strong>{{ row.label }}</strong>
                         <span>{{ row.count }} demandes • {{ row.percentage }}%</span>
                       </div>
                       <div class="type-chart__bar" aria-hidden="true">
-                        <span class="type-chart__value" [style.width.%]="row.percentage || 4"></span>
+                        <span
+                          class="type-chart__value chart-series"
+                          [style.--series-color]="getSeriesColor(index)"
+                          [style.width.%]="row.percentage || 4"
+                        ></span>
                       </div>
                     </div>
                   }
@@ -387,7 +525,7 @@
               }
               @case ('bar-grouped') {
                 <div class="grouped-bars">
-                  @for (row of overview.serviceStats; track row.label) {
+                  @for (row of overview.serviceStats; track row.label; let index = $index) {
                     <div class="grouped-bars__row">
                       <div class="grouped-bars__label">
                         <strong>{{ row.label }}</strong>
@@ -396,14 +534,16 @@
                       <div class="grouped-bars__bars">
                         <div class="grouped-bars__bar">
                           <span
-                            class="grouped-bars__fill"
+                            class="grouped-bars__fill chart-series"
+                            [style.--series-color]="getSeriesColor(index)"
                             [style.width.%]="getPercent(row.count, serviceMaxCount())"
                           ></span>
                           <span class="grouped-bars__value">{{ row.count }}</span>
                         </div>
                         <div class="grouped-bars__bar grouped-bars__bar--secondary">
                           <span
-                            class="grouped-bars__fill"
+                            class="grouped-bars__fill chart-series chart-series--soft"
+                            [style.--series-color]="getSeriesColor(index)"
                             [style.width.%]="getPercent(row.revenue, serviceMaxRevenue())"
                           ></span>
                           <span class="grouped-bars__value">{{ row.revenue | number:'1.0-0' }} €</span>
@@ -413,9 +553,33 @@
                   }
                 </div>
               }
+              @case ('bar-grouped-vertical') {
+                <div class="grouped-columns">
+                  @for (row of overview.serviceStats; track row.label; let index = $index) {
+                    <div class="grouped-columns__group">
+                      <span class="grouped-columns__label">{{ row.label }}</span>
+                      <div class="grouped-columns__bars">
+                        <span
+                          class="grouped-columns__bar chart-series"
+                          [style.--series-color]="getSeriesColor(index)"
+                          [style.height.%]="getPercent(row.count, serviceMaxCount())"
+                        ></span>
+                        <span
+                          class="grouped-columns__bar grouped-columns__bar--secondary chart-series chart-series--soft"
+                          [style.--series-color]="getSeriesColor(index)"
+                          [style.height.%]="getPercent(row.revenue, serviceMaxRevenue())"
+                        ></span>
+                      </div>
+                      <span class="grouped-columns__value">
+                        {{ row.count }} • {{ row.revenue | number:'1.0-0' }} €
+                      </span>
+                    </div>
+                  }
+                </div>
+              }
               @case ('bar-stacked') {
                 <div class="stacked-bars">
-                  @for (row of overview.serviceStats; track row.label) {
+                  @for (row of overview.serviceStats; track row.label; let index = $index) {
                     <div class="stacked-bars__row">
                       <div class="stacked-bars__label">
                         <strong>{{ row.label }}</strong>
@@ -423,11 +587,13 @@
                       </div>
                       <div class="stacked-bars__bar" aria-hidden="true">
                         <span
-                          class="stacked-bars__segment"
+                          class="stacked-bars__segment chart-series"
+                          [style.--series-color]="getSeriesColor(index)"
                           [style.width.%]="getStackedPercents([row.count, row.revenue])[0]"
                         ></span>
                         <span
-                          class="stacked-bars__segment stacked-bars__segment--secondary"
+                          class="stacked-bars__segment stacked-bars__segment--secondary chart-series chart-series--soft"
+                          [style.--series-color]="getSeriesColor(index)"
                           [style.width.%]="getStackedPercents([row.count, row.revenue])[1]"
                         ></span>
                       </div>
@@ -440,24 +606,102 @@
               }
               @case ('pareto') {
                 <div class="pareto-chart">
-                  @for (row of servicePareto(); track row.label) {
+                  @for (row of servicePareto(); track row.label; let index = $index) {
                     <div class="pareto-chart__row">
                       <div class="pareto-chart__label">
                         <strong>{{ row.label }}</strong>
                         <span>{{ row.value }} demandes • {{ row.percentage | number:'1.0-0' }}%</span>
                       </div>
                       <div class="pareto-chart__bar" aria-hidden="true">
-                        <span class="pareto-chart__fill" [style.width.%]="row.percentage"></span>
+                        <span
+                          class="pareto-chart__fill chart-series"
+                          [style.--series-color]="getSeriesColor(index)"
+                          [style.width.%]="row.percentage"
+                        ></span>
                         <span class="pareto-chart__marker" [style.left.%]="row.cumulative"></span>
                       </div>
                     </div>
                   }
                 </div>
               }
+              @case ('line') {
+                <div class="line-chart">
+                  <svg class="line-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <polyline
+                      class="line-chart__path"
+                      [attr.points]="getServiceLinePoints()"
+                    ></polyline>
+                  </svg>
+                  <div class="line-chart__labels">
+                    @for (row of overview.serviceStats; track row.label) {
+                      <span>{{ row.label }}</span>
+                    }
+                  </div>
+                </div>
+              }
+              @case ('line-categories') {
+                <div class="line-chart line-chart--categories">
+                  <svg class="line-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <polyline
+                      class="line-chart__path line-chart__path--neutral"
+                      [attr.points]="getServiceLinePoints()"
+                    ></polyline>
+                    @for (row of overview.serviceStats; track row.label; let index = $index) {
+                      <circle
+                        class="line-chart__point"
+                        [attr.cx]="getLinePointX(index, overview.serviceStats.length)"
+                        [attr.cy]="getLinePointY(row.count, serviceMaxCount())"
+                        [attr.fill]="getSeriesColor(index)"
+                      ></circle>
+                    }
+                  </svg>
+                  <div class="line-chart__labels line-chart__labels--colored">
+                    @for (row of overview.serviceStats; track row.label; let index = $index) {
+                      <span [style.color]="getSeriesColor(index)">{{ row.label }}</span>
+                    }
+                  </div>
+                </div>
+              }
+              @case ('pie') {
+                <div class="pie-chart">
+                  <div
+                    class="pie-chart__visual"
+                    [style.background]="getServicePieGradient()"
+                  ></div>
+                  <div class="pie-chart__details">
+                    @for (row of overview.serviceStats; track row.label; let index = $index) {
+                      <div class="pie-chart__row">
+                        <span class="pie-chart__dot" [style.--series-color]="getSeriesColor(index)"></span>
+                        <span>{{ row.label }}</span>
+                        <strong>{{ row.percentage }}%</strong>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+              @case ('heatmap') {
+                <div class="heatmap heatmap--single">
+                  @for (row of overview.serviceStats; track row.label; let index = $index) {
+                    <div
+                      class="heatmap__cell"
+                      [style.--series-color]="getSeriesColor(index)"
+                      [style.--heatmap-strength]="getHeatmapStrength(row.count, serviceMaxCount())"
+                    >
+                      <span class="heatmap__label">{{ row.label }}</span>
+                      <strong>{{ row.count }}</strong>
+                      <em>{{ row.percentage }}%</em>
+                    </div>
+                  }
+                </div>
+              }
               @case ('mosaic') {
                 <div class="type-tiles type-tiles--services">
-                  @for (row of overview.serviceStats; track row.label) {
-                    <div class="type-tiles__item" [style.flexGrow]="row.percentage || 10">
+                  @for (row of overview.serviceStats; track row.label; let index = $index) {
+                    <div
+                      class="type-tiles__item chart-series"
+                      [style.--series-color]="getSeriesColor(index)"
+                      [style.flexGrow]="row.percentage || 10"
+                    >
                       <strong>{{ row.label }}</strong>
                       <span>{{ row.count }} demandes • {{ row.percentage }}%</span>
                     </div>
@@ -466,8 +710,12 @@
               }
               @case ('treemap') {
                 <div class="type-tiles type-tiles--services">
-                  @for (row of overview.serviceStats; track row.label) {
-                    <div class="type-tiles__item" [style.flexGrow]="row.percentage || 10">
+                  @for (row of overview.serviceStats; track row.label; let index = $index) {
+                    <div
+                      class="type-tiles__item chart-series"
+                      [style.--series-color]="getSeriesColor(index)"
+                      [style.flexGrow]="row.percentage || 10"
+                    >
                       <strong>{{ row.label }}</strong>
                       <span>{{ row.count }} demandes • {{ row.percentage }}%</span>
                     </div>
@@ -507,7 +755,7 @@
           }
         </article>
 
-        <article class="card chart-card chart-card--revenue">
+        <article class="card chart-card chart-card--revenue" [class.card--full]="isWideView(chartViews().revenue)">
           <header>
             <p class="card__eyebrow">Chiffre d'affaires</p>
             <h3>Services les plus rentables</h3>
@@ -525,15 +773,23 @@
             </select>
           </div>
           <p class="chart-card__hint">Vue actuelle : {{ getChartViewLabel(chartViews().revenue) }}</p>
+          <div class="chart-legend chart-legend--categories">
+            @for (row of overview.revenueStats; track row.label; let index = $index) {
+              <span class="chart-legend__item chart-legend__item--custom" [style.--series-color]="getSeriesColor(index)">
+                {{ row.label }}
+              </span>
+            }
+          </div>
           @if (overview.revenueStats.length) {
             @switch (chartViews().revenue) {
               @case ('histogram') {
                 <div class="chart-histogram">
-                  @for (row of overview.revenueStats; track row.label) {
+                  @for (row of overview.revenueStats; track row.label; let index = $index) {
                     <div class="chart-histogram__item">
                       <div class="chart-histogram__bars">
                         <span
-                          class="chart-histogram__bar"
+                          class="chart-histogram__bar chart-series"
+                          [style.--series-color]="getSeriesColor(index)"
                           [style.height.%]="getPercent(row.amount, revenueMaxAmount())"
                         ></span>
                       </div>
@@ -549,15 +805,17 @@
                   <span class="chart-legend__item chart-legend__item--secondary">Part</span>
                 </div>
                 <div class="chart-histogram chart-histogram--dual">
-                  @for (row of overview.revenueStats; track row.label) {
+                  @for (row of overview.revenueStats; track row.label; let index = $index) {
                     <div class="chart-histogram__item">
                       <div class="chart-histogram__bars">
                         <span
-                          class="chart-histogram__bar"
+                          class="chart-histogram__bar chart-series"
+                          [style.--series-color]="getSeriesColor(index)"
                           [style.height.%]="getPercent(row.amount, revenueMaxAmount())"
                         ></span>
                         <span
-                          class="chart-histogram__bar chart-histogram__bar--secondary"
+                          class="chart-histogram__bar chart-histogram__bar--secondary chart-series chart-series--soft"
+                          [style.--series-color]="getSeriesColor(index)"
                           [style.height.%]="row.percentage || 0"
                         ></span>
                       </div>
@@ -571,15 +829,23 @@
               }
               @case ('bar') {
                 <div class="revenue-chart">
-                  @for (row of overview.revenueStats; track row.label) {
+                  @for (row of overview.revenueStats; track row.label; let index = $index) {
                     <div class="revenue-chart__row">
                       <div class="revenue-chart__header">
                         <strong>{{ row.label }}</strong>
                         <span>{{ row.amount | number:'1.0-0' }} € • {{ row.percentage }}%</span>
                       </div>
                       <div class="revenue-chart__bar" aria-hidden="true">
-                        <span class="revenue-chart__fill" [style.width.%]="row.percentage || 4"></span>
-                        <span class="revenue-chart__dot" [style.left.%]="row.percentage || 4"></span>
+                        <span
+                          class="revenue-chart__fill chart-series"
+                          [style.--series-color]="getSeriesColor(index)"
+                          [style.width.%]="row.percentage || 4"
+                        ></span>
+                        <span
+                          class="revenue-chart__dot"
+                          [style.--series-color]="getSeriesColor(index)"
+                          [style.left.%]="row.percentage || 4"
+                        ></span>
                       </div>
                     </div>
                   }
@@ -587,7 +853,7 @@
               }
               @case ('bar-grouped') {
                 <div class="grouped-bars">
-                  @for (row of overview.revenueStats; track row.label) {
+                  @for (row of overview.revenueStats; track row.label; let index = $index) {
                     <div class="grouped-bars__row">
                       <div class="grouped-bars__label">
                         <strong>{{ row.label }}</strong>
@@ -596,13 +862,18 @@
                       <div class="grouped-bars__bars">
                         <div class="grouped-bars__bar">
                           <span
-                            class="grouped-bars__fill"
+                            class="grouped-bars__fill chart-series"
+                            [style.--series-color]="getSeriesColor(index)"
                             [style.width.%]="getPercent(row.amount, revenueMaxAmount())"
                           ></span>
                           <span class="grouped-bars__value">{{ row.amount | number:'1.0-0' }} €</span>
                         </div>
                         <div class="grouped-bars__bar grouped-bars__bar--secondary">
-                          <span class="grouped-bars__fill" [style.width.%]="row.percentage || 0"></span>
+                          <span
+                            class="grouped-bars__fill chart-series chart-series--soft"
+                            [style.--series-color]="getSeriesColor(index)"
+                            [style.width.%]="row.percentage || 0"
+                          ></span>
                           <span class="grouped-bars__value">{{ row.percentage }}%</span>
                         </div>
                       </div>
@@ -610,9 +881,33 @@
                   }
                 </div>
               }
+              @case ('bar-grouped-vertical') {
+                <div class="grouped-columns">
+                  @for (row of overview.revenueStats; track row.label; let index = $index) {
+                    <div class="grouped-columns__group">
+                      <span class="grouped-columns__label">{{ row.label }}</span>
+                      <div class="grouped-columns__bars">
+                        <span
+                          class="grouped-columns__bar chart-series"
+                          [style.--series-color]="getSeriesColor(index)"
+                          [style.height.%]="getPercent(row.amount, revenueMaxAmount())"
+                        ></span>
+                        <span
+                          class="grouped-columns__bar grouped-columns__bar--secondary chart-series chart-series--soft"
+                          [style.--series-color]="getSeriesColor(index)"
+                          [style.height.%]="row.percentage || 0"
+                        ></span>
+                      </div>
+                      <span class="grouped-columns__value">
+                        {{ row.amount | number:'1.0-0' }} € • {{ row.percentage }}%
+                      </span>
+                    </div>
+                  }
+                </div>
+              }
               @case ('bar-stacked') {
                 <div class="stacked-bars">
-                  @for (row of overview.revenueStats; track row.label) {
+                  @for (row of overview.revenueStats; track row.label; let index = $index) {
                     <div class="stacked-bars__row">
                       <div class="stacked-bars__label">
                         <strong>{{ row.label }}</strong>
@@ -620,11 +915,13 @@
                       </div>
                       <div class="stacked-bars__bar" aria-hidden="true">
                         <span
-                          class="stacked-bars__segment"
+                          class="stacked-bars__segment chart-series"
+                          [style.--series-color]="getSeriesColor(index)"
                           [style.width.%]="getStackedPercents([row.amount, row.percentage])[0]"
                         ></span>
                         <span
-                          class="stacked-bars__segment stacked-bars__segment--secondary"
+                          class="stacked-bars__segment stacked-bars__segment--secondary chart-series chart-series--soft"
+                          [style.--series-color]="getSeriesColor(index)"
                           [style.width.%]="getStackedPercents([row.amount, row.percentage])[1]"
                         ></span>
                       </div>
@@ -635,24 +932,102 @@
               }
               @case ('pareto') {
                 <div class="pareto-chart">
-                  @for (row of revenuePareto(); track row.label) {
+                  @for (row of revenuePareto(); track row.label; let index = $index) {
                     <div class="pareto-chart__row">
                       <div class="pareto-chart__label">
                         <strong>{{ row.label }}</strong>
                         <span>{{ row.value | number:'1.0-0' }} € • {{ row.percentage | number:'1.0-0' }}%</span>
                       </div>
                       <div class="pareto-chart__bar" aria-hidden="true">
-                        <span class="pareto-chart__fill" [style.width.%]="row.percentage"></span>
+                        <span
+                          class="pareto-chart__fill chart-series"
+                          [style.--series-color]="getSeriesColor(index)"
+                          [style.width.%]="row.percentage"
+                        ></span>
                         <span class="pareto-chart__marker" [style.left.%]="row.cumulative"></span>
                       </div>
                     </div>
                   }
                 </div>
               }
+              @case ('line') {
+                <div class="line-chart">
+                  <svg class="line-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <polyline
+                      class="line-chart__path"
+                      [attr.points]="getRevenueLinePoints()"
+                    ></polyline>
+                  </svg>
+                  <div class="line-chart__labels">
+                    @for (row of overview.revenueStats; track row.label) {
+                      <span>{{ row.label }}</span>
+                    }
+                  </div>
+                </div>
+              }
+              @case ('line-categories') {
+                <div class="line-chart line-chart--categories">
+                  <svg class="line-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <polyline
+                      class="line-chart__path line-chart__path--neutral"
+                      [attr.points]="getRevenueLinePoints()"
+                    ></polyline>
+                    @for (row of overview.revenueStats; track row.label; let index = $index) {
+                      <circle
+                        class="line-chart__point"
+                        [attr.cx]="getLinePointX(index, overview.revenueStats.length)"
+                        [attr.cy]="getLinePointY(row.amount, revenueMaxAmount())"
+                        [attr.fill]="getSeriesColor(index)"
+                      ></circle>
+                    }
+                  </svg>
+                  <div class="line-chart__labels line-chart__labels--colored">
+                    @for (row of overview.revenueStats; track row.label; let index = $index) {
+                      <span [style.color]="getSeriesColor(index)">{{ row.label }}</span>
+                    }
+                  </div>
+                </div>
+              }
+              @case ('pie') {
+                <div class="pie-chart">
+                  <div
+                    class="pie-chart__visual"
+                    [style.background]="getRevenuePieGradient()"
+                  ></div>
+                  <div class="pie-chart__details">
+                    @for (row of overview.revenueStats; track row.label; let index = $index) {
+                      <div class="pie-chart__row">
+                        <span class="pie-chart__dot" [style.--series-color]="getSeriesColor(index)"></span>
+                        <span>{{ row.label }}</span>
+                        <strong>{{ row.percentage }}%</strong>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+              @case ('heatmap') {
+                <div class="heatmap heatmap--single">
+                  @for (row of overview.revenueStats; track row.label; let index = $index) {
+                    <div
+                      class="heatmap__cell"
+                      [style.--series-color]="getSeriesColor(index)"
+                      [style.--heatmap-strength]="getHeatmapStrength(row.amount, revenueMaxAmount())"
+                    >
+                      <span class="heatmap__label">{{ row.label }}</span>
+                      <strong>{{ row.amount | number:'1.0-0' }} €</strong>
+                      <em>{{ row.percentage }}%</em>
+                    </div>
+                  }
+                </div>
+              }
               @case ('mosaic') {
                 <div class="revenue-tiles">
-                  @for (row of overview.revenueStats; track row.label) {
-                    <div class="revenue-tiles__item" [style.flexGrow]="row.percentage || 10">
+                  @for (row of overview.revenueStats; track row.label; let index = $index) {
+                    <div
+                      class="revenue-tiles__item chart-series"
+                      [style.--series-color]="getSeriesColor(index)"
+                      [style.flexGrow]="row.percentage || 10"
+                    >
                       <strong>{{ row.label }}</strong>
                       <span>{{ row.amount | number:'1.0-0' }} € • {{ row.percentage }}%</span>
                     </div>
@@ -661,8 +1036,12 @@
               }
               @case ('treemap') {
                 <div class="revenue-tiles">
-                  @for (row of overview.revenueStats; track row.label) {
-                    <div class="revenue-tiles__item" [style.flexGrow]="row.percentage || 10">
+                  @for (row of overview.revenueStats; track row.label; let index = $index) {
+                    <div
+                      class="revenue-tiles__item chart-series"
+                      [style.--series-color]="getSeriesColor(index)"
+                      [style.flexGrow]="row.percentage || 10"
+                    >
                       <strong>{{ row.label }}</strong>
                       <span>{{ row.amount | number:'1.0-0' }} € • {{ row.percentage }}%</span>
                     </div>
@@ -727,7 +1106,10 @@
           </p>
         </article>
 
-        <article class="card chart-card chart-card--history card--full">
+        <article
+          class="card chart-card chart-card--history"
+          [class.card--full]="isWideView(chartViews().history) || chartViews().history === 'bar-grouped'"
+        >
           <header>
             <p class="card__eyebrow">Historique & prévisions</p>
             <h3>Services, devis et rendez-vous (N à N-4 + N+1)</h3>
@@ -745,6 +1127,17 @@
             </select>
           </div>
           <p class="chart-card__hint">Vue actuelle : {{ getChartViewLabel(chartViews().history) }}</p>
+          <div class="chart-legend chart-legend--categories">
+            <span class="chart-legend__item chart-legend__item--custom" [style.--series-color]="getHistoryMetricColor('services')">
+              Services
+            </span>
+            <span class="chart-legend__item chart-legend__item--custom" [style.--series-color]="getHistoryMetricColor('devis')">
+              Devis
+            </span>
+            <span class="chart-legend__item chart-legend__item--custom" [style.--series-color]="getHistoryMetricColor('rdv')">
+              Rendez-vous
+            </span>
+          </div>
           @if (yearlyStats().length) {
             @switch (chartViews().history) {
               @case ('histogram') {
@@ -753,7 +1146,8 @@
                     <div class="chart-histogram__item">
                       <div class="chart-histogram__bars">
                         <span
-                          class="chart-histogram__bar"
+                          class="chart-histogram__bar chart-series"
+                          [style.--series-color]="getHistoryMetricColor('services')"
                           [style.height.%]="getPercent(row.serviceRevenue, historyMaxServiceRevenue())"
                         ></span>
                       </div>
@@ -775,11 +1169,13 @@
                     <div class="chart-histogram__item">
                       <div class="chart-histogram__bars">
                         <span
-                          class="chart-histogram__bar"
+                          class="chart-histogram__bar chart-series"
+                          [style.--series-color]="getHistoryMetricColor('services')"
                           [style.height.%]="getPercent(row.serviceRevenue, historyMaxServiceRevenue())"
                         ></span>
                         <span
-                          class="chart-histogram__bar chart-histogram__bar--secondary"
+                          class="chart-histogram__bar chart-histogram__bar--secondary chart-series"
+                          [style.--series-color]="getHistoryMetricColor('devis')"
                           [style.height.%]="getPercent(row.devisRevenue, historyMaxDevisRevenue())"
                         ></span>
                       </div>
@@ -803,7 +1199,8 @@
                       </div>
                       <div class="history-bars__bar" aria-hidden="true">
                         <span
-                          class="history-bars__fill"
+                          class="history-bars__fill chart-series"
+                          [style.--series-color]="getHistoryMetricColor('services')"
                           [style.width.%]="getPercent(row.serviceRevenue, historyMaxServiceRevenue())"
                         ></span>
                       </div>
@@ -827,26 +1224,60 @@
                       <div class="grouped-bars__bars">
                         <div class="grouped-bars__bar">
                           <span
-                            class="grouped-bars__fill"
+                            class="grouped-bars__fill chart-series"
+                            [style.--series-color]="getHistoryMetricColor('services')"
                             [style.width.%]="getPercent(row.serviceCount, historyMaxServiceCount())"
                           ></span>
                           <span class="grouped-bars__value">{{ row.serviceCount }}</span>
                         </div>
                         <div class="grouped-bars__bar grouped-bars__bar--secondary">
                           <span
-                            class="grouped-bars__fill"
+                            class="grouped-bars__fill chart-series"
+                            [style.--series-color]="getHistoryMetricColor('devis')"
                             [style.width.%]="getPercent(row.devisCount, historyMaxDevisCount())"
                           ></span>
                           <span class="grouped-bars__value">{{ row.devisCount }} devis</span>
                         </div>
                         <div class="grouped-bars__bar grouped-bars__bar--tertiary">
                           <span
-                            class="grouped-bars__fill"
+                            class="grouped-bars__fill chart-series"
+                            [style.--series-color]="getHistoryMetricColor('rdv')"
                             [style.width.%]="getPercent(row.rendezVousCount, historyMaxRendezVousCount())"
                           ></span>
                           <span class="grouped-bars__value">{{ row.rendezVousCount }} RDV</span>
                         </div>
                       </div>
+                    </div>
+                  }
+                </div>
+              }
+              @case ('bar-grouped-vertical') {
+                <div class="grouped-columns grouped-columns--history">
+                  @for (row of yearlyStats(); track row.year) {
+                    <div class="grouped-columns__group">
+                      <span class="grouped-columns__label">
+                        {{ row.forecast ? 'Prévision ' + row.year : row.year }}
+                      </span>
+                      <div class="grouped-columns__bars">
+                        <span
+                          class="grouped-columns__bar chart-series"
+                          [style.--series-color]="getHistoryMetricColor('services')"
+                          [style.height.%]="getPercent(row.serviceCount, historyMaxServiceCount())"
+                        ></span>
+                        <span
+                          class="grouped-columns__bar chart-series chart-series--soft"
+                          [style.--series-color]="getHistoryMetricColor('devis')"
+                          [style.height.%]="getPercent(row.devisCount, historyMaxDevisCount())"
+                        ></span>
+                        <span
+                          class="grouped-columns__bar grouped-columns__bar--tertiary chart-series"
+                          [style.--series-color]="getHistoryMetricColor('rdv')"
+                          [style.height.%]="getPercent(row.rendezVousCount, historyMaxRendezVousCount())"
+                        ></span>
+                      </div>
+                      <span class="grouped-columns__value">
+                        {{ row.serviceCount }} S • {{ row.devisCount }} D • {{ row.rendezVousCount }} RDV
+                      </span>
                     </div>
                   }
                 </div>
@@ -861,19 +1292,22 @@
                       </div>
                       <div class="stacked-bars__bar" aria-hidden="true">
                         <span
-                          class="stacked-bars__segment"
+                          class="stacked-bars__segment chart-series"
+                          [style.--series-color]="getHistoryMetricColor('services')"
                           [style.width.%]="
                             getStackedPercents([row.serviceCount, row.devisCount, row.rendezVousCount])[0]
                           "
                         ></span>
                         <span
-                          class="stacked-bars__segment stacked-bars__segment--secondary"
+                          class="stacked-bars__segment stacked-bars__segment--secondary chart-series"
+                          [style.--series-color]="getHistoryMetricColor('devis')"
                           [style.width.%]="
                             getStackedPercents([row.serviceCount, row.devisCount, row.rendezVousCount])[1]
                           "
                         ></span>
                         <span
-                          class="stacked-bars__segment stacked-bars__segment--tertiary"
+                          class="stacked-bars__segment stacked-bars__segment--tertiary chart-series"
+                          [style.--series-color]="getHistoryMetricColor('rdv')"
                           [style.width.%]="
                             getStackedPercents([row.serviceCount, row.devisCount, row.rendezVousCount])[2]
                           "
@@ -895,8 +1329,125 @@
                         <span>{{ row.value | number:'1.0-0' }} € • {{ row.percentage | number:'1.0-0' }}%</span>
                       </div>
                       <div class="pareto-chart__bar" aria-hidden="true">
-                        <span class="pareto-chart__fill" [style.width.%]="row.percentage"></span>
+                        <span
+                          class="pareto-chart__fill chart-series"
+                          [style.--series-color]="getHistoryMetricColor('services')"
+                          [style.width.%]="row.percentage"
+                        ></span>
                         <span class="pareto-chart__marker" [style.left.%]="row.cumulative"></span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+              @case ('line') {
+                <div class="line-chart line-chart--multi">
+                  <svg class="line-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <polyline
+                      class="line-chart__path"
+                      [attr.points]="getHistoryLinePoints('serviceRevenue')"
+                      [attr.stroke]="getHistoryMetricColor('services')"
+                    ></polyline>
+                    <polyline
+                      class="line-chart__path"
+                      [attr.points]="getHistoryLinePoints('devisRevenue')"
+                      [attr.stroke]="getHistoryMetricColor('devis')"
+                    ></polyline>
+                    <polyline
+                      class="line-chart__path"
+                      [attr.points]="getHistoryLinePoints('rendezVousCount')"
+                      [attr.stroke]="getHistoryMetricColor('rdv')"
+                    ></polyline>
+                  </svg>
+                  <div class="line-chart__labels">
+                    @for (row of yearlyStats(); track row.year) {
+                      <span>{{ row.forecast ? 'Prévision ' + row.year : row.year }}</span>
+                    }
+                  </div>
+                </div>
+              }
+              @case ('line-categories') {
+                <div class="line-chart line-chart--categories">
+                  <svg class="line-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <polyline
+                      class="line-chart__path"
+                      [attr.points]="getHistoryLinePoints('serviceRevenue')"
+                      [attr.stroke]="getHistoryMetricColor('services')"
+                    ></polyline>
+                    <polyline
+                      class="line-chart__path"
+                      [attr.points]="getHistoryLinePoints('devisRevenue')"
+                      [attr.stroke]="getHistoryMetricColor('devis')"
+                    ></polyline>
+                    <polyline
+                      class="line-chart__path"
+                      [attr.points]="getHistoryLinePoints('rendezVousCount')"
+                      [attr.stroke]="getHistoryMetricColor('rdv')"
+                    ></polyline>
+                  </svg>
+                  <div class="line-chart__labels line-chart__labels--stacked">
+                    @for (row of yearlyStats(); track row.year) {
+                      <span>{{ row.forecast ? 'Prévision ' + row.year : row.year }}</span>
+                    }
+                  </div>
+                </div>
+              }
+              @case ('pie') {
+                <div class="pie-chart">
+                  <div
+                    class="pie-chart__visual"
+                    [style.background]="getHistoryPieGradient()"
+                  ></div>
+                  <div class="pie-chart__details">
+                    <div class="pie-chart__row">
+                      <span class="pie-chart__dot" [style.--series-color]="getHistoryMetricColor('services')"></span>
+                      <span>Services</span>
+                      <strong>{{ getLatestActualYear()?.serviceCount ?? 0 }}</strong>
+                    </div>
+                    <div class="pie-chart__row">
+                      <span class="pie-chart__dot" [style.--series-color]="getHistoryMetricColor('devis')"></span>
+                      <span>Devis</span>
+                      <strong>{{ getLatestActualYear()?.devisCount ?? 0 }}</strong>
+                    </div>
+                    <div class="pie-chart__row">
+                      <span class="pie-chart__dot" [style.--series-color]="getHistoryMetricColor('rdv')"></span>
+                      <span>Rendez-vous</span>
+                      <strong>{{ getLatestActualYear()?.rendezVousCount ?? 0 }}</strong>
+                    </div>
+                  </div>
+                </div>
+              }
+              @case ('heatmap') {
+                <div class="heatmap heatmap--history">
+                  <div class="heatmap__row heatmap__row--head">
+                    <span>Année</span>
+                    <span>CA services</span>
+                    <span>CA devis</span>
+                    <span>Rendez-vous</span>
+                  </div>
+                  @for (row of yearlyStats(); track row.year) {
+                    <div class="heatmap__row" [class.heatmap__row--forecast]="row.forecast">
+                      <span class="heatmap__year">{{ row.forecast ? 'Prévision ' + row.year : row.year }}</span>
+                      <div
+                        class="heatmap__cell"
+                        [style.--series-color]="getHistoryMetricColor('services')"
+                        [style.--heatmap-strength]="getHeatmapStrength(row.serviceRevenue, historyMaxServiceRevenue())"
+                      >
+                        <strong>{{ row.serviceRevenue | number:'1.0-0' }} €</strong>
+                      </div>
+                      <div
+                        class="heatmap__cell"
+                        [style.--series-color]="getHistoryMetricColor('devis')"
+                        [style.--heatmap-strength]="getHeatmapStrength(row.devisRevenue, historyMaxDevisRevenue())"
+                      >
+                        <strong>{{ row.devisRevenue | number:'1.0-0' }} €</strong>
+                      </div>
+                      <div
+                        class="heatmap__cell"
+                        [style.--series-color]="getHistoryMetricColor('rdv')"
+                        [style.--heatmap-strength]="getHeatmapStrength(row.rendezVousCount, historyMaxRendezVousCount())"
+                      >
+                        <strong>{{ row.rendezVousCount }}</strong>
                       </div>
                     </div>
                   }

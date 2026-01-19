@@ -18,7 +18,12 @@ type ChartView =
   | 'histogram-side-by-side'
   | 'bar'
   | 'bar-grouped'
+  | 'bar-grouped-vertical'
   | 'bar-stacked'
+  | 'line'
+  | 'line-categories'
+  | 'pie'
+  | 'heatmap'
   | 'pareto'
   | 'mosaic'
   | 'treemap'
@@ -32,11 +37,33 @@ const CHART_VIEW_OPTIONS: Array<{ value: ChartView; label: string }> = [
   { value: 'histogram-side-by-side', label: 'Histogrammes côte à côte' },
   { value: 'bar', label: 'Diagrammes en barres' },
   { value: 'bar-grouped', label: 'Diagrammes en barres groupées' },
+  { value: 'bar-grouped-vertical', label: 'Diagrammes en barres groupés' },
   { value: 'bar-stacked', label: 'Diagrammes en barres empilées' },
+  { value: 'line', label: 'Graphiques linéaires' },
+  { value: 'line-categories', label: 'Graphiques linéaires avec catégories' },
+  { value: 'pie', label: 'Diagrammes en secteurs' },
+  { value: 'heatmap', label: 'Cartes thermiques' },
   { value: 'pareto', label: 'Diagrammes de Pareto' },
   { value: 'mosaic', label: 'Graphiques en mosaïque' },
   { value: 'treemap', label: 'Treemaps' },
   { value: 'boxplot', label: 'Boîtes à moustaches' }
+];
+
+const TYPE_COLORS: Record<string, string> = {
+  Devis: '#2563eb',
+  Service: '#14b8a6',
+  RendezVous: '#f97316',
+  'Rendez-vous': '#f97316'
+};
+
+const SERIES_PALETTE = [
+  '#0ea5e9',
+  '#a855f7',
+  '#f97316',
+  '#10b981',
+  '#e11d48',
+  '#64748b',
+  '#22c55e'
 ];
 
 interface DashboardStats extends AdminDashboardAnalytics {
@@ -83,36 +110,27 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     statuts: [] as Array<'Brouillon' | 'En_attente' | 'Traitee' | 'Annulee'>,
     serviceIds: [] as number[]
   });
-  readonly typeMaxCount = computed(() =>
-    this.getMaxValue(this.analytics()?.typeStats.map(row => row.count) ?? [])
-  );
-  readonly typeMaxAverage = computed(() =>
-    this.getMaxValue(this.analytics()?.typeStats.map(row => row.averageValue) ?? [])
-  );
-  readonly serviceMaxCount = computed(() =>
-    this.getMaxValue(this.analytics()?.serviceStats.map(row => row.count) ?? [])
-  );
-  readonly serviceMaxRevenue = computed(() =>
-    this.getMaxValue(this.analytics()?.serviceStats.map(row => row.revenue) ?? [])
-  );
-  readonly revenueMaxAmount = computed(() =>
-    this.getMaxValue(this.analytics()?.revenueStats.map(row => row.amount) ?? [])
-  );
-  readonly historyMaxServiceRevenue = computed(() =>
-    this.getMaxValue(this.yearlyStats().map(row => row.serviceRevenue))
-  );
-  readonly historyMaxServiceCount = computed(() =>
-    this.getMaxValue(this.yearlyStats().map(row => row.serviceCount))
-  );
-  readonly historyMaxDevisCount = computed(() =>
-    this.getMaxValue(this.yearlyStats().map(row => row.devisCount))
-  );
-  readonly historyMaxRendezVousCount = computed(() =>
-    this.getMaxValue(this.yearlyStats().map(row => row.rendezVousCount))
-  );
-  readonly historyMaxDevisRevenue = computed(() =>
-    this.getMaxValue(this.yearlyStats().map(row => row.devisRevenue))
-  );
+  readonly typeCountSeries = computed(() => this.analytics()?.typeStats.map(row => row.count) ?? []);
+  readonly typeAverageSeries = computed(() => this.analytics()?.typeStats.map(row => row.averageValue) ?? []);
+  readonly serviceCountSeries = computed(() => this.analytics()?.serviceStats.map(row => row.count) ?? []);
+  readonly serviceRevenueSeries = computed(() => this.analytics()?.serviceStats.map(row => row.revenue) ?? []);
+  readonly revenueAmountSeries = computed(() => this.analytics()?.revenueStats.map(row => row.amount) ?? []);
+  readonly historyServiceRevenueSeries = computed(() => this.yearlyStats().map(row => row.serviceRevenue));
+  readonly historyServiceCountSeries = computed(() => this.yearlyStats().map(row => row.serviceCount));
+  readonly historyDevisCountSeries = computed(() => this.yearlyStats().map(row => row.devisCount));
+  readonly historyRendezVousCountSeries = computed(() => this.yearlyStats().map(row => row.rendezVousCount));
+  readonly historyDevisRevenueSeries = computed(() => this.yearlyStats().map(row => row.devisRevenue));
+
+  readonly typeMaxCount = computed(() => this.getMaxValue(this.typeCountSeries()));
+  readonly typeMaxAverage = computed(() => this.getMaxValue(this.typeAverageSeries()));
+  readonly serviceMaxCount = computed(() => this.getMaxValue(this.serviceCountSeries()));
+  readonly serviceMaxRevenue = computed(() => this.getMaxValue(this.serviceRevenueSeries()));
+  readonly revenueMaxAmount = computed(() => this.getMaxValue(this.revenueAmountSeries()));
+  readonly historyMaxServiceRevenue = computed(() => this.getMaxValue(this.historyServiceRevenueSeries()));
+  readonly historyMaxServiceCount = computed(() => this.getMaxValue(this.historyServiceCountSeries()));
+  readonly historyMaxDevisCount = computed(() => this.getMaxValue(this.historyDevisCountSeries()));
+  readonly historyMaxRendezVousCount = computed(() => this.getMaxValue(this.historyRendezVousCountSeries()));
+  readonly historyMaxDevisRevenue = computed(() => this.getMaxValue(this.historyDevisRevenueSeries()));
   readonly typePareto = computed(() =>
     this.buildParetoData(
       this.analytics()?.typeStats ?? [],
@@ -391,6 +409,138 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   getChartViewLabel(view: ChartView): string {
     return this.chartViewOptions.find(option => option.value === view)?.label ?? 'Vue';
+  }
+
+  isWideView(view: ChartView): boolean {
+    return ['histogram-side-by-side', 'bar-grouped-vertical', 'line', 'line-categories', 'pie', 'heatmap'].includes(
+      view
+    );
+  }
+
+  getTypeColor(type: string): string {
+    return TYPE_COLORS[type] ?? '#64748b';
+  }
+
+  getSeriesColor(index: number): string {
+    return SERIES_PALETTE[index % SERIES_PALETTE.length];
+  }
+
+  getHistoryMetricColor(metric: 'services' | 'devis' | 'rdv'): string {
+    switch (metric) {
+      case 'services':
+        return '#0ea5e9';
+      case 'devis':
+        return '#6366f1';
+      case 'rdv':
+        return '#f97316';
+      default:
+        return '#64748b';
+    }
+  }
+
+  getLinePoints(values: number[], max: number): string {
+    if (!values.length) {
+      return '0,100';
+    }
+    const total = values.length;
+    return values
+      .map((value, index) => {
+        const x = total > 1 ? (index / (total - 1)) * 100 : 0;
+        const y = 100 - this.getPercent(value, max);
+        return `${x},${y}`;
+      })
+      .join(' ');
+  }
+
+  getLinePointX(index: number, total: number): number {
+    if (total <= 1) {
+      return 0;
+    }
+    return (index / (total - 1)) * 100;
+  }
+
+  getLinePointY(value: number, max: number): number {
+    return 100 - this.getPercent(value, max);
+  }
+
+  getTypeLinePoints(): string {
+    return this.getLinePoints(this.typeCountSeries(), this.typeMaxCount());
+  }
+
+  getServiceLinePoints(): string {
+    return this.getLinePoints(this.serviceCountSeries(), this.serviceMaxCount());
+  }
+
+  getRevenueLinePoints(): string {
+    return this.getLinePoints(this.revenueAmountSeries(), this.revenueMaxAmount());
+  }
+
+  getHistoryLinePoints(metric: 'serviceRevenue' | 'devisRevenue' | 'rendezVousCount'): string {
+    const values = this.yearlyStats().map(row => row[metric]);
+    const max =
+      metric === 'serviceRevenue'
+        ? this.historyMaxServiceRevenue()
+        : metric === 'devisRevenue'
+          ? this.historyMaxDevisRevenue()
+          : this.historyMaxRendezVousCount();
+    return this.getLinePoints(values, max);
+  }
+
+  getPieGradient(entries: Array<{ value: number; color: string }>): string {
+    const total = entries.reduce((sum, entry) => sum + entry.value, 0);
+    if (!total) {
+      return 'conic-gradient(#e2e8f0 0deg, #e2e8f0 360deg)';
+    }
+    let current = 0;
+    const segments = entries
+      .filter(entry => entry.value > 0)
+      .map(entry => {
+        const angle = (entry.value / total) * 360;
+        const start = current;
+        current += angle;
+        return `${entry.color} ${start}deg ${current}deg`;
+      });
+    return `conic-gradient(${segments.join(', ')})`;
+  }
+
+  getHeatmapStrength(value: number, max: number): string {
+    const strength = Math.max(15, Math.round(this.getPercent(value, max)));
+    return `${strength}%`;
+  }
+
+  getTypePieGradient(): string {
+    const stats = this.analytics()?.typeStats ?? [];
+    return this.getPieGradient(stats.map(row => ({ value: row.count, color: this.getTypeColor(row.type) })));
+  }
+
+  getServicePieGradient(): string {
+    const stats = this.analytics()?.serviceStats ?? [];
+    return this.getPieGradient(stats.map((row, index) => ({ value: row.count, color: this.getSeriesColor(index) })));
+  }
+
+  getRevenuePieGradient(): string {
+    const stats = this.analytics()?.revenueStats ?? [];
+    return this.getPieGradient(stats.map((row, index) => ({ value: row.amount, color: this.getSeriesColor(index) })));
+  }
+
+  getHistoryPieGradient(): string {
+    const latest = this.getLatestActualYear();
+    if (!latest) {
+      return this.getPieGradient([]);
+    }
+    return this.getPieGradient([
+      { value: latest.serviceCount, color: this.getHistoryMetricColor('services') },
+      { value: latest.devisCount, color: this.getHistoryMetricColor('devis') },
+      { value: latest.rendezVousCount, color: this.getHistoryMetricColor('rdv') }
+    ]);
+  }
+
+  getLatestActualYear(): AdminYearlyStats | null {
+    const rows = this.yearlyStats().filter(row => !row.forecast);
+    if (!rows.length) {
+      return null;
+    }
+    return rows[rows.length - 1];
   }
 
   getDemandeId(demande: DemandeWithServices): number {
