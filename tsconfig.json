@@ -20,7 +20,7 @@
     },
     "target": "ES2022",
     "module": "preserve",
-    "moduleResolution": "node"
+    "moduleResolution": "nodenext"
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
