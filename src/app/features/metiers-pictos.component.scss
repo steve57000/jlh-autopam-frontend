@@ -4,7 +4,7 @@
 @use '../../styles/animations' as anim;
 
 .section-pictos-metiers {
-  background: linear-gradient(180deg, rgba(v.$color-secondary, 0.06), rgba(v.$color-primary, 0.02));
+  background: white;
   width: 100%;
   position: relative;
   padding-block: clamp(48px, 8vh, 96px);

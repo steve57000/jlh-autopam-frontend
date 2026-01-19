@@ -5,7 +5,7 @@ import {
   PromotionRequest,
   PromotionResponse
 } from '../modeles/promotion.model';
-import { environment } from 'environments/environment';
+import { environment } from '@environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AdminPromotionsService {
