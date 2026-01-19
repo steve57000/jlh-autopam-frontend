@@ -45,7 +45,7 @@ importers:
         specifier: ^20.3.10
         version: 20.3.14(f45a06d5d413204c7a407f2025f4ee94)
       '@netlify/angular-runtime':
-        specifier: ^2.2.0
+        specifier: ^3.0.1
         version: 2.4.0
       express:
         specifier: ^5.1.0
