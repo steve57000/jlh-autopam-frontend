@@ -1,6 +1,6 @@
 <section class="services-page">
   <div class="container-max grid">
-    @if (isClient && draft) {
+    @if (isClient && draft?.services?.length) {
       <aside class="aside">
         <app-current-quote
           [demande]="draft"
@@ -21,17 +21,16 @@
       <section class="services-tabs" aria-label="Nos services et expertises détaillées">
         <div class="services-tabs__list" role="tablist">
           @for (tab of tabs; track tab.id) {
-            <button
-              type="button"
+            <a
               role="tab"
               class="services-tabs__tab"
               [class.is-active]="activeTab === tab.id"
               [attr.aria-selected]="activeTab === tab.id"
               [attr.aria-controls]="'panel-' + tab.id"
               [attr.id]="'tab-' + tab.id"
-              (click)="setActiveTab(tab.id)">
+              [routerLink]="tab.link">
               {{ tab.label }}
-            </button>
+            </a>
           }
         </div>
         <div class="services-tabs__panels">
@@ -56,6 +55,51 @@
                     <p>Aucun service disponible pour le moment.</p>
                   }
                 </div>
+              } @else if (tab.id === 'rendezvous') {
+                <h3>{{ tab.title }}</h3>
+                <p>{{ tab.description }}</p>
+                <form class="rdv-request" (ngSubmit)="submitRendezVousRequest()">
+                  <div class="rdv-request__grid">
+                    <div class="field">
+                      <label for="rdv-telephone">Téléphone</label>
+                      <input
+                        id="rdv-telephone"
+                        type="tel"
+                        name="rdvTelephone"
+                        [(ngModel)]="rdvTelephone"
+                        placeholder="06 00 00 00 00"
+                        [disabled]="!isClient || rdvSubmitting" />
+                    </div>
+                    <div class="field">
+                      <label for="rdv-immatriculation">Immatriculation</label>
+                      <input
+                        id="rdv-immatriculation"
+                        type="text"
+                        name="rdvImmatriculation"
+                        [(ngModel)]="rdvImmatriculation"
+                        placeholder="AA-123-BB"
+                        [disabled]="!isClient || rdvSubmitting" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="rdv-description">Description de la demande *</label>
+                    <textarea
+                      id="rdv-description"
+                      name="rdvDescription"
+                      rows="4"
+                      [(ngModel)]="rdvDescription"
+                      placeholder="Décrivez la raison du rendez-vous (ex: bruit moteur, entretien complet...)"
+                      [disabled]="!isClient || rdvSubmitting"></textarea>
+                  </div>
+                  <div class="actions">
+                    <button
+                      class="btn"
+                      type="submit"
+                      [disabled]="!isClient || rdvSubmitting">
+                      {{ rdvSubmitting ? 'Envoi…' : 'Demander un rendez-vous' }}
+                    </button>
+                  </div>
+                </form>
               } @else {
                 @switch (tab.component) {
                   @case ('entretien') {

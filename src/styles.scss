@@ -41,6 +41,10 @@ body.menu-open {
   height: 100%;
 }
 
+main {
+  background: v.$linear-bg
+}
+
 h1, h2, h3 { font-family: v.$font-title; }
 h4, h5, h6 { font-family: v.$font-subtitle; }
 
@@ -174,9 +178,8 @@ a.cta-btn-secondary { text-align: center; }
 ----------------------------------------------------- */
 
 .page {
-  background: v.$linear-bg;
+  //background: v.$linear-bg;
   color: v.$color-quaternary;
-  padding-block: clamp(3.5rem, 8vw, 6rem);
 }
 
 .page__container {

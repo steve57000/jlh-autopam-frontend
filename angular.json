@@ -40,6 +40,15 @@
             }
           },
           "configurations": {
+            "demo": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.demo.ts"
+                }
+              ],
+              "outputHashing": "all"
+            },
             "production": {
               "budgets": [
                 {
@@ -66,6 +75,9 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "configurations": {
+            "demo": {
+              "buildTarget": "jlh-autopam-frontend:build:demo"
+            },
             "production": {
               "buildTarget": "jlh-autopam-frontend:build:production"
             },

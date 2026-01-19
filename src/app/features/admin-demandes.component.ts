@@ -8,6 +8,11 @@ import { LookupsService } from '../services/lookups.service';
 import { ServicesService } from '../services/services.service';
 import { ServiceDto } from '../modeles/service.model';
 import { RendezVousService, RendezVousUpsertPayload } from '../services/rendezvous.service';
+import { RendezVousPropositionsService } from '../services/rendezvous-propositions.service';
+import {
+  RendezVousProposition,
+  RendezVousPropositionBatchPayload
+} from '../modeles/rendezvous-proposition.model';
 import { AuthService } from '../services/auth.service';
 import { VEHICLE_ENERGY_OPTIONS } from '../shared/vehicle-energy-options';
 
@@ -47,6 +52,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   private readonly lookups = inject(LookupsService);
   private readonly servicesApi = inject(ServicesService);
   private readonly rendezVousApi = inject(RendezVousService);
+  private readonly rdvPropositionsApi = inject(RendezVousPropositionsService);
   private readonly auth = inject(AuthService);
 
   // Données
@@ -106,10 +112,21 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   documentUploading = signal(false);
   documentError = signal<string | null>(null);
 
+  devisValidationComment = signal('');
+  devisValidationFeedback = signal<string | null>(null);
+  devisValidationFeedbackType = signal<'success' | 'error' | null>(null);
+  devisValidationSaving = signal(false);
+
   rdvForm = signal<RendezVousFormState | null>(null);
   rdvSaving = signal(false);
   rdvFeedback = signal<string | null>(null);
   rdvFeedbackType = signal<'success' | 'error' | null>(null);
+  rdvProposals = signal<RendezVousProposition[]>([]);
+  rdvProposalDraft = signal<Array<{ dateDebut: string; dateFin: string }>>([
+    { dateDebut: '', dateFin: '' }
+  ]);
+  rdvProposalFeedback = signal<string | null>(null);
+  rdvProposalFeedbackType = signal<'success' | 'error' | null>(null);
   vehicleEnergyOptions = VEHICLE_ENERGY_OPTIONS;
 
   filtered = computed(() => {
@@ -148,6 +165,60 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     return this.demandes().find(d => this.getDemandeId(d) === id) ?? null;
   });
 
+  stepLabels(draft: DemandeWithServices) {
+    const type = draft.code_type;
+    if (type === 'Devis') {
+      return {
+        step1: 'Demande devis',
+        step2: 'Validation du devis',
+        step3: 'Prise de rendez-vous',
+        guide1: '1. Vérifier la demande : services, quantités, prix et pièces jointes.',
+        guide2: '2. Valider le devis : ajustez les services et confirmez le montant.',
+        guide3: '3. Fixer le rendez-vous : appelez le client ou proposez 1 à 3 créneaux via le site.'
+      };
+    }
+    if (type === 'RendezVous') {
+      return {
+        step1: 'Demande rendez-vous',
+        step2: 'Prise de rendez-vous',
+        step3: 'Confirmation',
+        guide1: '1. Vérifier la demande : coordonnées et commentaire du client.',
+        guide2: '2. Fixer le rendez-vous : choisissez un créneau disponible.',
+        guide3: '3. Confirmer : le statut passe automatiquement en confirmé dès que le rendez-vous est validé.'
+      };
+    }
+    return {
+      step1: 'Demande service',
+      step2: 'Prise de rendez-vous',
+      step3: 'Confirmation',
+      guide1: '1. Vérifier la demande : services, quantités, prix et pièces jointes.',
+      guide2: '2. Fixer le rendez-vous : appelez le client ou proposez 1 à 3 créneaux via le site.',
+      guide3: '3. Confirmer : le statut passe automatiquement en confirmé dès que le rendez-vous est validé.'
+    };
+  }
+
+  isStep2Done(draft: DemandeWithServices): boolean {
+    if (draft.code_type === 'Devis') {
+      return this.hasPriceValidation(draft);
+    }
+    return Boolean(draft.rendezVous?.dateDebut);
+  }
+
+  hasPriceValidation(draft: DemandeWithServices): boolean {
+    return (draft.timeline ?? []).some(entry => entry?.type === 'MONTANT' && entry.montantValide != null);
+  }
+
+  devisTotal(draft: DemandeWithServices): number {
+    return (draft.services ?? []).reduce((sum, service) => {
+      const unit = Number(service?.prix_unitaire ?? 0);
+      const qty = Number(service?.quantite ?? 0);
+      if (!Number.isFinite(unit) || !Number.isFinite(qty)) {
+        return sum;
+      }
+      return sum + unit * qty;
+    }, 0);
+  }
+
   readonly editDraft = computed(() => this.draft());
 
   readonly hasChanges = computed(() => {
@@ -163,19 +234,6 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       return false;
     }
     return draft.code_statut === 'Traitee' || draft.code_statut === 'Annulee';
-  });
-
-  readonly isRdvConfirmed = computed(() => {
-    const draft = this.draft();
-    return draft?.rendezVous?.codeStatut === 'Confirme';
-  });
-
-  readonly autoConfirmOnSave = computed(() => {
-    const draft = this.draft();
-    if (!draft) {
-      return false;
-    }
-    return this.hasChanges() && this.isRdvConfirmed() && draft.code_statut !== 'Traitee' && draft.code_statut !== 'Annulee';
   });
 
   ngOnInit() {
@@ -300,6 +358,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.documentError.set(null);
     this.newServiceSelection.set({ serviceId: null, quantite: 1, prix: null });
     this.syncRendezVousForm(clone.rendezVous ?? null);
+    this.loadRendezVousProposals(id);
+    this.resetProposalDraft();
     this.setBodyScrollLock(true);
   }
 
@@ -315,7 +375,160 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.feedbackType.set(null);
     this.rdvForm.set(null);
     this.rdvFeedback.set(null);
+    this.rdvProposals.set([]);
+    this.rdvProposalDraft.set([{ dateDebut: '', dateFin: '' }]);
+    this.rdvProposalFeedback.set(null);
+    this.rdvProposalFeedbackType.set(null);
     this.setBodyScrollLock(false);
+  }
+
+  private loadRendezVousProposals(demandeId: number) {
+    this.rdvPropositionsApi.listByDemande(demandeId).subscribe({
+      next: proposals => this.rdvProposals.set(proposals ?? []),
+      error: () => this.rdvProposals.set([])
+    });
+  }
+
+  private resetProposalDraft() {
+    this.rdvProposalDraft.set([{ dateDebut: '', dateFin: '' }]);
+    this.rdvProposalFeedback.set(null);
+    this.rdvProposalFeedbackType.set(null);
+  }
+
+  addProposalSlot() {
+    const current = this.rdvProposalDraft();
+    if (current.length >= 3) {
+      this.rdvProposalFeedback.set('Vous pouvez proposer jusqu’à 3 créneaux.');
+      this.rdvProposalFeedbackType.set('error');
+      return;
+    }
+    this.rdvProposalDraft.set([...current, { dateDebut: '', dateFin: '' }]);
+  }
+
+  removeProposalSlot(index: number) {
+    const current = this.rdvProposalDraft();
+    if (current.length <= 1) return;
+    this.rdvProposalDraft.set(current.filter((_, i) => i !== index));
+  }
+
+  setProposalSlot(index: number, field: 'dateDebut' | 'dateFin', value: string) {
+    const current = this.rdvProposalDraft();
+    const next = current.map((slot, i) => i === index ? { ...slot, [field]: value } : slot);
+    this.rdvProposalDraft.set(next);
+  }
+
+  submitProposalSlots() {
+    const demandeId = this.selectedId();
+    if (demandeId == null) return;
+    const payload = this.buildProposalPayload();
+    if (!payload) {
+      return;
+    }
+    this.rdvProposalFeedback.set(null);
+    this.rdvProposalFeedbackType.set(null);
+    this.rdvPropositionsApi.create(demandeId, payload).subscribe({
+      next: proposals => {
+        this.rdvProposals.set(proposals ?? []);
+        this.resetProposalDraft();
+        this.rdvProposalFeedback.set('Créneaux envoyés au client. Il dispose de 24h pour répondre.');
+        this.rdvProposalFeedbackType.set('success');
+      },
+      error: err => {
+        const msg = err?.error?.message || 'Impossible d’envoyer les créneaux.';
+        this.rdvProposalFeedback.set(msg);
+        this.rdvProposalFeedbackType.set('error');
+      }
+    });
+  }
+
+  acceptProposal(propositionId: number) {
+    const demandeId = this.selectedId();
+    if (demandeId == null) return;
+    this.rdvPropositionsApi.accept(demandeId, propositionId).subscribe({
+      next: () => {
+        this.loadRendezVousProposals(demandeId);
+        this.reload();
+      },
+      error: err => {
+        const msg = err?.error?.message || 'Impossible de valider ce créneau.';
+        this.rdvProposalFeedback.set(msg);
+        this.rdvProposalFeedbackType.set('error');
+      }
+    });
+  }
+
+  declineProposal(propositionId: number) {
+    const demandeId = this.selectedId();
+    if (demandeId == null) return;
+    this.rdvPropositionsApi.decline(demandeId, propositionId).subscribe({
+      next: () => this.loadRendezVousProposals(demandeId),
+      error: err => {
+        const msg = err?.error?.message || 'Impossible de refuser ce créneau.';
+        this.rdvProposalFeedback.set(msg);
+        this.rdvProposalFeedbackType.set('error');
+      }
+    });
+  }
+
+  proposalStatusLabel(statut: RendezVousProposition['statut']) {
+    switch (statut) {
+      case 'PROPOSE':
+        return 'Proposé';
+      case 'ACCEPTE':
+        return 'Accepté';
+      case 'REFUSE':
+        return 'Refusé';
+      case 'EXPIRE':
+        return 'Expiré';
+      default:
+        return statut;
+    }
+  }
+
+  private buildProposalPayload(): RendezVousPropositionBatchPayload | null {
+    const draftSlots = this.rdvProposalDraft()
+      .map(slot => ({
+        dateDebut: this.parseDateInput(slot.dateDebut),
+        dateFin: this.parseDateInput(slot.dateFin)
+      }))
+      .filter(slot => slot.dateDebut && slot.dateFin) as { dateDebut: string; dateFin: string }[];
+
+    const existingSlots = this.rdvProposals()
+      .filter(proposal => proposal.statut === 'PROPOSE' && this.isProposalActive(proposal))
+      .map(proposal => ({
+        dateDebut: proposal.dateDebut,
+        dateFin: proposal.dateFin
+      }));
+
+    const slots = [...existingSlots, ...draftSlots].reduce((acc, slot) => {
+      const key = `${slot.dateDebut}|${slot.dateFin}`;
+      if (!acc.some(item => `${item.dateDebut}|${item.dateFin}` === key)) {
+        acc.push(slot);
+      }
+      return acc;
+    }, [] as { dateDebut: string; dateFin: string }[]);
+
+    if (!slots.length) {
+      this.rdvProposalFeedback.set('Ajoutez au moins un créneau complet.');
+      this.rdvProposalFeedbackType.set('error');
+      return null;
+    }
+
+    if (slots.length > 3) {
+      this.rdvProposalFeedback.set('Supprimez un créneau existant avant d’en ajouter un nouveau (max 3).');
+      this.rdvProposalFeedbackType.set('error');
+      return null;
+    }
+
+    return { propositions: slots };
+  }
+
+  private isProposalActive(proposal: RendezVousProposition): boolean {
+    if (!proposal.expiresAt) {
+      return true;
+    }
+    const expiresAt = new Date(proposal.expiresAt).getTime();
+    return Number.isFinite(expiresAt) && expiresAt > Date.now();
   }
 
   updateDraft(mutator: (draft: DemandeWithServices) => void) {
@@ -328,10 +541,6 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
 
   setDraftType(value: DemandeWithServices['code_type']) {
     this.updateDraft(d => { d.code_type = value; });
-  }
-
-  setDraftStatut(value: DemandeWithServices['code_statut']) {
-    this.updateDraft(d => { d.code_statut = value; });
   }
 
   updateClientField(
@@ -494,6 +703,9 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.feedback.set(null);
     this.feedbackType.set(null);
     this.documentError.set(null);
+    this.devisValidationComment.set('');
+    this.devisValidationFeedback.set(null);
+    this.devisValidationFeedbackType.set(null);
     this.syncRendezVousForm(original.rendezVous ?? null);
   }
 
@@ -507,14 +719,10 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.feedbackType.set(null);
 
     const client = this.buildClientPayload(draft.client);
-    const shouldAutoConfirm = this.autoConfirmOnSave();
-    const nextStatut = (shouldAutoConfirm ? 'Traitee' : draft.code_statut) as DemandeWithServices['code_statut'];
-    const effectiveDraft = shouldAutoConfirm ? { ...draft, code_statut: nextStatut } : draft;
 
     const payload: Parameters<DemandesServiceService['updateDemande']>[1] = {
-      codeType: effectiveDraft.code_type,
-      codeStatut: nextStatut,
-      immatriculation: effectiveDraft.client?.immatriculation ?? null,
+      codeType: draft.code_type,
+      immatriculation: draft.client?.immatriculation ?? null,
       vehiculeMarque: client?.vehiculeMarque ?? null,
       vehiculeModele: client?.vehiculeModele ?? null,
       vehiculeEnergie: client?.vehiculeEnergie ?? null,
@@ -523,7 +731,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       adresseLigne2: this.trimOrEmpty(client?.adresseLigne2),
       adresseCodePostal: this.trimOrEmpty(client?.adresseCodePostal),
       adresseVille: this.trimOrEmpty(client?.adresseVille),
-      services: effectiveDraft.services.map(s => ({
+      services: draft.services.map(s => ({
         libelle: s.libelle,
         idService: s.id_service,
         quantite: s.quantite,
@@ -534,22 +742,16 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
 
     this.api.updateDemande(id, payload).subscribe({
       next: updated => {
-        const merged = this.mergeDraftWithResponse(effectiveDraft, updated);
+        const merged = this.mergeDraftWithResponse(draft, updated);
         this.demandes.update(list =>
           list.map(item => this.getDemandeId(item) === id ? merged : item)
         );
         this.original.set(this.clone(merged));
         this.draft.set(this.clone(merged));
         this.saving.set(false);
-        this.feedback.set(shouldAutoConfirm
-          ? 'Demande confirmée et mise à jour avec succès.'
-          : 'Demande mise à jour avec succès.'
-        );
+        this.feedback.set('Demande mise à jour avec succès.');
         this.feedbackType.set('success');
-        this.toast.success(shouldAutoConfirm
-          ? 'Demande confirmée et mise à jour.'
-          : 'Demande mise à jour avec succès.'
-        );
+        this.toast.success('Demande mise à jour avec succès.');
       },
       error: () => {
         this.saving.set(false);
@@ -560,45 +762,60 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     });
   }
 
-  marquerTraitee(d: any) {
-    if (d.code_statut === 'Traitee') return;
-    const id = this.getDemandeId(d);
-    if (id == null) {
-      this.toast.error('Demande introuvable.', 'Identifiant manquant.');
+  validateDevis() {
+    const draft = this.draft();
+    const demandeId = this.selectedId();
+    if (!draft || demandeId == null) {
+      return;
+    }
+    if (this.devisValidationSaving()) {
+      return;
+    }
+    const montant = this.devisTotal(draft);
+    if (!Number.isFinite(montant) || montant <= 0) {
+      this.devisValidationFeedback.set('Renseignez des prix valides pour valider le devis.');
+      this.devisValidationFeedbackType.set('error');
       return;
     }
 
-    this.api.setStatut(id, 'Traitee').subscribe({
+    this.devisValidationSaving.set(true);
+    this.devisValidationFeedback.set(null);
+    this.devisValidationFeedbackType.set(null);
+
+    const commentaire = this.devisValidationComment().trim();
+    this.api.validatePrice(demandeId, montant, commentaire.length ? commentaire : null).subscribe({
       next: () => {
+        const entry = {
+          type: 'MONTANT',
+          montantValide: montant,
+          commentaire: commentaire.length ? commentaire : null,
+          createdAt: new Date().toISOString(),
+          createdByRole: 'ADMIN'
+        };
+        this.updateDraft(d => {
+          const timeline = Array.isArray(d.timeline) ? d.timeline : [];
+          d.timeline = [entry as any, ...timeline];
+        });
         this.demandes.update(list =>
-          list.map(x => this.getDemandeId(x) === id ? { ...x, code_statut: 'Traitee' } : x)
+          list.map(item => this.getDemandeId(item) === demandeId
+            ? {
+              ...item,
+              timeline: [entry as any, ...(item.timeline ?? [])]
+            }
+            : item
+          )
         );
-        if (this.selectedId() === id) {
-          this.updateDraft(draft => { draft.code_statut = 'Traitee'; });
-          const original = this.original();
-          if (original) {
-            this.original.set({ ...original, code_statut: 'Traitee' });
-          }
-        }
-        this.toast.success('Demande confirmée.');
+        this.devisValidationFeedback.set('Devis validé et transmis au client.');
+        this.devisValidationFeedbackType.set('success');
+        this.devisValidationSaving.set(false);
       },
-      error: () => {
-        this.toast.error('Échec de la mise à jour du statut.');
+      error: err => {
+        const msg = err?.error?.message || 'Impossible de valider le devis.';
+        this.devisValidationFeedback.set(msg);
+        this.devisValidationFeedbackType.set('error');
+        this.devisValidationSaving.set(false);
       }
     });
-  }
-
-  confirmerSelection() {
-    const draft = this.draft();
-    if (!draft || this.isLockedForEdit()) return;
-    this.marquerTraitee(draft);
-  }
-
-  statutLabel(demande: DemandeWithServices): string {
-    if (demande.code_statut === 'Traitee') {
-      return 'Confirmée';
-    }
-    return demande.statut_libelle || demande.code_statut;
   }
 
   supprimer(d: any) {
@@ -881,7 +1098,12 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
 
     const request = form.idRdv
       ? this.rendezVousApi.update(form.idRdv, payload)
-      : this.createRendezVousFromDraft(payload, draft?.code_type, draft?.services?.[0]?.id_service ?? null);
+      : this.createRendezVousFromDraft(
+        payload,
+        draft?.code_type,
+        draft?.services?.[0]?.id_service ?? null,
+        draft?.devis?.id_devis ?? null
+      );
 
     request.subscribe({
       next: rdv => {
@@ -895,6 +1117,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
             : item
           )
         );
+        this.applyAutoStatutFromRdv(rendezVous);
         this.rdvFeedback.set('Rendez-vous mis à jour et client informé.');
         this.rdvFeedbackType.set('success');
         this.toast.success('Rendez-vous confirmé.');
@@ -915,12 +1138,46 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   private createRendezVousFromDraft(
     payload: RendezVousUpsertPayload,
     type: DemandeWithServices['code_type'] | null | undefined,
-    serviceId: number | null
+    serviceId: number | null,
+    devisId: number | null
   ) {
+    if (type === 'Devis' && devisId) {
+      return this.rendezVousApi.createForDevis(devisId, payload);
+    }
     if (type === 'Service' && serviceId) {
       return this.rendezVousApi.createForService(serviceId, payload);
     }
     return this.rendezVousApi.create(payload);
+  }
+
+  private applyAutoStatutFromRdv(rdv: RendezVousSummary | null) {
+    const draft = this.draft();
+    if (!draft || !rdv) {
+      return;
+    }
+    if (draft.code_statut === 'Annulee') {
+      return;
+    }
+    const nextStatut: DemandeWithServices['code_statut'] =
+      rdv.codeStatut === 'Confirme' ? 'Traitee' : 'En_attente';
+    if (draft.code_statut === nextStatut) {
+      return;
+    }
+    this.updateDraft(d => { d.code_statut = nextStatut; });
+    const demandeId = this.selectedId();
+    if (demandeId == null) {
+      return;
+    }
+    this.demandes.update(list =>
+      list.map(item => this.getDemandeId(item) === demandeId
+        ? { ...item, code_statut: nextStatut }
+        : item
+      )
+    );
+    const original = this.original();
+    if (original) {
+      this.original.set({ ...original, code_statut: nextStatut });
+    }
   }
 
   private formatDateInput(value: string | null): string {

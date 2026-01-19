@@ -9,11 +9,37 @@
     </div>
     <div class="dashboard__actions">
       <button class="btn" (click)="refresh()">Actualiser</button>
-      <button class="btn btn-outline" type="button" (click)="showServices()">Ajouter un service</button>
-      <button class="btn btn-outline" type="button" (click)="showAccount()">Mon compte</button>
-      <button class="btn btn-outline" type="button" (click)="showDocuments()">Mes documents</button>
-      <button class="btn btn-outline" type="button" (click)="toggleArchivesSection()">
-        {{ showArchived ? 'Masquer les archives' : 'Voir les archives' }}
+      <button
+        class="btn btn-outline"
+        type="button"
+        [class.is-active]="activeSection() === 'overview'"
+        (click)="showOverview()"
+      >
+        Vue d'ensemble
+      </button>
+      <button
+        class="btn btn-outline"
+        type="button"
+        [class.is-active]="activeSection() === 'account'"
+        (click)="showAccount()"
+      >
+        Mon compte
+      </button>
+      <button
+        class="btn btn-outline"
+        type="button"
+        [class.is-active]="activeSection() === 'documents'"
+        (click)="showDocuments()"
+      >
+        Mes documents
+      </button>
+      <button
+        class="btn btn-outline"
+        type="button"
+        [class.is-active]="activeSection() === 'history'"
+        (click)="showHistory()"
+      >
+        Historique
       </button>
     </div>
   </header>
@@ -126,54 +152,7 @@
         </article>
 
         @if (activeSection() === 'overview') {
-          @if (stats) {
-            <article class="card summary-card summary-card--client">
-              <header>
-                <p class="card__eyebrow">Statistiques</p>
-                <h3>Vue d'ensemble de vos demandes</h3>
-              </header>
-              <div class="stats-grid">
-                <div class="stat">
-                  <div class="stat-kpi">{{ stats.enAttente }}</div>
-                  <div class="stat-label">En attente</div>
-                </div>
-                <div class="stat">
-                  <div class="stat-kpi">{{ stats.traitees }}</div>
-                  <div class="stat-label">Traitées</div>
-                </div>
-                <div class="stat">
-                  <div class="stat-kpi">{{ stats.annulees }}</div>
-                  <div class="stat-label">Annulées</div>
-                </div>
-                <div class="stat">
-                  <div class="stat-kpi">{{ stats.rdvAvenir }}</div>
-                  <div class="stat-label">RDV à venir</div>
-                </div>
-                <div class="stat">
-                  <div class="stat-kpi">{{ stats.demandesLibres }}</div>
-                  <div class="stat-label">Demandes libres</div>
-                </div>
-                <div class="stat">
-                  <div class="stat-kpi">{{ stats.demandesService }}</div>
-                  <div class="stat-label">Demandes de service</div>
-                </div>
-                <div class="stat">
-                  <div class="stat-kpi">{{ stats.demandesDevis }}</div>
-                  <div class="stat-label">Demandes de devis</div>
-                </div>
-                <div class="stat">
-                  <div class="stat-kpi">{{ stats.rdvLies }}</div>
-                  <div class="stat-label">RDV liés</div>
-                </div>
-                <div class="stat">
-                  <div class="stat-kpi">{{ stats.rdvNonLies }}</div>
-                  <div class="stat-label">RDV non liés</div>
-                </div>
-              </div>
-            </article>
-          }
-
-          @if (prochainRdv) {
+          @if (prochainRdv && shouldShowProchainRdv(prochainRdv)) {
             <article class="card activity-card next-rdv">
               <header>
                 <p class="card__eyebrow">Agenda</p>
@@ -194,11 +173,13 @@
                   <span>Fin :</span>
                   <span>{{ prochainRdv.dateFin | date:'dd/MM/yyyy HH:mm' }}</span>
                 </div>
-                <div class="actions">
-                  <button class="btn btn-outline btn-small" type="button" (click)="downloadIcs()">
-                    Ajouter à mon agenda (.ics)
-                  </button>
-                </div>
+                @if (canDownloadIcs(prochainRdv)) {
+                  <div class="actions">
+                    <button class="btn btn-outline btn-small" type="button" (click)="downloadIcs()">
+                      Ajouter à mon agenda (.ics)
+                    </button>
+                  </div>
+                }
               </div>
             </article>
           }
@@ -208,14 +189,214 @@
       @if (activeSection() === 'overview') {
         <article class="card activity-card activity-card--client">
           <header>
-            <p class="card__eyebrow">Demandes</p>
-            <h3>Suivi de vos demandes</h3>
+            <p class="card__eyebrow">Demande en cours</p>
+            <h3>Votre dernière demande active</h3>
           </header>
-          @if (activeDemandes().length === 0) {
-            <p class="dashboard__state">Aucune demande active ne correspond à vos filtres.</p>
+          @if (latestActiveDemande(); as current) {
+            <article class="card demande-card">
+              <header>
+                <strong>Demande #{{ current.idDemande }}</strong>
+                <span class="chip type">{{ current.typeDemande?.libelle || current.typeDemande?.codeType || '—' }}</span>
+                <span class="badge" [class]="badgeClassForDemande(current.statutDemande?.codeStatut)">
+                  {{ current.statutDemande?.libelle || current.statutDemande?.codeStatut || '—' }}
+                </span>
+                @if (isRecentlyUpdated(current)) {
+                  <span class="badge badge--recent">Mise à jour récente</span>
+                }
+              </header>
+
+              <div class="row">
+                <span>Créée le :</span>
+                <span>{{ demandeDate(current) | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              @if (latestUpdateDate(current); as updatedAt) {
+                <div class="row">
+                  <span>Mise à jour :</span>
+                  <span>{{ updatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+              }
+
+              @if (clientImmatriculation(current) || clientVehicle(current)) {
+                <div class="client-meta">
+                  @if (clientImmatriculation(current); as immat) {
+                    <div class="client-meta__row">
+                      <span>Immatriculation</span>
+                      <strong>{{ immat }}</strong>
+                    </div>
+                  }
+                  @if (clientVehicle(current); as vehicule) {
+                    <div class="client-meta__row">
+                      <span>Véhicule</span>
+                      <strong>{{ vehicule }}</strong>
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (current.services?.length) {
+                <div class="services">
+                  <div class="services-head">Services demandés</div>
+                  <ul>
+                    @for (s of current.services; track s.idService) {
+                      <li>
+                        <span class="svc-label">{{ s.libelle }}</span>
+                        <span class="svc-prix">
+                          {{ s.quantite }} × {{ s.prixUnitaire | number:'1.2-2' }} €
+                        </span>
+                      </li>
+                    }
+                  </ul>
+                  <div class="total">
+                    Total estimatif : <strong>{{ totalDemande(current) | number:'1.2-2' }} €</strong>
+                  </div>
+                </div>
+              }
+
+              @if (rendezVousInfo(current); as rdv) {
+                <div class="rdv-block">
+                  <div class="rdv-block__head">
+                    <strong>Rendez-vous lié</strong>
+                    <span class="badge" [class]="badgeClassForRdv(rdv.codeStatut)">
+                      {{ rdv.libelleStatut || rdv.codeStatut }}
+                    </span>
+                  </div>
+                  <div class="row">
+                    <span>Début</span>
+                    <span>{{ rdv.dateDebut | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <div class="row">
+                    <span>Fin</span>
+                    <span>{{ rdv.dateFin | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <div class="actions">
+                    <button class="btn btn-outline btn-small" type="button" (click)="downloadRdvIcs(rdv.idRdv)">
+                      Télécharger l'invitation (.ics)
+                    </button>
+                  </div>
+                </div>
+              }
+
+              @if (proposalsFor(current).length) {
+                <div class="rdv-proposals">
+                  <div class="rdv-proposals__head">
+                    <strong>Créneaux proposés</strong>
+                    <span>Choisissez un créneau dans les 24h ou demandez une nouvelle proposition.</span>
+                  </div>
+                  <ul>
+                    @for (proposal of proposalsFor(current); track proposal.idProposition) {
+                      <li>
+                        <div>
+                          <strong>{{ proposal.dateDebut | date:'dd/MM/yyyy HH:mm' }}</strong>
+                          → {{ proposal.dateFin | date:'dd/MM/yyyy HH:mm' }}
+                          <span class="badge badge--proposal">{{ proposalStatusLabel(proposal.statut) }}</span>
+                          <small>Expire le {{ proposal.expiresAt | date:'dd/MM/yyyy HH:mm' }}</small>
+                        </div>
+                        @if (proposal.statut === 'PROPOSE') {
+                          <div class="actions">
+                            <button
+                              class="btn btn-small"
+                              type="button"
+                              (click)="acceptProposal(current.idDemande, proposal.idProposition)"
+                            >
+                              Valider ce créneau
+                            </button>
+                            <button
+                              class="btn btn-outline btn-small"
+                              type="button"
+                              (click)="declineProposal(current.idDemande, proposal.idProposition)"
+                            >
+                              Demander un autre créneau
+                            </button>
+                          </div>
+                        }
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+
+              @if (visibleDocuments(current).length) {
+                <div class="documents">
+                  <div class="documents__head">Documents partagés</div>
+                  <ul>
+                    @for (doc of visibleDocuments(current); track doc.idDocument ?? doc.nomFichier) {
+                      <li>
+                        <div>
+                          <strong>{{ doc.nomFichier }}</strong>
+                          @if (documentSize(doc); as size) {
+                            <small>{{ size }}</small>
+                          }
+                        </div>
+                        <button class="btn btn-outline btn-small" type="button" (click)="openDocument(doc, current)">
+                          Voir
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+
+              @if (visibleTimeline(current).length) {
+                <div class="timeline">
+                  <div class="timeline__head">Suivi de la demande</div>
+                  <ul>
+                    @for (entry of visibleTimeline(current); track entry.id ?? entry.createdAt) {
+                      <li class="timeline__item">
+                        <div class="timeline__meta">
+                          <span>{{ entry.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                          @if (timelineAuthor(entry); as author) {
+                            <small>{{ author }}</small>
+                          }
+                        </div>
+                        <div class="timeline__body">
+                          <strong>{{ entry.type }}</strong>
+                          <p>{{ timelineLabel(entry) }}</p>
+                        </div>
+                        @if (entry.document) {
+                          <button class="btn btn-outline btn-small" (click)="openDocument(entry.document, current)">Consulter</button>
+                        }
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+
+              @if (isDraft(current)) {
+                <div class="actions">
+                  <button
+                    class="btn"
+                    type="button"
+                    [disabled]="submittingId === current.idDemande"
+                    (click)="submitDraft(current)">
+                    {{ submittingId === current.idDemande ? 'Validation…' : 'Valider ma demande' }}
+                  </button>
+
+                  <button
+                    class="btn btn-outline"
+                    type="button"
+                    [disabled]="submittingId === current.idDemande"
+                    (click)="continueDraft()">
+                    Continuer ma demande
+                  </button>
+                </div>
+              }
+            </article>
+          } @else {
+            <p class="dashboard__state">Aucune demande en cours pour le moment.</p>
+          }
+        </article>
+      }
+      @if (activeSection() === 'overview') {
+        <article class="card activity-card activity-card--client">
+          <header>
+            <p class="card__eyebrow">Autres demandes actives</p>
+            <h3>Demandes en cours supplémentaires</h3>
+          </header>
+          @if (otherActiveDemandes().length === 0) {
+            <p class="dashboard__state">Aucune autre demande active ne correspond à vos filtres.</p>
           } @else {
             <div class="list">
-              @for (d of activeDemandes(); track d.idDemande) {
+              @for (d of otherActiveDemandes(); track d.idDemande) {
                 <article class="card demande-card">
                   <header>
                     <strong>Demande #{{ d.idDemande }}</strong>
@@ -223,27 +404,19 @@
                     <span class="badge" [class]="badgeClassForDemande(d.statutDemande?.codeStatut)">
                       {{ d.statutDemande?.libelle || d.statutDemande?.codeStatut || '—' }}
                     </span>
+                    @if (isRecentlyUpdated(d)) {
+                      <span class="badge badge--recent">Mise à jour récente</span>
+                    }
                   </header>
 
                   <div class="row">
                     <span>Créée le :</span>
                     <span>{{ demandeDate(d) | date:'dd/MM/yyyy HH:mm' }}</span>
                   </div>
-
-                  @if (clientImmatriculation(d) || clientVehicle(d)) {
-                    <div class="client-meta">
-                      @if (clientImmatriculation(d); as immat) {
-                        <div class="client-meta__row">
-                          <span>Immatriculation</span>
-                          <strong>{{ immat }}</strong>
-                        </div>
-                      }
-                      @if (clientVehicle(d); as vehicule) {
-                        <div class="client-meta__row">
-                          <span>Véhicule</span>
-                          <strong>{{ vehicule }}</strong>
-                        </div>
-                      }
+                  @if (latestUpdateDate(d); as updatedAt) {
+                    <div class="row">
+                      <span>Mise à jour :</span>
+                      <span>{{ updatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
                     </div>
                   }
 
@@ -290,69 +463,42 @@
                     </div>
                   }
 
-                  @if (visibleDocuments(d).length) {
-                    <div class="documents">
-                      <div class="documents__head">Documents partagés</div>
+                  @if (proposalsFor(d).length) {
+                    <div class="rdv-proposals">
+                      <div class="rdv-proposals__head">
+                        <strong>Créneaux proposés</strong>
+                        <span>Choisissez un créneau dans les 24h ou demandez une nouvelle proposition.</span>
+                      </div>
                       <ul>
-                        @for (doc of visibleDocuments(d); track doc.idDocument ?? doc.nomFichier) {
+                        @for (proposal of proposalsFor(d); track proposal.idProposition) {
                           <li>
                             <div>
-                              <strong>{{ doc.nomFichier }}</strong>
-                              @if (documentSize(doc); as size) {
-                                <small>{{ size }}</small>
-                              }
+                              <strong>{{ proposal.dateDebut | date:'dd/MM/yyyy HH:mm' }}</strong>
+                              → {{ proposal.dateFin | date:'dd/MM/yyyy HH:mm' }}
+                              <span class="badge badge--proposal">{{ proposalStatusLabel(proposal.statut) }}</span>
+                              <small>Expire le {{ proposal.expiresAt | date:'dd/MM/yyyy HH:mm' }}</small>
                             </div>
-                            <button class="btn btn-outline btn-small" type="button" (click)="openDocument(doc, d)">
-                              Voir
-                            </button>
-                          </li>
-                        }
-                      </ul>
-                    </div>
-                  }
-
-                  @if (visibleTimeline(d).length) {
-                    <div class="timeline">
-                      <div class="timeline__head">Suivi de la demande</div>
-                      <ul>
-                        @for (entry of visibleTimeline(d); track entry.id ?? entry.createdAt) {
-                          <li class="timeline__item">
-                            <div class="timeline__meta">
-                              <span>{{ entry.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
-                              @if (timelineAuthor(entry); as author) {
-                                <small>{{ author }}</small>
-                              }
-                            </div>
-                            <div class="timeline__body">
-                              <strong>{{ entry.type }}</strong>
-                              <p>{{ timelineLabel(entry) }}</p>
-                            </div>
-                            @if (entry.document) {
-                              <button class="btn btn-outline btn-small" (click)="openDocument(entry.document, d)">Consulter</button>
+                            @if (proposal.statut === 'PROPOSE') {
+                              <div class="actions">
+                                <button
+                                  class="btn btn-small"
+                                  type="button"
+                                  (click)="acceptProposal(d.idDemande, proposal.idProposition)"
+                                >
+                                  Valider ce créneau
+                                </button>
+                                <button
+                                  class="btn btn-outline btn-small"
+                                  type="button"
+                                  (click)="declineProposal(d.idDemande, proposal.idProposition)"
+                                >
+                                  Demander un autre créneau
+                                </button>
+                              </div>
                             }
                           </li>
                         }
                       </ul>
-                    </div>
-                  }
-
-                  @if (isDraft(d)) {
-                    <div class="actions">
-                      <button
-                        class="btn"
-                        type="button"
-                        [disabled]="submittingId === d.idDemande"
-                        (click)="submitDraft(d)">
-                        {{ submittingId === d.idDemande ? 'Validation…' : 'Valider ma demande' }}
-                      </button>
-
-                      <button
-                        class="btn btn-outline"
-                        type="button"
-                        [disabled]="submittingId === d.idDemande"
-                        (click)="continueDraft()">
-                        Continuer ma demande
-                      </button>
                     </div>
                   }
                 </article>
@@ -361,7 +507,7 @@
           }
         </article>
       }
-      @if (activeSection() === 'overview' && showArchived) {
+      @if (activeSection() === 'history') {
         <article class="card activity-card activity-card--client">
           <header>
             <p class="card__eyebrow">Archives</p>

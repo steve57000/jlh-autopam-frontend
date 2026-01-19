@@ -14,7 +14,7 @@
   </header>
 
   @if (loading()) {
-    <div class="dashboard__state" aria-live="polite">Chargement des statistiques…</div>
+    <div class="dashboard__state" aria-live="polite">Chargement des demandes…</div>
   } @else if (error()) {
     <div class="dashboard__state dashboard__state--error">
       <p>{{ error() }}</p>
@@ -23,130 +23,14 @@
   } @else {
     @if (!demandes().length) {
       <p class="dashboard__state">Aucune demande n'a encore été enregistrée.</p>
-    } @else if (stats(); as overview) {
+    } @else {
       <div class="dashboard__grid">
-        <article class="card summary-card">
-          <header>
-            <p class="card__eyebrow">Vue d'ensemble</p>
-            <h3>{{ overview.totalDemandes }} demandes suivies</h3>
-          </header>
-          <dl class="summary-card__metrics">
-            <div>
-              <dt>En attente</dt>
-              <dd>{{ overview.pending }}</dd>
-            </div>
-            <div>
-              <dt>Planifiées / traitées</dt>
-              <dd>{{ overview.traitees }}</dd>
-            </div>
-            <div>
-              <dt>Annulées</dt>
-              <dd>{{ overview.annulees }}</dd>
-            </div>
-          </dl>
-          <p class="summary-card__hint">Ces indicateurs sont calculés à partir des demandes synchronisées.</p>
-        </article>
-
-        <article class="card chart-card">
-          <header>
-            <p class="card__eyebrow">Types de demandes</p>
-            <h3>Répartition et panier moyen</h3>
-          </header>
-          <div class="type-chart">
-            @for (row of overview.typeStats; track row.type) {
-              <div class="type-chart__row">
-                <div class="type-chart__info">
-                  <strong>{{ row.label }}</strong>
-                  <span>{{ row.count }} demandes • {{ row.percentage }}%</span>
-                </div>
-                <div class="type-chart__bar" aria-hidden="true">
-                  <span class="type-chart__value" [style.width.%]="row.percentage || 4"></span>
-                </div>
-                <p class="type-chart__avg">Panier moyen : {{ row.averageValue | number:'1.0-0' }} €</p>
-              </div>
-            }
-          </div>
-        </article>
-
-        <article class="card chart-card chart-card--services">
-          <header>
-            <p class="card__eyebrow">Types de services</p>
-            <h3>Répartition par prestation</h3>
-          </header>
-          @if (overview.serviceStats.length) {
-            <div class="type-chart">
-              @for (row of overview.serviceStats; track row.label) {
-                <div class="type-chart__row">
-                  <div class="type-chart__info">
-                    <strong>{{ row.label }}</strong>
-                    <span>{{ row.count }} demandes • {{ row.percentage }}%</span>
-                  </div>
-                  <div class="type-chart__bar" aria-hidden="true">
-                    <span class="type-chart__value" [style.width.%]="row.percentage || 4"></span>
-                  </div>
-                </div>
-              }
-            </div>
-          } @else {
-            <p class="dashboard__state">Aucune prestation liée pour l’instant.</p>
-          }
-        </article>
-
-        <article class="card chart-card chart-card--revenue">
-          <header>
-            <p class="card__eyebrow">Chiffre d'affaires</p>
-            <h3>Services les plus rentables</h3>
-          </header>
-          @if (overview.revenueStats.length) {
-            <div class="revenue-chart">
-              @for (row of overview.revenueStats; track row.label) {
-                <div class="revenue-chart__row">
-                  <div class="revenue-chart__header">
-                    <strong>{{ row.label }}</strong>
-                    <span>{{ row.amount | number:'1.0-0' }} € • {{ row.percentage }}%</span>
-                  </div>
-                  <div class="revenue-chart__bar" aria-hidden="true">
-                    <span class="revenue-chart__fill" [style.width.%]="row.percentage || 4"></span>
-                    <span class="revenue-chart__dot" [style.left.%]="row.percentage || 4"></span>
-                  </div>
-                </div>
-              }
-            </div>
-            <p class="revenue-chart__total">Total estimé : {{ overview.revenueTotal | number:'1.0-0' }} €</p>
-          } @else {
-            <p class="dashboard__state">Aucune donnée de chiffre d'affaires pour le moment.</p>
-          }
-        </article>
-
-        <article class="card budget-card">
-          <header>
-            <p class="card__eyebrow">Budget</p>
-            <h3>Dépense moyenne par client</h3>
-          </header>
-          <ul class="budget-card__list">
-            <li>
-              <span>Total estimé</span>
-              <strong>{{ overview.budget.total | number:'1.0-0' }} €</strong>
-            </li>
-            <li>
-              <span>Moyenne par demande</span>
-              <strong>{{ overview.budget.averagePerDemande | number:'1.0-0' }} €</strong>
-            </li>
-            <li>
-              <span>Moyenne par client</span>
-              <strong>{{ overview.budget.averagePerClient | number:'1.0-0' }} €</strong>
-            </li>
-          </ul>
-          <p class="budget-card__caption">
-            Ces indicateurs s'ajustent automatiquement lorsque de nouveaux services sont ajoutés ou mis à jour.
-          </p>
-        </article>
-
         <article class="card activity-card">
           <header>
             <p class="card__eyebrow">Dernières notifications</p>
             <h3>Demandes récemment mises à jour</h3>
           </header>
+          <p class="muted">Les statistiques commerciales sont réservées aux administrateurs.</p>
           @if (latestDemandes().length) {
             <ul class="activity-card__list">
               @for (demande of latestDemandes(); track getDemandeId(demande)) {

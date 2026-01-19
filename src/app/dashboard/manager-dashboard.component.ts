@@ -4,46 +4,6 @@ import { RouterLink } from '@angular/router';
 import { DemandeWithServices } from '../modeles/demande.model';
 import { DemandesServiceService } from '../services/demandes-services.service';
 
-type DemandeType = DemandeWithServices['code_type'];
-
-interface TypeStats {
-  type: DemandeType;
-  label: string;
-  count: number;
-  percentage: number;
-  averageValue: number;
-}
-
-interface ServiceStats {
-  label: string;
-  count: number;
-  percentage: number;
-}
-
-interface ServiceRevenueStats {
-  label: string;
-  amount: number;
-  percentage: number;
-}
-
-interface BudgetStats {
-  total: number;
-  averagePerDemande: number;
-  averagePerClient: number;
-}
-
-interface DashboardStats {
-  totalDemandes: number;
-  pending: number;
-  traitees: number;
-  annulees: number;
-  typeStats: TypeStats[];
-  serviceStats: ServiceStats[];
-  revenueStats: ServiceRevenueStats[];
-  revenueTotal: number;
-  budget: BudgetStats;
-}
-
 @Component({
   selector: 'app-manager-dashboard',
   templateUrl: './manager-dashboard.component.html',
@@ -58,115 +18,6 @@ export class ManagerDashboardComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly demandes = signal<DemandeWithServices[]>([]);
 
-  readonly stats = computed<DashboardStats>(() => {
-    const rows = this.demandes();
-    const total = rows.length;
-    const typeOrder: DemandeType[] = ['Devis', 'RendezVous', 'Service'];
-    const labels: Record<DemandeType, string> = {
-      Devis: 'Demandes de devis',
-      RendezVous: 'Rendez-vous',
-      Service: 'Demandes de service'
-    };
-
-    const typeTotals: Record<DemandeType, number> = {
-      Devis: 0,
-      RendezVous: 0,
-      Service: 0
-    };
-
-    const typeAmounts: Record<DemandeType, number> = {
-      Devis: 0,
-      RendezVous: 0,
-      Service: 0
-    };
-
-    let pending = 0;
-    let traitees = 0;
-    let annulees = 0;
-    let totalAmount = 0;
-    const clientSpend = new Map<number, number>();
-
-    const serviceCounts = new Map<string, number>();
-    const serviceRevenue = new Map<string, number>();
-
-    for (const demande of rows) {
-      typeTotals[demande.code_type] ??= 0;
-      typeTotals[demande.code_type] += 1;
-
-      if (demande.code_statut === 'En_attente') pending += 1;
-      if (demande.code_statut === 'Traitee') traitees += 1;
-      if (demande.code_statut === 'Annulee') annulees += 1;
-
-      const totalDemande = this.computeDemandeAmount(demande);
-      totalAmount += totalDemande;
-      typeAmounts[demande.code_type] ??= 0;
-      typeAmounts[demande.code_type] += totalDemande;
-
-      for (const service of demande.services ?? []) {
-        const label = (service?.libelle || 'Service').trim();
-        serviceCounts.set(label, (serviceCounts.get(label) ?? 0) + 1);
-        const unit = Number(service.prix_unitaire ?? 0);
-        const qty = Number(service.quantite ?? 1);
-        if (isFinite(unit) && isFinite(qty)) {
-          serviceRevenue.set(label, (serviceRevenue.get(label) ?? 0) + unit * qty);
-        }
-      }
-
-      const clientId = demande.client?.id_client;
-      if (clientId != null) {
-        clientSpend.set(clientId, (clientSpend.get(clientId) ?? 0) + totalDemande);
-      }
-    }
-
-    const typeStats: TypeStats[] = typeOrder.map(type => {
-      const count = typeTotals[type] ?? 0;
-      return {
-        type,
-        label: labels[type],
-        count,
-        percentage: total ? Math.round((count / total) * 100) : 0,
-        averageValue: count ? typeAmounts[type] / count : 0
-      };
-    });
-
-    const totalServices = Array.from(serviceCounts.values()).reduce((sum, value) => sum + value, 0);
-    const serviceStats: ServiceStats[] = Array.from(serviceCounts.entries())
-      .map(([label, count]) => ({
-        label,
-        count,
-        percentage: totalServices ? Math.round((count / totalServices) * 100) : 0
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 6);
-
-    const totalRevenue = Array.from(serviceRevenue.values()).reduce((sum, value) => sum + value, 0);
-    const revenueStats: ServiceRevenueStats[] = Array.from(serviceRevenue.entries())
-      .map(([label, amount]) => ({
-        label,
-        amount,
-        percentage: totalRevenue ? Math.round((amount / totalRevenue) * 100) : 0
-      }))
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 6);
-
-    const budget: BudgetStats = {
-      total: totalAmount,
-      averagePerDemande: total ? totalAmount / total : 0,
-      averagePerClient: clientSpend.size ? totalAmount / clientSpend.size : 0
-    };
-
-    return {
-      totalDemandes: total,
-      pending,
-      traitees,
-      annulees,
-      typeStats,
-      serviceStats,
-      revenueStats,
-      revenueTotal: totalRevenue,
-      budget
-    };
-  });
 
   readonly latestDemandes = computed(() =>
     this.demandes()
@@ -199,18 +50,6 @@ export class ManagerDashboardComponent implements OnInit {
         this.loading.set(false);
       }
     });
-  }
-
-  private computeDemandeAmount(demande: DemandeWithServices): number {
-    if (!demande?.services?.length) return 0;
-    return demande.services.reduce((total, service) => {
-      const unit = Number(service.prix_unitaire ?? 0);
-      const qty = Number(service.quantite ?? 1);
-      if (!isFinite(unit) || !isFinite(qty)) {
-        return total;
-      }
-      return total + unit * qty;
-    }, 0);
   }
 
   getDemandeId(demande: DemandeWithServices): number {

@@ -3,7 +3,7 @@
     <div class="quote__header">
       <h3>Ma demande en cours</h3>
       <span class="badge">
-        {{ d.statutDemande?.libelle || d.statutDemande?.codeStatut || 'Brouillon' }}
+        {{ statusLabel() }}
       </span>
     </div>
     @if (locked) {
@@ -45,23 +45,10 @@
       <div class="row container-select-type">
         <span class="label">Type de demande</span>
         <select name="type" [(ngModel)]="type" [disabled]="locked">
-          <option value="RendezVous">Demander un rendez-vous</option>
           <option value="Service">Demander un service</option>
           <option value="Devis">Demander un devis</option>
         </select>
       </div>
-      @if (type === 'RendezVous' || type === 'Service') {
-        <div class="row">
-          <span class="label">Nature du rendez-vous</span>
-          <textarea
-            name="rdvCommentaire"
-            [(ngModel)]="rendezVousCommentaire"
-            rows="3"
-            placeholder="Décrivez la raison du rendez-vous (ex: bruit moteur, entretien complet...)"
-            [disabled]="locked"
-          ></textarea>
-        </div>
-      }
     </div>
 
     <ul class="quote__list">
@@ -86,7 +73,7 @@
       <strong>{{ total() | number:'1.2-2' }} €</strong>
     </div>
 
-    @if (type === 'Service' || type === 'Devis') {
+    @if (requiresValidation()) {
       <div class="quote__validation">
         <label class="checkbox">
           <input type="checkbox" [(ngModel)]="validationPrix" name="validationPrix" [disabled]="locked" />
@@ -100,7 +87,7 @@
       <button
         class="cta-btn"
         type="submit"
-        [disabled]="locked || (type !== 'RendezVous' && !(($any(d).services?.length || 0) > 0))">
+        [disabled]="locked || (requiresValidation() && !validationPrix) || !(($any(d).services?.length || 0) > 0)">
         Valider ma demande
       </button>
     </form>

@@ -59,6 +59,18 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
     gap: clamp(1rem, 2vw, 1.5rem);
   }
 
+  &__filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+    background: #fff;
+    border-radius: $card-radius;
+    padding: 1rem;
+    border: 1px solid rgba(v.$color-secondary, 0.15);
+    box-shadow: $card-shadow;
+    align-items: end;
+  }
+
   &__state {
     padding: 1rem 1.25rem;
     border-radius: v.$border-radius-high;
@@ -102,15 +114,83 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
     color: v.$color-secondary;
   }
 
+  &-ghost {
+    background: transparent;
+    color: v.$color-secondary;
+    border-color: rgba(v.$color-secondary, 0.3);
+  }
+
   &-small {
     padding: 0.45rem 1rem;
   }
+}
+
+.filters__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+
+  span {
+    font-weight: 600;
+    color: rgba(v.$color-primary, 0.75);
+  }
+
+  input,
+  select {
+    border: 1px solid rgba(v.$color-secondary, 0.2);
+    border-radius: v.$border-radius-high;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.9rem;
+    background: #fff;
+  }
+
+  select[multiple] {
+    min-height: 110px;
+  }
+}
+
+.filters__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .btn-link {
   color: v.$color-secondary;
   text-decoration: underline;
   font-weight: 600;
+}
+
+.filters__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+
+  span {
+    font-weight: 600;
+    color: rgba(v.$color-primary, 0.75);
+  }
+
+  input,
+  select {
+    border: 1px solid rgba(v.$color-secondary, 0.2);
+    border-radius: v.$border-radius-high;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.9rem;
+    background: #fff;
+  }
+
+  select[multiple] {
+    min-height: 110px;
+  }
+}
+
+.filters__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .card {
@@ -136,6 +216,36 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
     font-size: 1.2rem;
     color: v.$color-primary;
   }
+}
+
+.chart-card__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  select {
+    border: 1px solid rgba(v.$color-secondary, 0.2);
+    border-radius: v.$border-radius-high;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.85rem;
+    background: #fff;
+  }
+}
+
+.chart-card__label {
+  font-weight: 600;
+  color: rgba(v.$color-primary, 0.75);
+  font-size: 0.85rem;
+}
+
+.chart-card__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(v.$color-primary, 0.6);
+}
+
+.card--full {
+  grid-column: 1 / -1;
 }
 
 .summary-card__metrics {
@@ -271,6 +381,44 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
     margin: 0.5rem 0 0;
     font-size: 0.9rem;
     color: rgba(v.$color-primary, 0.7);
+  }
+}
+
+.chart-card--history {
+  @media (min-width: 900px) {
+    grid-column: span 2;
+  }
+
+  .history-table {
+    display: grid;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  .history-table__row {
+    display: grid;
+    grid-template-columns: minmax(120px, 1.1fr) repeat(5, minmax(90px, 1fr));
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(v.$color-secondary, 0.12);
+    background: rgba(v.$color-secondary, 0.04);
+    align-items: center;
+  }
+
+  .history-table__head {
+    background: #f8fafc;
+    font-weight: 600;
+    color: rgba(v.$color-primary, 0.75);
+  }
+
+  .history-table__row--forecast {
+    border-color: rgba(59, 130, 246, 0.4);
+    background: rgba(59, 130, 246, 0.08);
+  }
+
+  .history-table__year {
+    font-weight: 600;
   }
 }
 

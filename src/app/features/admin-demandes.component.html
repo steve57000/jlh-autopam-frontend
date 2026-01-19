@@ -100,18 +100,11 @@
               </td>
               <td>
                   <span class="badge statut-{{ d.code_statut }}">
-                    {{ statutLabel(d) }}
+                    {{ d.code_statut === 'Traitee' ? 'Confirmée' : (d.statut_libelle || d.code_statut) }}
                   </span>
               </td>
               <td class="actions">
                 <button type="button" (click)="openDetails(d)">Ouvrir la demande</button>
-                <button
-                  type="button"
-                  (click)="marquerTraitee(d)"
-                  [disabled]="d.code_statut==='Traitee' || d.code_statut==='Annulee'"
-                >
-                  Marquer confirmée
-                </button>
                 @if (canDeleteDemandes) {
                   <button type="button" class="danger" (click)="supprimer(d)">Supprimer</button>
                 }
@@ -147,6 +140,13 @@
           <button type="button" class="btn-close" (click)="closeDetails()" aria-label="Fermer la fiche">×</button>
         </header>
 
+        @if (draft.code_statut === 'Brouillon') {
+          <p class="lock-note">
+            Brouillon client non validé : le client peut encore modifier sa demande.
+            Vous pouvez tout de même éditer et valider ce brouillon pour l'aider (ex : assistance téléphonique).
+          </p>
+        }
+
         @if (isLockedForEdit()) {
           <p class="lock-note">
             Demande confirmée : les modifications sont verrouillées (sauf ajout de document).
@@ -157,20 +157,19 @@
           <h4>Étapes de la demande</h4>
           <p class="muted">Suivez ce cheminement pour traiter la demande sans ambiguïté.</p>
           <ol class="steps">
-            <li [class.step--done]="draft.services.length">Demande service</li>
-            <li [class.step--done]="draft.rendezVous?.dateDebut">Prise de rendez-vous</li>
-            <li [class.step--done]="draft.code_statut === 'Traitee'">Confirmation</li>
+            <li [class.step--done]="draft.services.length">{{ stepLabels(draft).step1 }}</li>
+            <li [class.step--done]="isStep2Done(draft)">{{ stepLabels(draft).step2 }}</li>
+            <li [class.step--done]="draft.code_statut === 'Traitee'">{{ stepLabels(draft).step3 }}</li>
           </ol>
           <div class="steps-guide">
-            <p><strong>1. Vérifier la demande</strong> : services, quantités, prix et pièces jointes.</p>
-            <p><strong>2. Fixer le rendez-vous</strong> : appelez le client ou proposez 1 à 3 créneaux via le site.</p>
-            <p><strong>3. Confirmer</strong> : verrouille la demande une fois le rendez-vous validé.</p>
+            <p><strong>{{ stepLabels(draft).step1 }}</strong> : {{ stepLabels(draft).guide1 }}</p>
+            <p><strong>{{ stepLabels(draft).step2 }}</strong> : {{ stepLabels(draft).guide2 }}</p>
+            <p><strong>{{ stepLabels(draft).step3 }}</strong> : {{ stepLabels(draft).guide3 }}</p>
           </div>
+          <p class="muted">Le statut <strong>Brouillon</strong> indique que le client n’a pas encore validé sa demande.</p>
+          <p class="muted">Le statut <strong>En attente</strong> correspond à une demande envoyée et en cours de traitement.</p>
           <p class="muted">Le statut <strong>Confirmée</strong> correspond à une demande validée et enregistrée.</p>
           <p class="muted">Le client dispose de 24h pour accepter un créneau proposé via le site.</p>
-          @if (autoConfirmOnSave()) {
-            <p class="muted">L'enregistrement finalisera automatiquement la confirmation.</p>
-          }
         </section>
 
         <section class="details-block">
@@ -281,7 +280,7 @@
 
         <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
           <h4>Paramètres de la demande</h4>
-          <p class="muted">Mettez à jour le type ou le statut si besoin avant la validation finale.</p>
+          <p class="muted">Le statut est géré automatiquement selon l'avancement de la demande.</p>
           <div class="details-grid">
           <label>
             <span>Type de demande</span>
@@ -293,16 +292,10 @@
               }
             </select>
           </label>
-          <label>
+          <div class="readonly-field">
             <span>Statut de suivi</span>
-            <select [ngModel]="draft.code_statut" (ngModelChange)="setDraftStatut($event)" [disabled]="isLockedForEdit()">
-              @for (opt of statutOptions(); track opt.value) {
-                @if (opt.value !== 'Tous') {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              }
-            </select>
-          </label>
+            <strong>{{ draft.statut_libelle || draft.code_statut }}</strong>
+          </div>
           </div>
         </section>
 
@@ -444,9 +437,153 @@
               <p class="doc-upload__error">{{ documentError() }}</p>
             }
           </div>
-      </section>
+        </section>
+
+        @if (draft.code_type === 'Devis') {
+          <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
+            <h4>Validation du devis</h4>
+            <p class="muted">
+              Validez le devis après avoir ajusté les services. Le client pourra ensuite demander un rendez-vous,
+              ou vous pourrez l'initier pour lui.
+            </p>
+            <div class="details-grid">
+              <div class="readonly-field">
+                <span>Total du devis</span>
+                <strong>{{ devisTotal(draft) | number:'1.0-0' }} €</strong>
+              </div>
+              <label>
+                <span>Commentaire interne</span>
+                <input
+                  type="text"
+                  [ngModel]="devisValidationComment()"
+                  (ngModelChange)="devisValidationComment.set($event)"
+                  [disabled]="isLockedForEdit() || hasPriceValidation(draft)"
+                />
+              </label>
+            </div>
+            <div class="detail-actions">
+              <button
+                type="button"
+                class="btn"
+                (click)="validateDevis()"
+                [disabled]="isLockedForEdit() || devisValidationSaving() || hasPriceValidation(draft)"
+              >
+                @if (devisValidationSaving()) { Validation… } @else { Valider le devis }
+              </button>
+              @if (hasPriceValidation(draft)) {
+                <p class="muted">Devis déjà validé.</p>
+              }
+              @if (devisValidationFeedback()) {
+                <p class="feedback" [class.feedback--error]="devisValidationFeedbackType()==='error'">
+                  {{ devisValidationFeedback() }}
+                </p>
+              }
+            </div>
+          </section>
+        }
 
         @if ((draft.code_type === 'RendezVous' || draft.code_type === 'Service') && rdvForm(); as rdv) {
+          <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
+            <h4>Créneaux proposés au client</h4>
+            <p class="muted">
+              Proposez 1 à 3 créneaux. Le client dispose de 24h pour accepter ou demander une nouvelle proposition.
+            </p>
+
+            @if (rdvProposals().length) {
+              <ul class="proposal-list">
+                @for (proposal of rdvProposals(); track proposal.idProposition) {
+                  <li>
+                    <div>
+                      <strong>{{ proposal.dateDebut | date:'dd/MM/yyyy HH:mm' }}</strong>
+                      → {{ proposal.dateFin | date:'dd/MM/yyyy HH:mm' }}
+                      <span class="badge badge--proposal">{{ proposalStatusLabel(proposal.statut) }}</span>
+                      <small class="muted">Expire le {{ proposal.expiresAt | date:'dd/MM/yyyy HH:mm' }}</small>
+                    </div>
+                    <div class="proposal-actions">
+                      <button
+                        type="button"
+                        class="btn btn-outline btn-small"
+                        (click)="acceptProposal(proposal.idProposition)"
+                        [disabled]="isLockedForEdit() || proposal.statut !== 'PROPOSE'"
+                      >
+                        Valider ce créneau
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-ghost btn-small"
+                        (click)="declineProposal(proposal.idProposition)"
+                        [disabled]="isLockedForEdit() || proposal.statut !== 'PROPOSE'"
+                      >
+                        Refuser
+                      </button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="empty">Aucun créneau proposé pour le moment.</p>
+            }
+
+            <div class="proposal-form">
+              @for (slot of rdvProposalDraft(); let i = $index; track i) {
+                <div class="proposal-form__row">
+                  <label>
+                    <span>Début</span>
+                    <input
+                      type="datetime-local"
+                      [value]="slot.dateDebut"
+                      (change)="setProposalSlot(i, 'dateDebut', ($any($event.target)).value)"
+                      [disabled]="isLockedForEdit()"
+                    />
+                  </label>
+                  <label>
+                    <span>Fin</span>
+                    <input
+                      type="datetime-local"
+                      [value]="slot.dateFin"
+                      (change)="setProposalSlot(i, 'dateFin', ($any($event.target)).value)"
+                      [disabled]="isLockedForEdit()"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-small"
+                    (click)="removeProposalSlot(i)"
+                    [disabled]="isLockedForEdit()"
+                  >
+                    Retirer
+                  </button>
+                </div>
+              }
+              <div class="proposal-form__actions">
+                <button
+                  type="button"
+                  class="btn btn-outline btn-small"
+                  (click)="addProposalSlot()"
+                  [disabled]="isLockedForEdit()"
+                >
+                  Ajouter un créneau
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-small"
+                  (click)="submitProposalSlots()"
+                  [disabled]="isLockedForEdit()"
+                >
+                  Envoyer les propositions
+                </button>
+              </div>
+              @if (rdvProposalFeedback()) {
+                <p
+                  class="feedback"
+                  [class.feedback--error]="rdvProposalFeedbackType()==='error'"
+                >
+                  {{ rdvProposalFeedback() }}
+                </p>
+              }
+            </div>
+          </section>
+
           <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
             <h4>Planification du rendez-vous</h4>
             <p class="muted">
@@ -514,20 +651,6 @@
           </section>
         }
 
-        <section class="details-block details-block--confirmation" [class.details-block--locked]="isLockedForEdit()">
-          <h4>Confirmation</h4>
-          <p class="muted">Statut actuel : <strong>{{ statutLabel(draft) }}</strong></p>
-          <p class="muted">
-            Utilisez cette action lorsque le rendez-vous est confirmé (par téléphone ou via la validation client).
-          </p>
-          @if (!isLockedForEdit()) {
-            <button type="button" class="btn btn-ghost" (click)="confirmerSelection()">
-              Valider et verrouiller la demande
-            </button>
-            <p class="muted">Une demande confirmée devient non modifiable (hors documents).</p>
-          }
-        </section>
-
         <div class="details-actions">
           <button
             type="button"
@@ -545,7 +668,7 @@
           >
             Réinitialiser
           </button>
-          <p class="muted details-actions__hint">L'enregistrement sauvegarde vos changements sans valider la demande.</p>
+          <p class="muted details-actions__hint">L'enregistrement sauvegarde vos changements. Le statut se met à jour automatiquement.</p>
         </div>
       </section>
     }

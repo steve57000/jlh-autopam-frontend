@@ -13,6 +13,49 @@
     </div>
   </header>
 
+  <section class="dashboard__filters">
+    <div class="filters__field">
+      <span>Période (du)</span>
+      <input type="date" [value]="filters().from" (change)="updateFilterDate('from', ($any($event.target)).value)" />
+    </div>
+    <div class="filters__field">
+      <span>au</span>
+      <input type="date" [value]="filters().to" (change)="updateFilterDate('to', ($any($event.target)).value)" />
+    </div>
+    <div class="filters__field">
+      <span>Type de demande</span>
+      <select (change)="updateFilterMultiSelect('types', getSingleSelectedValue($event))">
+        <option value="">Tous</option>
+        <option value="Devis">Devis</option>
+        <option value="Service">Service</option>
+        <option value="RendezVous">Rendez-vous</option>
+      </select>
+    </div>
+    <div class="filters__field">
+      <span>Statut</span>
+      <select (change)="updateFilterMultiSelect('statuts', getSingleSelectedValue($event))">
+        <option value="">Tous</option>
+        <option value="Brouillon">Brouillon</option>
+        <option value="En_attente">En attente</option>
+        <option value="Traitee">Confirmée</option>
+        <option value="Annulee">Annulée</option>
+      </select>
+    </div>
+    <div class="filters__field">
+      <span>Services</span>
+      <select (change)="updateFilterMultiSelect('serviceIds', getSingleSelectedValue($event))">
+        <option value="">Tous</option>
+        @for (svc of servicesCatalog(); track svc.idService) {
+          <option [value]="svc.idService">{{ svc.libelle }}</option>
+        }
+      </select>
+    </div>
+    <div class="filters__actions">
+      <button type="button" class="btn btn-outline" (click)="applyFilters()">Appliquer</button>
+      <button type="button" class="btn btn-ghost" (click)="resetFilters()">Réinitialiser</button>
+    </div>
+  </section>
+
   @if (loading()) {
     <div class="dashboard__state" aria-live="polite">Chargement des statistiques…</div>
   } @else if (error()) {
@@ -47,11 +90,44 @@
           <p class="summary-card__hint">Tous les chiffres sont calculés à partir des demandes synchronisées via l'API.</p>
         </article>
 
+        <article class="card summary-card">
+          <header>
+            <p class="card__eyebrow">Devis & rendez-vous</p>
+            <h3>{{ overview.devisTotal }} devis émis</h3>
+          </header>
+          <dl class="summary-card__metrics">
+            <div>
+              <dt>Avec rendez-vous</dt>
+              <dd>{{ overview.devisAvecRdv }}</dd>
+            </div>
+            <div>
+              <dt>Sans suite</dt>
+              <dd>{{ overview.devisSansSuite }}</dd>
+            </div>
+          </dl>
+          <p class="summary-card__hint">
+            Suivez les devis convertis en rendez-vous pour ajuster votre relance commerciale.
+          </p>
+        </article>
+
         <article class="card chart-card">
           <header>
             <p class="card__eyebrow">Types de demandes</p>
             <h3>Répartition et panier moyen</h3>
           </header>
+          <div class="chart-card__controls">
+            <label class="chart-card__label" for="types-view">Vue</label>
+            <select
+              id="types-view"
+              [value]="chartViews().types"
+              (change)="updateChartView('types', ($any($event.target)).value)"
+            >
+              @for (view of chartViewOptions; track view.value) {
+                <option [value]="view.value">{{ view.label }}</option>
+              }
+            </select>
+          </div>
+          <p class="chart-card__hint">Vue actuelle : {{ getChartViewLabel(chartViews().types) }}</p>
           <div class="type-chart">
             @for (row of overview.typeStats; track row.type) {
               <div class="type-chart__row">
@@ -73,6 +149,19 @@
             <p class="card__eyebrow">Types de services</p>
             <h3>Répartition par prestation</h3>
           </header>
+          <div class="chart-card__controls">
+            <label class="chart-card__label" for="services-view">Vue</label>
+            <select
+              id="services-view"
+              [value]="chartViews().services"
+              (change)="updateChartView('services', ($any($event.target)).value)"
+            >
+              @for (view of chartViewOptions; track view.value) {
+                <option [value]="view.value">{{ view.label }}</option>
+              }
+            </select>
+          </div>
+          <p class="chart-card__hint">Vue actuelle : {{ getChartViewLabel(chartViews().services) }}</p>
           @if (overview.serviceStats.length) {
             <div class="type-chart">
               @for (row of overview.serviceStats; track row.label) {
@@ -97,6 +186,19 @@
             <p class="card__eyebrow">Chiffre d'affaires</p>
             <h3>Services les plus rentables</h3>
           </header>
+          <div class="chart-card__controls">
+            <label class="chart-card__label" for="revenue-view">Vue</label>
+            <select
+              id="revenue-view"
+              [value]="chartViews().revenue"
+              (change)="updateChartView('revenue', ($any($event.target)).value)"
+            >
+              @for (view of chartViewOptions; track view.value) {
+                <option [value]="view.value">{{ view.label }}</option>
+              }
+            </select>
+          </div>
+          <p class="chart-card__hint">Vue actuelle : {{ getChartViewLabel(chartViews().revenue) }}</p>
           @if (overview.revenueStats.length) {
             <div class="revenue-chart">
               @for (row of overview.revenueStats; track row.label) {
@@ -140,6 +242,55 @@
           <p class="budget-card__caption">
             Ces indicateurs s'ajustent automatiquement lorsque de nouveaux services sont ajoutés ou mis à jour.
           </p>
+        </article>
+
+        <article class="card chart-card chart-card--history card--full">
+          <header>
+            <p class="card__eyebrow">Historique & prévisions</p>
+            <h3>Services, devis et rendez-vous (N à N-4 + N+1)</h3>
+          </header>
+          <div class="chart-card__controls">
+            <label class="chart-card__label" for="history-view">Vue</label>
+            <select
+              id="history-view"
+              [value]="chartViews().history"
+              (change)="updateChartView('history', ($any($event.target)).value)"
+            >
+              @for (view of chartViewOptions; track view.value) {
+                <option [value]="view.value">{{ view.label }}</option>
+              }
+            </select>
+          </div>
+          <p class="chart-card__hint">Vue actuelle : {{ getChartViewLabel(chartViews().history) }}</p>
+          @if (yearlyStats().length) {
+            <div class="history-table">
+              <div class="history-table__row history-table__head">
+                <span>Année</span>
+                <span>Services</span>
+                <span>CA services</span>
+                <span>Devis</span>
+                <span>Montant devis</span>
+                <span>RDV</span>
+              </div>
+              @for (row of yearlyStats(); track row.year) {
+                <div class="history-table__row" [class.history-table__row--forecast]="row.forecast">
+                  <span class="history-table__year">
+                    {{ row.forecast ? 'Prévision ' + row.year : row.year }}
+                  </span>
+                  <span>{{ row.serviceCount }}</span>
+                  <span>{{ row.serviceRevenue | number:'1.0-0' }} €</span>
+                  <span>{{ row.devisCount }}</span>
+                  <span>{{ row.devisRevenue | number:'1.0-0' }} €</span>
+                  <span>{{ row.rendezVousCount }}</span>
+                </div>
+              }
+            </div>
+            <p class="muted">
+              Les prévisions N+1 sont calculées sur la moyenne des 3 dernières années disponibles.
+            </p>
+          } @else {
+            <p class="dashboard__state">Aucune donnée historique disponible.</p>
+          }
         </article>
 
         <article class="card activity-card">

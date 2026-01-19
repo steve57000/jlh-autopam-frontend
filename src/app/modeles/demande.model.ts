@@ -39,6 +39,11 @@ export interface DemandeWithServices extends DemandeDto {
   documents?: DemandeDocumentDto[];
   timeline?: DemandeTimelineEntryDto[];
   rendezVous?: RendezVousSummary | null;
+  devis?: {
+    id_devis: number;
+    montant_total?: number | null;
+    rendezVousId?: number | null;
+  } | null;
 }
 
 export interface ClientSummaryDto {

@@ -13,8 +13,13 @@ import {
   RendezVousSummary
 } from '../services/client-dashboard.service';
 import type { DemandeTypeCode } from '../modeles/demande.model';
+import {
+  RendezVousProposition,
+  RendezVousPropositionStatut
+} from '../modeles/rendezvous-proposition.model';
+import { RendezVousPropositionsService } from '../services/rendezvous-propositions.service';
 import { ToastService } from '../shared/toast/toast.service';
-import { firstValueFrom, filter, Subscription } from 'rxjs';
+import { firstValueFrom, filter, forkJoin, of, Subscription, catchError } from 'rxjs';
 import { LookupsService } from '../services/lookups.service';
 import { ServicesComponent } from '../pages/services.component';
 import { AccountComponent } from '../account/account.component/account.component';
@@ -91,9 +96,9 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   prochainRdv: ProchainRdvDto | null = null;
 
   submittingId: number | null = null;
-  showArchived = true;
-  readonly activeSection = signal<'overview' | 'services' | 'account' | 'documents'>('overview');
+  readonly activeSection = signal<'overview' | 'services' | 'account' | 'documents' | 'history'>('overview');
   documents = signal<ClientDocumentDto[]>([]);
+  rdvProposals = signal<Record<number, RendezVousProposition[]>>({});
   // safe api base (no trailing slash)
   private api = environment.apiBaseUrl ? environment.apiBaseUrl.replace(/\/+$/, '') : '';
 
@@ -190,6 +195,28 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     this.filteredDemandes().filter(d => !this.isArchived(d))
   );
 
+  readonly latestActiveDemande = computed<DemandeResponse | null>(() => {
+    const list = (this.demandes() ?? []).filter(d => !this.isArchived(d));
+    if (!list.length) {
+      return null;
+    }
+    return list.reduce((latest, current) => {
+      if (!latest) {
+        return current;
+      }
+      return this.demandeTimestamp(current) >= this.demandeTimestamp(latest) ? current : latest;
+    }, list[0]);
+  });
+
+  readonly otherActiveDemandes = computed<DemandeResponse[]>(() => {
+    const latest = this.latestActiveDemande();
+    const list = this.activeDemandes();
+    if (!latest?.idDemande) {
+      return list;
+    }
+    return list.filter(d => d.idDemande !== latest.idDemande);
+  });
+
   readonly archivedDemandes = computed<DemandeResponse[]>(() =>
     this.filteredDemandes().filter(d => this.isArchived(d))
   );
@@ -199,7 +226,8 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     private http: HttpClient,
     private router: Router,
     private toast: ToastService,
-    private lookups: LookupsService
+    private lookups: LookupsService,
+    private rdvPropositionsApi: RendezVousPropositionsService
   ) {}
 
   private navSub?: Subscription;
@@ -296,7 +324,9 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
 
     this.srv.getMyDemandes(httpOptions).subscribe({
       next: list => {
-        this.demandes.set(list ?? []);
+        const demandes = list ?? [];
+        this.demandes.set(demandes);
+        this.loadProposalsForDemandes(demandes);
         finalize();
       },
       error: err => {
@@ -347,6 +377,45 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
           this.error ||= err?.error?.message || err.message || 'Erreur de chargement des documents';
         }
         finalize();
+      }
+    });
+  }
+
+  private loadProposalsForDemandes(demandes: DemandeResponse[]) {
+    if (!demandes?.length) {
+      this.rdvProposals.set({});
+      return;
+    }
+    const requests = demandes
+      .map(demande => {
+        const demandeId = Number(demande?.idDemande);
+        if (!Number.isFinite(demandeId)) {
+          return null;
+        }
+        return {
+          demandeId,
+          request: this.rdvPropositionsApi.listByDemande(demandeId).pipe(
+            catchError(() => of([] as RendezVousProposition[]))
+          )
+        };
+      })
+      .filter((item): item is { demandeId: number; request: any } => item !== null);
+
+    if (!requests.length) {
+      this.rdvProposals.set({});
+      return;
+    }
+
+    forkJoin(requests.map(item => item.request)).subscribe({
+      next: results => {
+        const map: Record<number, RendezVousProposition[]> = {};
+        requests.forEach((item, index) => {
+          map[item.demandeId] = results[index] ?? [];
+        });
+        this.rdvProposals.set(map);
+      },
+      error: () => {
+        this.rdvProposals.set({});
       }
     });
   }
@@ -427,6 +496,34 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     return d.dateDemande || d.dateSoumission || null;
   }
 
+  demandeTimestamp(d?: DemandeResponse): number {
+    const value = this.demandeDate(d);
+    return value ? new Date(value).getTime() : 0;
+  }
+
+  latestUpdateTimestamp(d?: DemandeResponse): number {
+    const timeline = d?.timeline ?? [];
+    const timelineTs = timeline
+      .map(item => (item.createdAt ? new Date(item.createdAt).getTime() : 0))
+      .filter(ts => Number.isFinite(ts));
+    const latestTimeline = timelineTs.length ? Math.max(...timelineTs) : 0;
+    return Math.max(latestTimeline, this.demandeTimestamp(d));
+  }
+
+  latestUpdateDate(d?: DemandeResponse): string | null {
+    const ts = this.latestUpdateTimestamp(d);
+    return ts > 0 ? new Date(ts).toISOString() : null;
+  }
+
+  isRecentlyUpdated(d?: DemandeResponse): boolean {
+    const ts = this.latestUpdateTimestamp(d);
+    if (!ts) {
+      return false;
+    }
+    const fortyEightHours = 48 * 60 * 60 * 1000;
+    return Date.now() - ts <= fortyEightHours;
+  }
+
   totalDemande(d: DemandeResponse): number {
     if (!d?.services?.length) return 0;
     return d.services.reduce((sum, s) => sum + (s.prixUnitaire || 0) * (s.quantite || 0), 0);
@@ -449,6 +546,38 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
       case 'Annule':   return 'badge danger';
       default: return 'badge';
     }
+  }
+
+  shouldShowProchainRdv(rdv?: ProchainRdvDto | null): boolean {
+    if (!rdv) {
+      return false;
+    }
+    if (this.isCancelledRdv(rdv)) {
+      return false;
+    }
+    return this.isUpcomingRdv(rdv);
+  }
+
+  canDownloadIcs(rdv?: ProchainRdvDto | null): boolean {
+    if (!rdv) {
+      return false;
+    }
+    return !this.isCancelledRdv(rdv) && this.isUpcomingRdv(rdv);
+  }
+
+  private isCancelledRdv(rdv: ProchainRdvDto): boolean {
+    const statut = rdv.codeStatut;
+    return statut === 'Annulee' || statut === 'Annule';
+  }
+
+  private isUpcomingRdv(rdv: ProchainRdvDto): boolean {
+    const dateFin = rdv.dateFin ? new Date(rdv.dateFin).getTime() : NaN;
+    const dateDebut = rdv.dateDebut ? new Date(rdv.dateDebut).getTime() : NaN;
+    const compareDate = Number.isFinite(dateFin) ? dateFin : dateDebut;
+    if (!Number.isFinite(compareDate)) {
+      return false;
+    }
+    return compareDate > Date.now();
   }
 
   visibleDocuments(d?: DemandeResponse): DemandeDocumentDto[] {
@@ -527,9 +656,56 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     return entry?.rendezVous ?? null;
   }
 
+  proposalsFor(d?: DemandeResponse): RendezVousProposition[] {
+    if (!d?.idDemande) return [];
+    return this.rdvProposals()[Number(d.idDemande)] ?? [];
+  }
+
+  proposalStatusLabel(statut: RendezVousPropositionStatut) {
+    switch (statut) {
+      case 'PROPOSE':
+        return 'Proposé';
+      case 'ACCEPTE':
+        return 'Accepté';
+      case 'REFUSE':
+        return 'Refusé';
+      case 'EXPIRE':
+        return 'Expiré';
+      default:
+        return statut;
+    }
+  }
+
+  acceptProposal(demandeId: number, propositionId: number) {
+    this.rdvPropositionsApi.accept(demandeId, propositionId).subscribe({
+      next: () => this.refresh({ silent: true, delayMs: 200 }),
+      error: err => {
+        const msg = err?.error?.message || 'Impossible de valider ce créneau.';
+        this.toast.error('Erreur', msg);
+      }
+    });
+  }
+
+  declineProposal(demandeId: number, propositionId: number) {
+    this.rdvPropositionsApi.decline(demandeId, propositionId).subscribe({
+      next: () => this.refresh({ silent: true, delayMs: 200 }),
+      error: err => {
+        const msg = err?.error?.message || 'Impossible de refuser ce créneau.';
+        this.toast.error('Erreur', msg);
+      }
+    });
+  }
+
   isArchived(d?: DemandeResponse): boolean {
     const status = d?.statutDemande?.codeStatut;
-    return status === 'Traitee' || status === 'Annulee';
+    if (status === 'Traitee' || status === 'Annulee') {
+      return true;
+    }
+    const rdvDate = d?.rendezVous?.dateDebut ? new Date(d.rendezVous.dateDebut) : null;
+    if (rdvDate && rdvDate.getTime() <= Date.now()) {
+      return true;
+    }
+    return false;
   }
 
   clientVehicle(d?: DemandeResponse): string | null {
@@ -646,17 +822,12 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     this.activeSection.set('account');
   }
 
-  toggleArchivesSection() {
-    if (this.activeSection() !== 'overview') {
-      this.activeSection.set('overview');
-      this.showArchived = true;
-      return;
-    }
-    this.showArchived = !this.showArchived;
-  }
-
   showDocuments() {
     this.activeSection.set('documents');
+  }
+
+  showHistory() {
+    this.activeSection.set('history');
   }
 
 }

@@ -33,6 +33,22 @@ export class CurrentQuoteComponent implements OnChanges {
   rendezVousCommentaire: string | null = null;
   validationPrix = false;
 
+  requiresValidation(): boolean {
+    return this.type === 'Service' || this.type === 'Devis';
+  }
+
+  statusLabel(): string {
+    if (!this.demande) {
+      return 'Brouillon';
+    }
+    if (!this.locked) {
+      return 'Brouillon';
+    }
+    return this.demande.statutDemande?.libelle
+      || this.demande.statutDemande?.codeStatut
+      || 'Confirmée';
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['demande'] && this.demande?.client) {
       this.immatOverride = this.demande.client.immatriculation ?? null;

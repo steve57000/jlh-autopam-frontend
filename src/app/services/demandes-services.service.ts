@@ -90,6 +90,14 @@ export class DemandesServiceService {
             const documents = this.normalizeDocuments(d?.documents);
             const timeline = this.normalizeTimeline(d?.timeline);
             const rendezVous = this.normalizeRendezVous(d?.rendezVous ?? d?.rdv ?? null);
+            const devisId = toNum(d?.devis?.idDevis);
+            const devis = devisId != null
+              ? {
+                id_devis: devisId,
+                montant_total: toNum(d?.devis?.montantTotal ?? d?.devis?.montant_total),
+                rendezVousId: toNum(d?.devis?.rendezVousId)
+              }
+              : null;
 
             const out: DemandeWithServices = {
               id_demande: id,
@@ -102,7 +110,8 @@ export class DemandesServiceService {
               services,
               documents,
               timeline,
-              rendezVous
+              rendezVous,
+              devis
             };
             return out;
           })
@@ -118,15 +127,10 @@ export class DemandesServiceService {
     return { headers: new HttpHeaders({ 'X-Skip-Error-Toast': '1' }) };
   }
 
-  setStatut(id: number, newStatut: 'Brouillon' | 'En_attente' | 'Traitee' | 'Annulee') {
-    return this.http.put<void>(`${this.apiBase}/demandes/${id}`, { codeStatut: newStatut });
-  }
-
   updateDemande(
     id: number,
     payload: {
       codeType?: DemandeWithServices['code_type'];
-      codeStatut?: DemandeWithServices['code_statut'];
       immatriculation?: string | null;
       vehiculeMarque?: string | null;
       vehiculeModele?: string | null;
@@ -156,7 +160,6 @@ export class DemandesServiceService {
     const body: Record<string, unknown> = {};
 
     if (payload.codeType) body['codeType'] = payload.codeType;
-    if (payload.codeStatut) body['codeStatut'] = payload.codeStatut;
     if ('immatriculation' in payload) body['immatriculation'] = payload.immatriculation;
     if ('vehiculeMarque' in payload) body['vehiculeMarque'] = payload.vehiculeMarque;
     if ('vehiculeModele' in payload) body['vehiculeModele'] = payload.vehiculeModele;
@@ -231,6 +234,18 @@ export class DemandesServiceService {
       observe: 'response',
       responseType: 'blob'
     });
+  }
+
+  validatePrice(demandeId: number, montantValide: number, commentaire?: string | null) {
+    return this.http.post<void>(
+      `${this.apiBase}/demandes/${demandeId}/timeline/validation-prix`,
+      {
+        type: 'MONTANT',
+        montantValide,
+        commentaire: commentaire ?? null
+      },
+      { headers: new HttpHeaders({ 'X-Skip-Error-Toast': '1' }) }
+    );
   }
 
   // ---------- PAGE SERVICES : nouveau flux ----------

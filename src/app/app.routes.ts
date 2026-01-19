@@ -7,10 +7,6 @@ import { TeamComponent } from './pages/team.component';
 import { HistoryComponent } from './pages/history.component';
 import { ValuesComponent } from './pages/values.component';
 import { ContactComponent } from './pages/contact.component';
-import { ServiceEntretienComponent } from './pages/service-entretien.component';
-import { ServiceMecaniqueComponent } from './pages/service-mecanique.component';
-import { ServicePneumatiquesComponent } from './pages/service-pneumatiques.component';
-import { ServiceDiagnosticComponent } from './pages/service-diagnostic.component';
 import { LegalComponent } from './pages/legal.component';
 import { PrivacyComponent } from './pages/privacy.component';
 import { CgvComponent } from './pages/cgv.component';
@@ -36,10 +32,10 @@ export const routes: Routes = [
       // ✅ Page Services : publique (affichage pour tous)
       //    Les actions (ajout/validation) restent visibles/actives uniquement si rôle CLIENT.
       { path: 'services', component: ServicesComponent },
-      { path: 'services/entretien', component: ServiceEntretienComponent },
-      { path: 'services/mecanique', component: ServiceMecaniqueComponent },
-      { path: 'services/pneumatiques', component: ServicePneumatiquesComponent },
-      { path: 'services/diagnostic', component: ServiceDiagnosticComponent },
+      { path: 'services/entretien', component: ServicesComponent, data: { tab: 'entretien' } },
+      { path: 'services/mecanique', component: ServicesComponent, data: { tab: 'mecanique' } },
+      { path: 'services/pneumatiques', component: ServicesComponent, data: { tab: 'pneumatiques' } },
+      { path: 'services/diagnostic', component: ServicesComponent, data: { tab: 'diagnostic' } },
 
       { path: 'about', component: AboutComponent },
       { path: 'team', component: TeamComponent },
