@@ -33,6 +33,18 @@
             "styles": [
               "src/styles.scss"
             ],
+            "budgets": [
+              {
+                "type": "initial",
+                "maximumWarning": "500kB",
+                "maximumError": "1MB"
+              },
+              {
+                "type": "anyComponentStyle",
+                "maximumWarning": "12kB",
+                "maximumError": "16kB"
+              }
+            ],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "ssr": {

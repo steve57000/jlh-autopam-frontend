@@ -83,6 +83,76 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     statuts: [] as Array<'Brouillon' | 'En_attente' | 'Traitee' | 'Annulee'>,
     serviceIds: [] as number[]
   });
+  readonly typeMaxCount = computed(() =>
+    this.getMaxValue(this.analytics()?.typeStats.map(row => row.count) ?? [])
+  );
+  readonly typeMaxAverage = computed(() =>
+    this.getMaxValue(this.analytics()?.typeStats.map(row => row.averageValue) ?? [])
+  );
+  readonly serviceMaxCount = computed(() =>
+    this.getMaxValue(this.analytics()?.serviceStats.map(row => row.count) ?? [])
+  );
+  readonly serviceMaxRevenue = computed(() =>
+    this.getMaxValue(this.analytics()?.serviceStats.map(row => row.revenue) ?? [])
+  );
+  readonly revenueMaxAmount = computed(() =>
+    this.getMaxValue(this.analytics()?.revenueStats.map(row => row.amount) ?? [])
+  );
+  readonly historyMaxServiceRevenue = computed(() =>
+    this.getMaxValue(this.yearlyStats().map(row => row.serviceRevenue))
+  );
+  readonly historyMaxServiceCount = computed(() =>
+    this.getMaxValue(this.yearlyStats().map(row => row.serviceCount))
+  );
+  readonly historyMaxDevisCount = computed(() =>
+    this.getMaxValue(this.yearlyStats().map(row => row.devisCount))
+  );
+  readonly historyMaxRendezVousCount = computed(() =>
+    this.getMaxValue(this.yearlyStats().map(row => row.rendezVousCount))
+  );
+  readonly historyMaxDevisRevenue = computed(() =>
+    this.getMaxValue(this.yearlyStats().map(row => row.devisRevenue))
+  );
+  readonly typePareto = computed(() =>
+    this.buildParetoData(
+      this.analytics()?.typeStats ?? [],
+      row => row.count,
+      row => row.label
+    )
+  );
+  readonly servicePareto = computed(() =>
+    this.buildParetoData(
+      this.analytics()?.serviceStats ?? [],
+      row => row.count,
+      row => row.label
+    )
+  );
+  readonly revenuePareto = computed(() =>
+    this.buildParetoData(
+      this.analytics()?.revenueStats ?? [],
+      row => row.amount,
+      row => row.label
+    )
+  );
+  readonly historyPareto = computed(() =>
+    this.buildParetoData(
+      this.yearlyStats(),
+      row => row.serviceRevenue,
+      row => String(row.year)
+    )
+  );
+  readonly typeBoxplot = computed(() =>
+    this.getBoxPlotStats(this.analytics()?.typeStats.map(row => row.averageValue) ?? [])
+  );
+  readonly serviceBoxplot = computed(() =>
+    this.getBoxPlotStats(this.analytics()?.serviceStats.map(row => row.revenue) ?? [])
+  );
+  readonly revenueBoxplot = computed(() =>
+    this.getBoxPlotStats(this.analytics()?.revenueStats.map(row => row.amount) ?? [])
+  );
+  readonly historyBoxplot = computed(() =>
+    this.getBoxPlotStats(this.yearlyStats().map(row => row.serviceRevenue))
+  );
 
   readonly stats = computed<DashboardStats | null>(() => {
     const analytics = this.analytics();
@@ -241,8 +311,74 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     return value ? [value] : [];
   }
 
-  isTileView(view: ChartView): boolean {
-    return view === 'treemap' || view === 'mosaic';
+  getMaxValue(values: number[]): number {
+    if (!values.length) {
+      return 1;
+    }
+    return Math.max(...values, 1);
+  }
+
+  getPercent(value: number, max: number): number {
+    if (!max) {
+      return 0;
+    }
+    return (value / max) * 100;
+  }
+
+  getStackedPercents(values: number[]): number[] {
+    const total = values.reduce((sum, value) => sum + value, 0);
+    if (!total) {
+      return values.map(() => 0);
+    }
+    return values.map(value => (value / total) * 100);
+  }
+
+  buildParetoData<T>(rows: T[], getValue: (row: T) => number, getLabel: (row: T) => string) {
+    const mapped = rows
+      .map(row => ({
+        label: getLabel(row),
+        value: getValue(row)
+      }))
+      .filter(row => Number.isFinite(row.value));
+    const total = mapped.reduce((sum, row) => sum + row.value, 0);
+    const sorted = mapped.slice().sort((a, b) => b.value - a.value);
+    let cumulative = 0;
+    return sorted.map(row => {
+      const percentage = total ? (row.value / total) * 100 : 0;
+      cumulative += percentage;
+      return {
+        ...row,
+        percentage,
+        cumulative: Math.min(cumulative, 100)
+      };
+    });
+  }
+
+  getBoxPlotStats(values: number[]) {
+    const clean = values.filter(value => Number.isFinite(value)).slice().sort((a, b) => a - b);
+    if (!clean.length) {
+      return { min: 0, q1: 0, median: 0, q3: 0, max: 0 };
+    }
+    return {
+      min: clean[0],
+      q1: this.getQuantile(clean, 0.25),
+      median: this.getQuantile(clean, 0.5),
+      q3: this.getQuantile(clean, 0.75),
+      max: clean[clean.length - 1]
+    };
+  }
+
+  getQuantile(sorted: number[], quantile: number): number {
+    if (!sorted.length) {
+      return 0;
+    }
+    const position = (sorted.length - 1) * quantile;
+    const base = Math.floor(position);
+    const rest = position - base;
+    if (sorted[base + 1] !== undefined) {
+      return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
+    }
+    return sorted[base];
   }
 
   updateChartView(section: ChartViewSection, value: string): void {
