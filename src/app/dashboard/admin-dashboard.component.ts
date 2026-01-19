@@ -241,6 +241,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     return value ? [value] : [];
   }
 
+  isTileView(view: ChartView): boolean {
+    return view === 'treemap' || view === 'mosaic';
+  }
+
   updateChartView(section: ChartViewSection, value: string): void {
     const normalized = this.chartViewOptions.find(option => option.value === value)?.value;
     if (!normalized) {
