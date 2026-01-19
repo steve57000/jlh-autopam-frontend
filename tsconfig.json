@@ -12,10 +12,10 @@
     "isolatedModules": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
       "@environments/*": [
-        "environments/*"
+        "src/environments/*"
       ]
     },
     "target": "ES2022",
