@@ -45,7 +45,9 @@ Recommended settings:
 - **Build command**: `pnpm install --frozen-lockfile && pnpm run build`
 - **Start command**: `pnpm run start:ssr`
 
-If you choose to deploy as a static site instead, make sure the **Publish Directory** points to `dist/jlh-autopam-frontend/browser` and configure a fallback rewrite to `index.html` for client-side routing.
+If you choose to deploy as a static site instead, make sure the **Publish Directory** points to `dist/jlh-autopam-frontend/browser` (the default `dist/jlh-autopam-frontend` contains the server bundle and does not include the browser `index.html`). Also configure a fallback rewrite to `index.html` for client-side routing to avoid "Not Found" on deep links.
+
+You can also use the provided `render.static.yaml` blueprint for a static site deploy.
 
 ## Running unit tests
 
