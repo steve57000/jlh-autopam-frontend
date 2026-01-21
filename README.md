@@ -44,6 +44,7 @@ Recommended settings:
 
 - **Build command**: `pnpm install --frozen-lockfile && pnpm run build`
 - **Start command**: `pnpm run start:ssr`
+- **Root Directory**: leave empty (project is at repo root)
 
 If you choose to deploy as a static site instead, make sure the **Publish Directory** points to `dist/jlh-autopam-frontend/browser` (the default `dist/jlh-autopam-frontend` contains the server bundle and does not include the browser `index.html`). Also configure a fallback rewrite to `index.html` for client-side routing to avoid "Not Found" on deep links.
 
