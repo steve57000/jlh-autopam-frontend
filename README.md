@@ -36,6 +36,17 @@ ng build
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
+## Render deployment (SSR)
+
+This app is configured for Angular SSR. On Render, deploy it as a **Web Service** (not a static site) and run the Node server that is generated during the build.
+
+Recommended settings:
+
+- **Build command**: `pnpm install --frozen-lockfile && pnpm run build`
+- **Start command**: `pnpm run start:ssr`
+
+If you choose to deploy as a static site instead, make sure the **Publish Directory** points to `dist/jlh-autopam-frontend/browser` and configure a fallback rewrite to `index.html` for client-side routing.
+
 ## Running unit tests
 
 To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:

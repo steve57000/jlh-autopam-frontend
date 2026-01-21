@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: jlh-autopam-frontend
+    runtime: node
+    plan: free
+    buildCommand: pnpm install --frozen-lockfile && pnpm run build
+    startCommand: pnpm run start:ssr
+    envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
