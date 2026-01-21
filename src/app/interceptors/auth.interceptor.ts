@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 import { ToastService } from '../shared/toast/toast.service';
-import { environment } from '@environments/environment'
+import { environment } from '../../environments/environment'
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {

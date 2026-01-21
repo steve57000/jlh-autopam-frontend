@@ -3,7 +3,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { environment } from '@environments/environment';
+import { environment } from '../../environments/environment';
 import {
   ClientDashboardService,
   ClientDocumentDto,

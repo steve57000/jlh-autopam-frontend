@@ -1,7 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { environment } from '@environments/environment';
+import { environment } from '../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
 
 type UserRole = 'ADMIN' | 'CLIENT' | 'MANAGER' | null;
