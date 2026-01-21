@@ -88,18 +88,18 @@
       h3 {
         margin: 0;
         font-size: 1.25rem;
-        color: vars.$color-primary;
+        color: vars.$color-quaternary;
       }
 
       p {
         margin: 0;
-        color: color.scale(vars.$color-primary, $lightness: 18%);
+        color: color.scale(vars.$color-quaternary, $lightness: 18%);
       }
 
       .services-tabs__highlights {
         margin: 0;
         padding-left: 1rem;
-        color: color.scale(vars.$color-primary, $lightness: 10%);
+        color: color.scale(vars.$color-quaternary, $lightness: 10%);
         display: grid;
         gap: 6px;
       }
