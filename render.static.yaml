@@ -1,0 +1,9 @@
+services:
+  - type: static
+    name: jlh-autopam-frontend-static
+    buildCommand: pnpm install --frozen-lockfile && pnpm run build
+    staticPublishPath: dist/jlh-autopam-frontend/browser
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
