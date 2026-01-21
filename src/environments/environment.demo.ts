@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://jlh-autopam-backend.onrender.com',
-  mediaBaseUrl: 'https://jlh-autopam-backend.onrender.com',
+  apiBaseUrl: 'api.jlh-auto.fr',
+  mediaBaseUrl: 'api.jlh-auto.fr',
 };
