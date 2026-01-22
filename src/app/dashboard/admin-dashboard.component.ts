@@ -1,7 +1,8 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
-import { area, curveMonotoneX, extent, line, max, scaleBand, scaleLinear } from 'd3';
+import { arc, area, curveMonotoneX, extent, line, max, pie, scaleBand, scaleLinear, scaleTime, timeMonth } from 'd3';
+import type { PieArcDatum } from 'd3';
 import { DemandeWithServices } from '../modeles/demande.model';
 import { DemandesServiceService } from '../services/demandes-services.service';
 import {
@@ -34,14 +35,31 @@ const SERIES_PALETTE = [
   '#22c55e'
 ];
 
+const STATUS_META = [
+  { code: 'Brouillon', label: 'Brouillon', color: '#94a3b8' },
+  { code: 'En_attente', label: 'En attente', color: '#f59e0b' },
+  { code: 'Traitee', label: 'Confirmée', color: '#22c55e' },
+  { code: 'Annulee', label: 'Annulée', color: '#ef4444' }
+];
+
+const WEEKDAY_META = [
+  { key: 1, label: 'Lun.' },
+  { key: 2, label: 'Mar.' },
+  { key: 3, label: 'Mer.' },
+  { key: 4, label: 'Jeu.' },
+  { key: 5, label: 'Ven.' },
+  { key: 6, label: 'Sam.' },
+  { key: 0, label: 'Dim.' }
+];
+
 const CHART_SIZE = {
-  width: 640,
-  height: 280,
+  width: 920,
+  height: 360,
   margin: {
     top: 24,
-    right: 32,
-    bottom: 50,
-    left: 56
+    right: 36,
+    bottom: 60,
+    left: 64
   }
 };
 
@@ -97,6 +115,107 @@ interface ServiceChartModel {
   yRightTicks: ChartTick[];
   bars: ServiceChartPoint[];
   linePath: string;
+}
+
+interface DonutSegment {
+  label: string;
+  value: number;
+  percentage: number;
+  color: string;
+  path: string;
+  centroidX: number;
+  centroidY: number;
+}
+
+interface StatusChartBar {
+  label: string;
+  count: number;
+  percentage: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color: string;
+}
+
+interface StatusChartModel {
+  width: number;
+  height: number;
+  innerWidth: number;
+  innerHeight: number;
+  margin: typeof CHART_SIZE.margin;
+  yTicks: ChartTick[];
+  bars: StatusChartBar[];
+  segments: DonutSegment[];
+  total: number;
+  centerX: number;
+  centerY: number;
+}
+
+interface TrendChartBar {
+  label: string;
+  value: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface TrendChartPoint {
+  date: Date;
+  label: string;
+  value: number;
+  x: number;
+  y: number;
+}
+
+interface TrendChartModel {
+  width: number;
+  height: number;
+  innerWidth: number;
+  innerHeight: number;
+  margin: typeof CHART_SIZE.margin;
+  yTicks: ChartTick[];
+  xTicks: ChartTick[];
+  bars: TrendChartBar[];
+  linePath: string;
+  areaPath: string;
+  points: TrendChartPoint[];
+  summaryPoints: TrendChartPoint[];
+}
+
+interface ServiceMixChartModel {
+  width: number;
+  height: number;
+  innerWidth: number;
+  innerHeight: number;
+  margin: typeof CHART_SIZE.margin;
+  segments: DonutSegment[];
+  total: number;
+  centerX: number;
+  centerY: number;
+}
+
+interface WeekdayChartBar {
+  label: string;
+  value: number;
+  percentage: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color: string;
+}
+
+interface WeekdayChartModel {
+  width: number;
+  height: number;
+  innerWidth: number;
+  innerHeight: number;
+  margin: typeof CHART_SIZE.margin;
+  yTicks: ChartTick[];
+  bars: WeekdayChartBar[];
+  total: number;
 }
 
 interface YearChartPoint {
@@ -157,6 +276,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     statuts: [] as Array<'Brouillon' | 'En_attente' | 'Traitee' | 'Annulee'>,
     serviceIds: [] as number[]
   });
+  readonly statusDisplay = signal<'bars' | 'donut'>('bars');
+  readonly trendDisplay = signal<'line' | 'area'>('area');
+  readonly serviceMixMetric = signal<'revenue' | 'count'>('revenue');
+  readonly weekdayMetric = signal<'count' | 'percentage'>('count');
+  private readonly monthFormatter = new Intl.DateTimeFormat('fr-FR', { month: 'short', year: '2-digit' });
   readonly typeChart = computed<TypeChartModel | null>(() => {
     const rows = (this.analytics()?.typeStats ?? []) as AdminDashboardTypeStat[];
     if (!rows.length) {
@@ -224,8 +348,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       };
     });
     const lineGenerator = line<ServiceChartPoint>()
-      .x(point => point.xCenter)
-      .y(point => point.countY)
+      .x((point: ServiceChartPoint) => point.xCenter)
+      .y((point: ServiceChartPoint) => point.countY)
       .curve(curveMonotoneX);
     const linePath = lineGenerator(bars) ?? '';
     const yTicks = revenueScale.ticks(4).map((value: number) => ({ value, x: 0, y: revenueScale(value) }));
@@ -233,6 +357,269 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       .ticks(4)
       .map((value: number) => ({ value, x: innerWidth, y: countScale(value) }));
     return { width, height, innerWidth, innerHeight, margin, yTicks, yRightTicks, bars, linePath };
+  });
+
+  readonly statusChart = computed<StatusChartModel | null>(() => {
+    const demandes = this.demandes();
+    if (!demandes.length) {
+      return null;
+    }
+    const totals = STATUS_META.map(status => {
+      const count = demandes.filter(demande => demande.code_statut === status.code).length;
+      return { ...status, count };
+    });
+    const total = totals.reduce((sum, row) => sum + row.count, 0);
+    if (!total) {
+      return null;
+    }
+    const { width, height, margin } = CHART_SIZE;
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const xScale = scaleBand().domain(totals.map(row => row.label)).range([0, innerWidth]).padding(0.3);
+    const yScale = scaleLinear()
+      .domain([0, Math.max(max(totals, (row: { count: number }) => row.count) ?? 0, 1)])
+      .nice()
+      .range([innerHeight, 0]);
+    const bars = totals.map(row => {
+      const x = xScale(row.label) ?? 0;
+      const y = yScale(row.count);
+      const width = xScale.bandwidth();
+      return {
+        label: row.label,
+        count: row.count,
+        percentage: total ? Math.round((row.count / total) * 100) : 0,
+        x,
+        y,
+        width,
+        height: innerHeight - y,
+        color: row.color
+      };
+    });
+    const radius = Math.min(innerWidth, innerHeight) / 2 - 10;
+    const donutGenerator = arc<PieArcDatum<{ label: string; count: number; color: string }>>()
+      .innerRadius(radius * 0.55)
+      .outerRadius(radius);
+    const pieGenerator = pie<{ label: string; count: number; color: string }>()
+      .value((row: { label: string; count: number; color: string }) => row.count)
+      .sort(null);
+    const segments = pieGenerator(totals).map((arcData: PieArcDatum<{ label: string; count: number; color: string }>) => {
+      const centroid = donutGenerator.centroid(arcData);
+      return {
+        label: arcData.data.label,
+        value: arcData.data.count,
+        percentage: total ? Math.round((arcData.data.count / total) * 100) : 0,
+        color: arcData.data.color,
+        path: donutGenerator(arcData) ?? '',
+        centroidX: centroid[0],
+        centroidY: centroid[1]
+      };
+    });
+    const yTicks = yScale.ticks(4).map((value: number) => ({ value, x: 0, y: yScale(value) }));
+    return {
+      width,
+      height,
+      innerWidth,
+      innerHeight,
+      margin,
+      yTicks,
+      bars,
+      segments,
+      total,
+      centerX: margin.left + innerWidth / 2,
+      centerY: margin.top + innerHeight / 2
+    };
+  });
+
+  readonly trendChart = computed<TrendChartModel | null>(() => {
+    const demandes = this.demandes();
+    if (!demandes.length) {
+      return null;
+    }
+    const dates = demandes.map(row => new Date(row.date_demande)).filter(date => !Number.isNaN(date.getTime()));
+    if (!dates.length) {
+      return null;
+    }
+    const minDate = new Date(Math.min(...dates.map(date => date.getTime())));
+    const maxDate = new Date(Math.max(...dates.map(date => date.getTime())));
+    const start = timeMonth.floor(minDate);
+    const end = timeMonth.ceil(maxDate);
+    const months: Date[] = timeMonth.range(start, timeMonth.offset(end, 1));
+    const counts = new Map<string, number>();
+    months.forEach((month: Date) => counts.set(month.toISOString(), 0));
+    demandes.forEach(demande => {
+      const date = new Date(demande.date_demande);
+      if (Number.isNaN(date.getTime())) {
+        return;
+      }
+      const monthKey = timeMonth.floor(date).toISOString();
+      counts.set(monthKey, (counts.get(monthKey) ?? 0) + 1);
+    });
+    const rows: Array<{ date: Date; label: string; value: number }> = months.map(month => ({
+      date: month,
+      label: this.monthFormatter.format(month),
+      value: counts.get(month.toISOString()) ?? 0
+    }));
+    const { width, height, margin } = CHART_SIZE;
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const xScale = scaleTime().domain([rows[0].date, rows[rows.length - 1].date]).range([0, innerWidth]);
+    const yScale = scaleLinear()
+      .domain([0, Math.max(max(rows, (row: { value: number }) => row.value) ?? 0, 1)])
+      .nice()
+      .range([innerHeight, 0]);
+    const points: TrendChartPoint[] = rows.map(row => ({
+      ...row,
+      x: xScale(row.date),
+      y: yScale(row.value)
+    }));
+    const bandScale = scaleBand().domain(rows.map(row => row.label)).range([0, innerWidth]).padding(0.3);
+    const bars: TrendChartBar[] = rows.map(row => {
+      const x = bandScale(row.label) ?? 0;
+      const y = yScale(row.value);
+      const width = bandScale.bandwidth();
+      return {
+        label: row.label,
+        value: row.value,
+        x,
+        y,
+        width,
+        height: innerHeight - y
+      };
+    });
+    const lineGenerator = line<TrendChartPoint>()
+      .x((point: TrendChartPoint) => point.x)
+      .y((point: TrendChartPoint) => point.y)
+      .curve(curveMonotoneX);
+    const areaGenerator = area<TrendChartPoint>()
+      .x((point: TrendChartPoint) => point.x)
+      .y0(innerHeight)
+      .y1((point: TrendChartPoint) => point.y)
+      .curve(curveMonotoneX);
+    const linePath = lineGenerator(points) ?? '';
+    const areaPath = areaGenerator(points) ?? '';
+    const xTicks: ChartTick[] = rows.map(row => ({ value: row.label, x: xScale(row.date), y: innerHeight }));
+    const yTicks = yScale.ticks(4).map((value: number) => ({ value, x: 0, y: yScale(value) }));
+    return {
+      width,
+      height,
+      innerWidth,
+      innerHeight,
+      margin,
+      yTicks,
+      xTicks,
+      bars,
+      linePath,
+      areaPath,
+      points,
+      summaryPoints: points.slice(-6)
+    };
+  });
+
+  readonly serviceMixChart = computed<ServiceMixChartModel | null>(() => {
+    const rows = ((this.analytics()?.serviceStats ?? []) as AdminDashboardServiceStat[])
+      .slice()
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 8);
+    if (!rows.length) {
+      return null;
+    }
+    const metric = this.serviceMixMetric();
+    const values = rows.map((row, index) => ({
+      label: row.label,
+      value: metric === 'revenue' ? row.revenue : row.count,
+      color: this.getSeriesColor(index)
+    }));
+    const total = values.reduce((sum, row) => sum + row.value, 0);
+    if (!total) {
+      return null;
+    }
+    const { width, height, margin } = CHART_SIZE;
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const radius = Math.min(innerWidth, innerHeight) / 2 - 10;
+    const donutGenerator = arc<PieArcDatum<{ label: string; value: number; color: string }>>()
+      .innerRadius(radius * 0.55)
+      .outerRadius(radius);
+    const pieGenerator = pie<{ label: string; value: number; color: string }>()
+      .value((row: { label: string; value: number; color: string }) => row.value)
+      .sort(null);
+    const segments = pieGenerator(values).map((arcData: PieArcDatum<{ label: string; value: number; color: string }>) => {
+      const centroid = donutGenerator.centroid(arcData);
+      return {
+        label: arcData.data.label,
+        value: arcData.data.value,
+        percentage: total ? Math.round((arcData.data.value / total) * 100) : 0,
+        color: arcData.data.color,
+        path: donutGenerator(arcData) ?? '',
+        centroidX: centroid[0],
+        centroidY: centroid[1]
+      };
+    });
+    return {
+      width,
+      height,
+      innerWidth,
+      innerHeight,
+      margin,
+      segments,
+      total,
+      centerX: margin.left + innerWidth / 2,
+      centerY: margin.top + innerHeight / 2
+    };
+  });
+
+  readonly weekdayChart = computed<WeekdayChartModel | null>(() => {
+    const demandes = this.demandes();
+    if (!demandes.length) {
+      return null;
+    }
+    const totals = WEEKDAY_META.map(day => {
+      const count = demandes.filter(demande => new Date(demande.date_demande).getDay() === day.key).length;
+      return { ...day, count };
+    });
+    const total = totals.reduce((sum, row) => sum + row.count, 0);
+    if (!total) {
+      return null;
+    }
+    const { width, height, margin } = CHART_SIZE;
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const xScale = scaleBand().domain(totals.map(row => row.label)).range([0, innerWidth]).padding(0.25);
+    const metric = this.weekdayMetric();
+    const values = totals.map(row => ({
+      ...row,
+      value: metric === 'percentage' ? Math.round((row.count / total) * 100) : row.count
+    }));
+    const yScale = scaleLinear()
+      .domain([0, Math.max(max(values, (row: { value: number }) => row.value) ?? 0, 1)])
+      .nice()
+      .range([innerHeight, 0]);
+    const bars = values.map((row, index) => {
+      const x = xScale(row.label) ?? 0;
+      const y = yScale(row.value);
+      const width = xScale.bandwidth();
+      return {
+        label: row.label,
+        value: row.value,
+        percentage: total ? Math.round((row.count / total) * 100) : 0,
+        x,
+        y,
+        width,
+        height: innerHeight - y,
+        color: this.getSeriesColor(index)
+      };
+    });
+    const yTicks = yScale.ticks(4).map((value: number) => ({ value, x: 0, y: yScale(value) }));
+    return {
+      width,
+      height,
+      innerWidth,
+      innerHeight,
+      margin,
+      yTicks,
+      bars,
+      total
+    };
   });
 
   readonly yearChart = computed<YearChartModel | null>(() => {
@@ -263,13 +650,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       ? [actualPoints[actualPoints.length - 1], ...forecastPoints]
       : forecastPoints;
     const lineGenerator = line<YearChartPoint>()
-      .x(point => point.x)
-      .y(point => point.y)
+      .x((point: YearChartPoint) => point.x)
+      .y((point: YearChartPoint) => point.y)
       .curve(curveMonotoneX);
     const areaGenerator = area<YearChartPoint>()
-      .x(point => point.x)
+      .x((point: YearChartPoint) => point.x)
       .y0(innerHeight)
-      .y1(point => point.y)
+      .y1((point: YearChartPoint) => point.y)
       .curve(curveMonotoneX);
     const areaPath = areaGenerator(actualPoints) ?? '';
     const actualLinePath = lineGenerator(actualPoints) ?? '';
@@ -418,6 +805,30 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   updateFilterDate(field: 'from' | 'to', value: string) {
     this.filters.update(current => ({ ...current, [field]: value }));
+  }
+
+  updateStatusDisplay(value: string): void {
+    if (value === 'donut' || value === 'bars') {
+      this.statusDisplay.set(value);
+    }
+  }
+
+  updateTrendDisplay(value: string): void {
+    if (value === 'line' || value === 'area') {
+      this.trendDisplay.set(value);
+    }
+  }
+
+  updateServiceMixMetric(value: string): void {
+    if (value === 'revenue' || value === 'count') {
+      this.serviceMixMetric.set(value);
+    }
+  }
+
+  updateWeekdayMetric(value: string): void {
+    if (value === 'count' || value === 'percentage') {
+      this.weekdayMetric.set(value);
+    }
   }
 
   updateFilterMultiSelect(field: 'types' | 'statuts' | 'serviceIds', value: string[]) {

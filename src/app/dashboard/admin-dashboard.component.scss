@@ -219,6 +219,14 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
 }
 
 .chart-card {
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
   &--d3 {
     gap: 1.25rem;
   }
@@ -285,6 +293,11 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
     fill: none;
     stroke: #0f172a;
     stroke-width: 2.5px;
+  }
+
+  &__arc {
+    stroke: #fff;
+    stroke-width: 2px;
   }
 
   &__line--forecast {
