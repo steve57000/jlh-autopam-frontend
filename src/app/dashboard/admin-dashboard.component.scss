@@ -265,7 +265,7 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
 
   &__x-labels text {
     fill: rgba(v.$color-primary, 0.75);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
 
   &__bar {
@@ -381,6 +381,7 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
     padding: 0.35rem 0.65rem;
     font-size: 0.85rem;
     background: #fff;
+    min-width: 130px;
   }
 }
 

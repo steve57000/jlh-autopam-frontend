@@ -80,6 +80,7 @@ interface TypeChartBar {
   height: number;
   xCenter: number;
   avgY: number;
+  avgLabelY: number;
   color: string;
 }
 
@@ -102,6 +103,7 @@ interface ServiceChartPoint {
   width: number;
   xCenter: number;
   countY: number;
+  countLabelY: number;
   color: string;
 }
 
@@ -224,6 +226,7 @@ interface YearChartPoint {
   forecast: boolean;
   x: number;
   y: number;
+  labelY: number;
 }
 
 interface YearChartModel {
@@ -298,6 +301,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       const x = xScale(row.label) ?? 0;
       const width = xScale.bandwidth();
       const y = yScale(row.count);
+      const avgY = avgScale(row.averageValue);
+      const avgLabelY = Math.max(avgY - 12, 8);
       return {
         label: row.label,
         count: row.count,
@@ -308,7 +313,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         width,
         height: innerHeight - y,
         xCenter: x + width / 2,
-        avgY: avgScale(row.averageValue),
+        avgY,
+        avgLabelY,
         color: this.getTypeColor(row.type)
       };
     });
@@ -335,6 +341,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const bars = rows.map((row, index) => {
       const x = xScale(row.label) ?? 0;
       const width = xScale.bandwidth();
+      const countY = countScale(row.count);
+      const countLabelY = Math.max(countY - 10, 8);
       return {
         label: row.label,
         count: row.count,
@@ -343,7 +351,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         y: revenueScale(row.revenue),
         width,
         xCenter: x + width / 2,
-        countY: countScale(row.count),
+        countY,
+        countLabelY,
         color: this.getSeriesColor(index)
       };
     });
@@ -497,7 +506,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       .curve(curveMonotoneX);
     const linePath = lineGenerator(points) ?? '';
     const areaPath = areaGenerator(points) ?? '';
-    const xTicks: ChartTick[] = rows.map(row => ({ value: row.label, x: xScale(row.date), y: innerHeight }));
+    const tickStep = Math.max(1, Math.ceil(rows.length / 6));
+    const xTicks: ChartTick[] = rows
+      .map(row => ({ value: row.label, x: xScale(row.date), y: innerHeight }))
+      .filter((_, index) => index % tickStep === 0 || index === rows.length - 1);
     const yTicks = yScale.ticks(4).map((value: number) => ({ value, x: 0, y: yScale(value) }));
     return {
       width,
@@ -637,13 +649,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const xScale = scaleLinear().domain(yearExtent).range([0, innerWidth]);
     const revenueMax = max(rows, (row: AdminYearlyStats) => row.serviceRevenue) ?? 0;
     const yScale = scaleLinear().domain([0, Math.max(revenueMax, 1)]).nice().range([innerHeight, 0]);
-    const points = rows.map(row => ({
-      year: row.year,
-      revenue: row.serviceRevenue,
-      forecast: row.forecast,
-      x: xScale(row.year),
-      y: yScale(row.serviceRevenue)
-    }));
+    const points = rows.map(row => {
+      const y = yScale(row.serviceRevenue);
+      return {
+        year: row.year,
+        revenue: row.serviceRevenue,
+        forecast: row.forecast,
+        x: xScale(row.year),
+        y,
+        labelY: Math.max(y - 10, 8)
+      };
+    });
     const actualPoints = points.filter(point => !point.forecast);
     const forecastPoints = points.filter(point => point.forecast);
     const forecastLinePoints = actualPoints.length
@@ -869,6 +885,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   getSeriesColor(index: number): string {
     return SERIES_PALETTE[index % SERIES_PALETTE.length];
+  }
+
+  formatServiceMixTooltip(segment: DonutSegment): string {
+    if (this.serviceMixMetric() === 'revenue') {
+      return `${segment.label} : ${segment.value.toLocaleString('fr-FR')} € (${segment.percentage}%)`;
+    }
+    return `${segment.label} : ${segment.value} demandes (${segment.percentage}%)`;
   }
 
   getDemandeId(demande: DemandeWithServices): number {

@@ -68,6 +68,58 @@
       <p class="dashboard__state">Aucune demande n'a encore été enregistrée.</p>
     } @else if (stats(); as overview) {
       <div class="dashboard__grid">
+        <article class="card budget-card">
+          <header>
+            <p class="card__eyebrow">Budget</p>
+            <h3>Dépense moyenne par client</h3>
+          </header>
+          <ul class="budget-card__list">
+            <li>
+              <span>Total estimé</span>
+              <strong>{{ overview.budget.total | number:'1.0-0' }} €</strong>
+            </li>
+            <li>
+              <span>Moyenne par demande</span>
+              <strong>{{ overview.budget.averagePerDemande | number:'1.0-0' }} €</strong>
+            </li>
+            <li>
+              <span>Moyenne par client</span>
+              <strong>{{ overview.budget.averagePerClient | number:'1.0-0' }} €</strong>
+            </li>
+          </ul>
+          <p class="budget-card__caption">
+            Ces indicateurs s'ajustent automatiquement lorsque de nouveaux services sont ajoutés ou mis à jour.
+          </p>
+        </article>
+
+        <article class="card activity-card">
+          <header>
+            <p class="card__eyebrow">Dernières notifications</p>
+            <h3>Demandes récemment mises à jour</h3>
+          </header>
+          @if (latestDemandes().length) {
+            <ul class="activity-card__list">
+              @for (demande of latestDemandes(); track getDemandeId(demande)) {
+                <li>
+                  <a routerLink="/admin/demandes" [queryParams]="{ focus: getDemandeId(demande) }">
+                    <div>
+                      <strong>Demande #{{ getDemandeId(demande) }}</strong>
+                      <span class="badge">{{ demande.code_type }}</span>
+                    </div>
+                    <p>{{ demande.client?.nom }} {{ demande.client?.prenom }}</p>
+                    <span class="activity-card__date">{{ demande.date_demande | date:'dd/MM à HH:mm' }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="dashboard__state">Pas encore de demande récente.</p>
+          }
+          <div class="activity-card__footer">
+            <a routerLink="/admin/demandes" class="btn-link">Accéder à la liste complète</a>
+          </div>
+        </article>
+
         <article class="card summary-card">
           <header>
             <p class="card__eyebrow">Vue d'ensemble</p>
@@ -143,17 +195,21 @@
                       [attr.width]="bar.width"
                       [attr.height]="bar.height"
                       [attr.fill]="bar.color"
-                    ></rect>
+                    >
+                      <title>{{ bar.label }} : {{ bar.count }} demandes ({{ bar.percentage }}%)</title>
+                    </rect>
                     <circle
                       class="d3-chart__marker"
                       [attr.cx]="bar.xCenter"
                       [attr.cy]="bar.avgY"
                       r="4"
-                    ></circle>
+                    >
+                      <title>{{ bar.label }} : panier moyen {{ bar.averageValue | number:'1.0-0' }} €</title>
+                    </circle>
                     <text
                       class="d3-chart__marker-label"
                       [attr.x]="bar.xCenter"
-                      [attr.y]="bar.avgY - 8"
+                      [attr.y]="bar.avgLabelY"
                       text-anchor="middle"
                     >
                       {{ bar.averageValue | number:'1.0-0' }} €
@@ -228,11 +284,15 @@
                       [attr.width]="bar.width"
                       [attr.height]="chart.innerHeight - bar.y"
                       [attr.fill]="bar.color"
-                    ></rect>
+                    >
+                      <title>{{ bar.label }} : {{ bar.revenue | number:'1.0-0' }} € • {{ bar.count }} demandes</title>
+                    </rect>
                   }
                   <path class="d3-chart__line" [attr.d]="chart.linePath"></path>
                   @for (bar of chart.bars; track bar.label) {
-                    <circle class="d3-chart__point" [attr.cx]="bar.xCenter" [attr.cy]="bar.countY" r="4"></circle>
+                    <circle class="d3-chart__point" [attr.cx]="bar.xCenter" [attr.cy]="bar.countY" r="4">
+                      <title>{{ bar.label }} : {{ bar.count }} demandes</title>
+                    </circle>
                   }
                   <g class="d3-chart__x-labels">
                     @for (bar of chart.bars; track bar.label) {
@@ -295,7 +355,9 @@
                       [attr.cx]="point.x"
                       [attr.cy]="point.y"
                       r="4"
-                    ></circle>
+                    >
+                      <title>{{ point.year }} : {{ point.revenue | number:'1.0-0' }} €{{ point.forecast ? ' (prévision)' : '' }}</title>
+                    </circle>
                   }
                   <g class="d3-chart__x-labels">
                     @for (tick of chart.xTicks; track tick.value) {
@@ -315,56 +377,322 @@
             <p class="dashboard__state">Aucune donnée historique disponible.</p>
           }
         </article>
-        <article class="card budget-card">
-          <header>
-            <p class="card__eyebrow">Budget</p>
-            <h3>Dépense moyenne par client</h3>
+        <article class="card chart-card chart-card--d3 card--full">
+          <header class="chart-card__header">
+            <div>
+              <p class="card__eyebrow">Statuts des demandes</p>
+              <h3>Répartition opérationnelle</h3>
+            </div>
+            <div class="chart-card__controls">
+              <span class="chart-card__label">Affichage</span>
+              <select (change)="updateStatusDisplay(($any($event.target)).value)">
+                <option value="bars" [selected]="statusDisplay() === 'bars'">Barres</option>
+                <option value="donut" [selected]="statusDisplay() === 'donut'">Donut</option>
+              </select>
+            </div>
           </header>
-          <ul class="budget-card__list">
-            <li>
-              <span>Total estimé</span>
-              <strong>{{ overview.budget.total | number:'1.0-0' }} €</strong>
-            </li>
-            <li>
-              <span>Moyenne par demande</span>
-              <strong>{{ overview.budget.averagePerDemande | number:'1.0-0' }} €</strong>
-            </li>
-            <li>
-              <span>Moyenne par client</span>
-              <strong>{{ overview.budget.averagePerClient | number:'1.0-0' }} €</strong>
-            </li>
-          </ul>
-          <p class="budget-card__caption">
-            Ces indicateurs s'ajustent automatiquement lorsque de nouveaux services sont ajoutés ou mis à jour.
+          <p class="chart-card__hint">
+            Suivez le flux des demandes pour identifier immédiatement les goulots d'étranglement.
           </p>
+          @if (statusChart(); as chart) {
+            <div class="d3-chart">
+              <svg
+                class="d3-chart__svg"
+                [attr.viewBox]="'0 0 ' + chart.width + ' ' + chart.height"
+                role="img"
+                aria-label="Répartition des demandes par statut"
+              >
+                @if (statusDisplay() === 'bars') {
+                  <g [attr.transform]="'translate(' + chart.margin.left + ',' + chart.margin.top + ')'">
+                    <g class="d3-chart__grid">
+                      @for (tick of chart.yTicks; track tick.value) {
+                        <line x1="0" [attr.x2]="chart.innerWidth" [attr.y1]="tick.y" [attr.y2]="tick.y"></line>
+                        <text class="d3-chart__axis" x="-12" [attr.y]="tick.y + 4" text-anchor="end">
+                          {{ tick.value }}
+                        </text>
+                      }
+                    </g>
+                    @for (bar of chart.bars; track bar.label) {
+                      <rect
+                        class="d3-chart__bar"
+                        [attr.x]="bar.x"
+                        [attr.y]="bar.y"
+                        [attr.width]="bar.width"
+                        [attr.height]="bar.height"
+                        [attr.fill]="bar.color"
+                      >
+                        <title>{{ bar.label }} : {{ bar.count }} demandes ({{ bar.percentage }}%)</title>
+                      </rect>
+                      <text
+                        class="d3-chart__marker-label"
+                        [attr.x]="bar.x + bar.width / 2"
+                        [attr.y]="bar.y - 8"
+                        text-anchor="middle"
+                      >
+                        {{ bar.count }} • {{ bar.percentage }}%
+                      </text>
+                    }
+                    <g class="d3-chart__x-labels">
+                      @for (bar of chart.bars; track bar.label) {
+                        <text [attr.x]="bar.x + bar.width / 2" [attr.y]="chart.innerHeight + 30" text-anchor="middle">
+                          {{ bar.label }}
+                        </text>
+                      }
+                    </g>
+                  </g>
+                } @else {
+                  <g [attr.transform]="'translate(' + chart.centerX + ',' + chart.centerY + ')'">
+                    @for (segment of chart.segments; track segment.label) {
+                      <path class="d3-chart__arc" [attr.d]="segment.path" [attr.fill]="segment.color">
+                        <title>{{ segment.label }} : {{ segment.value }} demandes ({{ segment.percentage }}%)</title>
+                      </path>
+                      <text
+                        class="d3-chart__marker-label"
+                        [attr.x]="segment.centroidX"
+                        [attr.y]="segment.centroidY"
+                        text-anchor="middle"
+                      >
+                        {{ segment.percentage }}%
+                      </text>
+                    }
+                  </g>
+                }
+              </svg>
+              <div class="d3-chart__meta">
+                @for (bar of chart.bars; track bar.label) {
+                  <div class="d3-chart__meta-item">
+                    <span class="d3-chart__dot" [style.background]="bar.color"></span>
+                    <div>
+                      <strong>{{ bar.label }}</strong>
+                      <span>{{ bar.count }} demandes • {{ bar.percentage }}%</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          } @else {
+            <p class="dashboard__state">Aucune demande à analyser pour les statuts.</p>
+          }
         </article>
 
-        <article class="card activity-card">
-          <header>
-            <p class="card__eyebrow">Dernières notifications</p>
-            <h3>Demandes récemment mises à jour</h3>
+        <article class="card chart-card chart-card--d3 card--full">
+          <header class="chart-card__header">
+            <div>
+              <p class="card__eyebrow">Tendance des demandes</p>
+              <h3>Cadence mensuelle</h3>
+            </div>
+            <div class="chart-card__controls">
+              <span class="chart-card__label">Affichage</span>
+              <select (change)="updateTrendDisplay(($any($event.target)).value)">
+                <option value="area" [selected]="trendDisplay() === 'area'">Aires</option>
+                <option value="line" [selected]="trendDisplay() === 'line'">Ligne</option>
+              </select>
+            </div>
           </header>
-          @if (latestDemandes().length) {
-            <ul class="activity-card__list">
-              @for (demande of latestDemandes(); track getDemandeId(demande)) {
-                <li>
-                  <a routerLink="/admin/demandes" [queryParams]="{ focus: getDemandeId(demande) }">
+          <p class="chart-card__hint">
+            Comparez l'évolution des volumes mensuels pour anticiper les pics d'activité.
+          </p>
+          @if (trendChart(); as chart) {
+            <div class="d3-chart">
+              <svg
+                class="d3-chart__svg"
+                [attr.viewBox]="'0 0 ' + chart.width + ' ' + chart.height"
+                role="img"
+                aria-label="Tendance mensuelle des demandes"
+              >
+                <g [attr.transform]="'translate(' + chart.margin.left + ',' + chart.margin.top + ')'">
+                  <g class="d3-chart__grid">
+                    @for (tick of chart.yTicks; track tick.value) {
+                      <line x1="0" [attr.x2]="chart.innerWidth" [attr.y1]="tick.y" [attr.y2]="tick.y"></line>
+                      <text class="d3-chart__axis" x="-12" [attr.y]="tick.y + 4" text-anchor="end">
+                        {{ tick.value }}
+                      </text>
+                    }
+                  </g>
+                  @if (trendDisplay() === 'line') {
+                    <path class="d3-chart__line" [attr.d]="chart.linePath"></path>
+                    @for (point of chart.points; track point.label) {
+                      <circle class="d3-chart__point" [attr.cx]="point.x" [attr.cy]="point.y" r="4">
+                        <title>{{ point.label }} : {{ point.value }} demandes</title>
+                      </circle>
+                    }
+                  } @else {
+                    <path class="d3-chart__area" [attr.d]="chart.areaPath"></path>
+                    <path class="d3-chart__line" [attr.d]="chart.linePath"></path>
+                  }
+                  <g class="d3-chart__x-labels">
+                    @for (tick of chart.xTicks; track tick.value) {
+                      <text
+                        [attr.x]="tick.x"
+                        [attr.y]="chart.innerHeight + 38"
+                        text-anchor="end"
+                        [attr.transform]="'rotate(-25 ' + tick.x + ' ' + (chart.innerHeight + 38) + ')'"
+                      >
+                        {{ tick.value }}
+                      </text>
+                    }
+                  </g>
+                </g>
+              </svg>
+              <div class="d3-chart__meta d3-chart__meta--two">
+                @for (point of chart.summaryPoints; track point.label) {
+                  <div class="d3-chart__meta-item">
+                    <span class="d3-chart__dot" style="background:#0f172a"></span>
                     <div>
-                      <strong>Demande #{{ getDemandeId(demande) }}</strong>
-                      <span class="badge">{{ demande.code_type }}</span>
+                      <strong>{{ point.label }}</strong>
+                      <span>{{ point.value }} demandes</span>
                     </div>
-                    <p>{{ demande.client?.nom }} {{ demande.client?.prenom }}</p>
-                    <span class="activity-card__date">{{ demande.date_demande | date:'dd/MM à HH:mm' }}</span>
-                  </a>
-                </li>
-              }
-            </ul>
+                  </div>
+                }
+              </div>
+            </div>
           } @else {
-            <p class="dashboard__state">Pas encore de demande récente.</p>
+            <p class="dashboard__state">Aucune tendance disponible sur la période.</p>
           }
-          <div class="activity-card__footer">
-            <a routerLink="/admin/demandes" class="btn-link">Accéder à la liste complète</a>
-          </div>
+        </article>
+
+        <article class="card chart-card chart-card--d3 card--full">
+          <header class="chart-card__header">
+            <div>
+              <p class="card__eyebrow">Mix services</p>
+              <h3>Répartition des revenus et volumes</h3>
+            </div>
+            <div class="chart-card__controls">
+              <span class="chart-card__label">Mesure</span>
+              <select (change)="updateServiceMixMetric(($any($event.target)).value)">
+                <option value="revenue" [selected]="serviceMixMetric() === 'revenue'">Chiffre d'affaires</option>
+                <option value="count" [selected]="serviceMixMetric() === 'count'">Demandes</option>
+              </select>
+            </div>
+          </header>
+          <p class="chart-card__hint">
+            Comparez la concentration des revenus et des volumes pour ajuster le portefeuille de services.
+          </p>
+          @if (serviceMixChart(); as chart) {
+            <div class="d3-chart">
+              <svg
+                class="d3-chart__svg"
+                [attr.viewBox]="'0 0 ' + chart.width + ' ' + chart.height"
+                role="img"
+                aria-label="Répartition du mix services"
+              >
+                <g [attr.transform]="'translate(' + chart.centerX + ',' + chart.centerY + ')'">
+                  @for (segment of chart.segments; track segment.label) {
+                    <path class="d3-chart__arc" [attr.d]="segment.path" [attr.fill]="segment.color">
+                      <title>{{ formatServiceMixTooltip(segment) }}</title>
+                    </path>
+                    <text
+                      class="d3-chart__marker-label"
+                      [attr.x]="segment.centroidX"
+                      [attr.y]="segment.centroidY"
+                      text-anchor="middle"
+                    >
+                      {{ segment.percentage }}%
+                    </text>
+                  }
+                </g>
+              </svg>
+              <div class="d3-chart__meta d3-chart__meta--two">
+                @for (segment of chart.segments; track segment.label) {
+                  <div class="d3-chart__meta-item">
+                    <span class="d3-chart__dot" [style.background]="segment.color"></span>
+                    <div>
+                      <strong>{{ segment.label }}</strong>
+                      <span>
+                        @if (serviceMixMetric() === 'revenue') {
+                          {{ segment.value | number:'1.0-0' }} € • {{ segment.percentage }}%
+                        } @else {
+                          {{ segment.value }} demandes • {{ segment.percentage }}%
+                        }
+                      </span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          } @else {
+            <p class="dashboard__state">Pas assez de données pour le mix services.</p>
+          }
+        </article>
+
+        <article class="card chart-card chart-card--d3 card--full">
+          <header class="chart-card__header">
+            <div>
+              <p class="card__eyebrow">Répartition hebdomadaire</p>
+              <h3>Jours de forte activité</h3>
+            </div>
+            <div class="chart-card__controls">
+              <span class="chart-card__label">Mesure</span>
+              <select (change)="updateWeekdayMetric(($any($event.target)).value)">
+                <option value="count" [selected]="weekdayMetric() === 'count'">Volume</option>
+                <option value="percentage" [selected]="weekdayMetric() === 'percentage'">Pourcentage</option>
+              </select>
+            </div>
+          </header>
+          <p class="chart-card__hint">
+            Visualisez les pics hebdomadaires pour ajuster les équipes et les ouvertures de créneaux.
+          </p>
+          @if (weekdayChart(); as chart) {
+            <div class="d3-chart">
+              <svg
+                class="d3-chart__svg"
+                [attr.viewBox]="'0 0 ' + chart.width + ' ' + chart.height"
+                role="img"
+                aria-label="Demandes par jour de la semaine"
+              >
+                <g [attr.transform]="'translate(' + chart.margin.left + ',' + chart.margin.top + ')'">
+                  <g class="d3-chart__grid">
+                    @for (tick of chart.yTicks; track tick.value) {
+                      <line x1="0" [attr.x2]="chart.innerWidth" [attr.y1]="tick.y" [attr.y2]="tick.y"></line>
+                      <text class="d3-chart__axis" x="-12" [attr.y]="tick.y + 4" text-anchor="end">
+                        {{ tick.value }}
+                      </text>
+                    }
+                  </g>
+                  @for (bar of chart.bars; track bar.label) {
+                    <rect
+                      class="d3-chart__bar"
+                      [attr.x]="bar.x"
+                      [attr.y]="bar.y"
+                      [attr.width]="bar.width"
+                      [attr.height]="bar.height"
+                      [attr.fill]="bar.color"
+                    >
+                      <title>{{ bar.label }} : {{ bar.value }} ({{ bar.percentage }}%)</title>
+                    </rect>
+                    <text
+                      class="d3-chart__marker-label"
+                      [attr.x]="bar.x + bar.width / 2"
+                      [attr.y]="bar.y - 8"
+                      text-anchor="middle"
+                    >
+                      {{ bar.value }}
+                    </text>
+                  }
+                  <g class="d3-chart__x-labels">
+                    @for (bar of chart.bars; track bar.label) {
+                      <text [attr.x]="bar.x + bar.width / 2" [attr.y]="chart.innerHeight + 30" text-anchor="middle">
+                        {{ bar.label }}
+                      </text>
+                    }
+                  </g>
+                </g>
+              </svg>
+              <div class="d3-chart__meta">
+                @for (bar of chart.bars; track bar.label) {
+                  <div class="d3-chart__meta-item">
+                    <span class="d3-chart__dot" [style.background]="bar.color"></span>
+                    <div>
+                      <strong>{{ bar.label }}</strong>
+                      <span>{{ bar.value }} • {{ bar.percentage }}%</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          } @else {
+            <p class="dashboard__state">Aucune donnée hebdomadaire disponible.</p>
+          }
         </article>
         <article class="card chart-card chart-card--d3 card--full">
           <header class="chart-card__header">
