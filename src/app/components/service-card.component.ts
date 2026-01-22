@@ -63,7 +63,12 @@ export class ServiceCardComponent {
     } catch (err: any) {
       // Gestion “clean” des 403/409
       if (err?.status === 409) {
-        this.toast.info('Ce service est déjà présent dans votre demande.');
+        const apiMessage = err?.error?.message;
+        if (apiMessage) {
+          this.toast.warning('Demande non modifiable', apiMessage);
+        } else {
+          this.toast.info('Ce service est déjà présent dans votre demande.');
+        }
       } else if (err?.status === 400) {
         this.toast.error('Quantité maximale atteinte pour ce service.');
       } else if (err?.status === 403) {

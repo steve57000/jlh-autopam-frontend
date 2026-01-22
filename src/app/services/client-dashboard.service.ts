@@ -65,6 +65,10 @@ export class ClientDashboardService {
     return this.http.get<ProchainRdvDto | null>(`${this.base}/mes-demandes/prochain-rdv`, this.buildOptions(options));
   }
 
+  getProchainsRdv(options?: RequestOptions): Observable<ProchainRdvDto[]> {
+    return this.http.get<ProchainRdvDto[]>(`${this.base}/mes-demandes/prochains-rdv`, this.buildOptions(options));
+  }
+
   getMyDocuments(options?: RequestOptions): Observable<ClientDocumentDto[]> {
     return this.http.get<ClientDocumentDto[]>(`${this.base}/mes-documents`, this.buildOptions(options));
   }

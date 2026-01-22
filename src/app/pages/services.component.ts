@@ -382,7 +382,7 @@ export class ServicesComponent implements OnInit, OnDestroy {
     }
     const rdvDate = demande.rendezVous?.dateDebut ? new Date(demande.rendezVous.dateDebut) : null;
     const rdvPasse = rdvDate ? rdvDate.getTime() <= Date.now() : false;
-    if (statut === 'Annulee') {
+    if (statut === 'Annulee' || statut === 'Annule') {
       return true;
     }
     if (statut === 'Traitee' && (rdvPasse || !rdvDate)) {

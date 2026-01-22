@@ -218,6 +218,145 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
   }
 }
 
+.chart-card {
+  &--d3 {
+    gap: 1.25rem;
+  }
+
+  &__hint {
+    margin: 0;
+    color: rgba(v.$color-primary, 0.7);
+    font-size: 0.95rem;
+  }
+}
+
+.d3-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  &__svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  &__grid line {
+    stroke: rgba(v.$color-secondary, 0.12);
+    stroke-dasharray: 4 6;
+  }
+
+  &__axis {
+    fill: rgba(v.$color-primary, 0.6);
+    font-size: 0.75rem;
+  }
+
+  &__axis--right {
+    fill: rgba(v.$color-primary, 0.45);
+  }
+
+  &__x-labels text {
+    fill: rgba(v.$color-primary, 0.75);
+    font-size: 0.8rem;
+  }
+
+  &__bar {
+    rx: 8px;
+    transition: opacity 0.2s ease;
+
+    &--soft {
+      opacity: 0.85;
+    }
+  }
+
+  &__marker {
+    fill: v.$color-secondary;
+    stroke: #fff;
+    stroke-width: 2px;
+  }
+
+  &__marker-label {
+    fill: rgba(v.$color-primary, 0.8);
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  &__line {
+    fill: none;
+    stroke: #0f172a;
+    stroke-width: 2.5px;
+  }
+
+  &__line--forecast {
+    stroke: v.$color-tertiary;
+    stroke-dasharray: 6 6;
+  }
+
+  &__area {
+    fill: rgba(v.$color-secondary, 0.15);
+  }
+
+  &__point {
+    fill: #0f172a;
+    stroke: #fff;
+    stroke-width: 2px;
+
+    &--forecast {
+      fill: v.$color-tertiary;
+    }
+  }
+
+  &__meta {
+    display: grid;
+    gap: 0.6rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+
+    &--two {
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    }
+  }
+
+  &__meta-item {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    font-size: 0.9rem;
+    color: rgba(v.$color-primary, 0.7);
+
+    strong {
+      display: block;
+      color: v.$color-primary;
+    }
+  }
+
+  &__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    flex: 0 0 auto;
+  }
+
+  &__legend {
+    display: flex;
+    gap: 1.2rem;
+    font-size: 0.85rem;
+    color: rgba(v.$color-primary, 0.7);
+  }
+
+  &__legend-swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: #0f172a;
+    margin-right: 0.4rem;
+  }
+
+  &__legend-swatch--forecast {
+    background: v.$color-tertiary;
+  }
+}
+
 .chart-card__controls {
   display: flex;
   align-items: center;

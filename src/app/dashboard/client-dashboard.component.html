@@ -152,35 +152,67 @@
         </article>
 
         @if (activeSection() === 'overview') {
-          @if (prochainRdv && shouldShowProchainRdv(prochainRdv)) {
+          @if (prochainsRdvsAVenir().length) {
             <article class="card activity-card next-rdv">
               <header>
                 <p class="card__eyebrow">Agenda</p>
-                <h3>Prochain rendez-vous</h3>
+                <h3>{{ prochainsRdvsAVenir().length > 1 ? 'Prochains rendez-vous' : 'Prochain rendez-vous' }}</h3>
               </header>
-              <div class="rdv-card">
-                <div class="rdv-card__head">
-                  <strong>Statut</strong>
-                  <span class="badge" [class]="badgeClassForRdv(prochainRdv.codeStatut)">
-                    {{ prochainRdv.libelleStatut || prochainRdv.codeStatut }}
-                  </span>
+              @if (prochainsRdvsAVenir().length > 1) {
+                <div class="rdv-carousel" role="list">
+                  @for (rdv of prochainsRdvsAVenir(); track rdv.idRdv) {
+                    <div class="rdv-card rdv-slide" role="listitem">
+                      <div class="rdv-card__head">
+                        <strong>Statut</strong>
+                        <span class="badge" [class]="badgeClassForRdv(rdv.codeStatut)">
+                          {{ rdv.libelleStatut || rdv.codeStatut }}
+                        </span>
+                      </div>
+                      <div class="row">
+                        <span>Début :</span>
+                        <span>{{ rdv.dateDebut | date:'dd/MM/yyyy HH:mm' }}</span>
+                      </div>
+                      <div class="row">
+                        <span>Fin :</span>
+                        <span>{{ rdv.dateFin | date:'dd/MM/yyyy HH:mm' }}</span>
+                      </div>
+                      @if (canDownloadIcs(rdv)) {
+                        <div class="actions">
+                          <button class="btn btn-outline btn-small" type="button" (click)="downloadRdvIcs(rdv.idRdv)">
+                            Ajouter à mon agenda (.ics)
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  }
                 </div>
-                <div class="row">
-                  <span>Début :</span>
-                  <span>{{ prochainRdv.dateDebut | date:'dd/MM/yyyy HH:mm' }}</span>
-                </div>
-                <div class="row">
-                  <span>Fin :</span>
-                  <span>{{ prochainRdv.dateFin | date:'dd/MM/yyyy HH:mm' }}</span>
-                </div>
-                @if (canDownloadIcs(prochainRdv)) {
-                  <div class="actions">
-                    <button class="btn btn-outline btn-small" type="button" (click)="downloadIcs()">
-                      Ajouter à mon agenda (.ics)
-                    </button>
+              } @else {
+                @for (rdv of prochainsRdvsAVenir(); track rdv.idRdv) {
+                  <div class="rdv-card">
+                    <div class="rdv-card__head">
+                      <strong>Statut</strong>
+                      <span class="badge" [class]="badgeClassForRdv(rdv.codeStatut)">
+                        {{ rdv.libelleStatut || rdv.codeStatut }}
+                      </span>
+                    </div>
+                    <div class="row">
+                      <span>Début :</span>
+                      <span>{{ rdv.dateDebut | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    <div class="row">
+                      <span>Fin :</span>
+                      <span>{{ rdv.dateFin | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    @if (canDownloadIcs(rdv)) {
+                      <div class="actions">
+                        <button class="btn btn-outline btn-small" type="button" (click)="downloadRdvIcs(rdv.idRdv)">
+                          Ajouter à mon agenda (.ics)
+                        </button>
+                      </div>
+                    }
                   </div>
                 }
-              </div>
+              }
             </article>
           }
         }
@@ -268,11 +300,13 @@
                     <span>Fin</span>
                     <span>{{ rdv.dateFin | date:'dd/MM/yyyy HH:mm' }}</span>
                   </div>
-                  <div class="actions">
-                    <button class="btn btn-outline btn-small" type="button" (click)="downloadRdvIcs(rdv.idRdv)">
-                      Télécharger l'invitation (.ics)
-                    </button>
-                  </div>
+                  @if (canDownloadIcs(rdv) && !isCancelledDemande(current)) {
+                    <div class="actions">
+                      <button class="btn btn-outline btn-small" type="button" (click)="downloadRdvIcs(rdv.idRdv)">
+                        Télécharger l'invitation (.ics)
+                      </button>
+                    </div>
+                  }
                 </div>
               }
 
@@ -456,9 +490,11 @@
                         <span>{{ rdv.dateFin | date:'dd/MM/yyyy HH:mm' }}</span>
                       </div>
                       <div class="actions">
+                      @if (canDownloadIcs(rdv) && !isCancelledDemande(d)) {
                         <button class="btn btn-outline btn-small" type="button" (click)="downloadRdvIcs(rdv.idRdv)">
                           Télécharger l'invitation (.ics)
                         </button>
+                      }
                       </div>
                     </div>
                   }

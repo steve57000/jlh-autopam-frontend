@@ -295,7 +295,6 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
 }
 
 .client-dashboard {
-  /* ====== Filtres ====== */
   .filters {
     .row {
       display: grid;
@@ -443,6 +442,19 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
       margin-bottom: 0.5rem;
     }
   }
+
+  .rdv-carousel {
+    display:flex;
+    gap:1rem;
+    overflow-x: auto;
+    scroll-snap-type:x mandatory;
+    scroll-padding-inline:16%;
+  }
+  .rdv-slide {
+    flex:0 0 66%;
+    scroll-snap-align:center;
+  }
+
 
   header { display:flex; align-items:center; gap:.5rem; justify-content:space-between; flex-wrap:wrap; margin-bottom:.5rem; }
   .chip.type { background:#eef; border-radius:999px; padding:.15rem .5rem; font-size:.85rem; }
@@ -613,7 +625,6 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
   }
 }
 
-/* petit polish visuel des badges/chips existants pour matcher la zone filtres */
 .client-dashboard {
   .chip.type {
     background: #eef5f7;
