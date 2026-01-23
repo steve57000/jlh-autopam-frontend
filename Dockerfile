@@ -1,16 +1,13 @@
 # ---------- BUILDER STAGE ----------
 FROM node:18-alpine AS builder
 
-# Créer et positionner le workspace
 WORKDIR /app
 
-# Copier juste package.json + lockfile pour installer deps sans tout recopier à chaque build
-COPY package.json package-lock.json ./
-
 # Installer les dépendances
+COPY package.json package-lock.json ./
 RUN npm ci
 
-# Copier le reste du code et builder l’app Next.js
+# Copier le reste du code et builder l'app Angular SSR
 COPY . .
 RUN npm run build
 
@@ -19,19 +16,16 @@ FROM node:18-alpine AS runner
 
 WORKDIR /app
 
-# Définir NODE_ENV pour Next.js
 ENV NODE_ENV=production
+ENV PORT=3000
 
-# Copier package.json, lockfile et node_modules depuis le builder
-COPY --from=builder /app/package.json /app/package-lock.json ./
-COPY --from=builder /app/node_modules ./node_modules
+# Installer uniquement les dépendances de prod
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 
-# Copier le build Next.js et les fichiers statiques
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
+# Copier le build SSR Angular
+COPY --from=builder /app/dist ./dist
 
-# Exposer le port sur lequel Next.js tourne
 EXPOSE 3000
 
-# Démarrer Next.js en mode production
-CMD ["npm", "start"]
+CMD ["node", "dist/jlh-autopam-frontend/server/server.mjs"]
