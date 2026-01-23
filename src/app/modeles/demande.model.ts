@@ -146,5 +146,10 @@ export interface DemandeResponse {
   client?: ClientSummaryDto;
   documents?: DemandeDocumentDto[];
   timeline?: DemandeTimelineEntryDto[];
+  devis?: {
+    idDevis: number;
+    montantTotal?: number | null;
+    rendezVousId?: number | null;
+  } | null;
   rendezVous?: RendezVousSummary | null;
 }

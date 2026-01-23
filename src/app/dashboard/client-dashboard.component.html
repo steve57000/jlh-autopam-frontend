@@ -284,6 +284,46 @@
                 </div>
               }
 
+              @if (hasDevis(current)) {
+                <div class="rdv-block">
+                  <div class="rdv-block__head">
+                    <strong>Devis proposé</strong>
+                    @if (current.devis?.montantTotal != null) {
+                      <span>{{ current.devis?.montantTotal | number:'1.2-2' }} €</span>
+                    }
+                  </div>
+                  @if (canRequestRendezVous(current)) {
+                    <div class="field">
+                      <label for="rdv-request-{{ current.idDemande }}">Commentaire (optionnel)</label>
+                      <textarea
+                        id="rdv-request-{{ current.idDemande }}"
+                        rows="2"
+                        [ngModel]="rdvRequestComments()[current.idDemande] || ''"
+                        (ngModelChange)="updateRdvRequestComment(current.idDemande, $event)"
+                        placeholder="Ex: Disponibilités, infos complémentaires…"></textarea>
+                    </div>
+                    <div class="actions">
+                      <button
+                        class="btn btn-small"
+                        type="button"
+                        (click)="requestRendezVous(current)">
+                        Accepter le devis & demander un rendez-vous
+                      </button>
+                      <button
+                        class="btn btn-outline btn-small"
+                        type="button"
+                        (click)="archiveDemande(current)">
+                        Archiver ce devis
+                      </button>
+                    </div>
+                  } @else {
+                    <p class="dashboard__state">
+                      Ce devis est déjà traité ou un rendez-vous est en cours.
+                    </p>
+                  }
+                </div>
+              }
+
               @if (rendezVousInfo(current); as rdv) {
                 <div class="rdv-block">
                   <div class="rdv-block__head">
@@ -467,14 +507,54 @@
                           </li>
                         }
                       </ul>
-                      <div class="total">
-                        Total estimatif : <strong>{{ totalDemande(d) | number:'1.2-2' }} €</strong>
-                      </div>
-                    </div>
-                  }
+                  <div class="total">
+                    Total estimatif : <strong>{{ totalDemande(d) | number:'1.2-2' }} €</strong>
+                  </div>
+                </div>
+              }
 
-                  @if (rendezVousInfo(d); as rdv) {
-                    <div class="rdv-block">
+              @if (hasDevis(d)) {
+                <div class="rdv-block">
+                  <div class="rdv-block__head">
+                    <strong>Devis proposé</strong>
+                    @if (d.devis?.montantTotal != null) {
+                      <span>{{ d.devis?.montantTotal | number:'1.2-2' }} €</span>
+                    }
+                  </div>
+                  @if (canRequestRendezVous(d)) {
+                    <div class="field">
+                      <label for="rdv-request-{{ d.idDemande }}">Commentaire (optionnel)</label>
+                      <textarea
+                        id="rdv-request-{{ d.idDemande }}"
+                        rows="2"
+                        [ngModel]="rdvRequestComments()[d.idDemande] || ''"
+                        (ngModelChange)="updateRdvRequestComment(d.idDemande, $event)"
+                        placeholder="Ex: Disponibilités, infos complémentaires…"></textarea>
+                    </div>
+                    <div class="actions">
+                      <button
+                        class="btn btn-small"
+                        type="button"
+                        (click)="requestRendezVous(d)">
+                        Accepter le devis & demander un rendez-vous
+                      </button>
+                      <button
+                        class="btn btn-outline btn-small"
+                        type="button"
+                        (click)="archiveDemande(d)">
+                        Archiver ce devis
+                      </button>
+                    </div>
+                  } @else {
+                    <p class="dashboard__state">
+                      Ce devis est déjà traité ou un rendez-vous est en cours.
+                    </p>
+                  }
+                </div>
+              }
+
+              @if (rendezVousInfo(d); as rdv) {
+                <div class="rdv-block">
                       <div class="rdv-block__head">
                         <strong>Rendez-vous lié</strong>
                         <span class="badge" [class]="badgeClassForRdv(rdv.codeStatut)">

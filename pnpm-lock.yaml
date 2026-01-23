@@ -44,9 +44,6 @@ importers:
       '@angular/ssr':
         specifier: ^20.3.10
         version: 20.3.14(f45a06d5d413204c7a407f2025f4ee94)
-      '@netlify/angular-runtime':
-        specifier: ^3.0.1
-        version: 3.0.1
       d3:
         specifier: ^7.9.0
         version: 7.9.0
@@ -964,10 +961,6 @@ packages:
   '@napi-rs/nice@1.1.1':
     resolution: {integrity: sha512-xJIPs+bYuc9ASBl+cvGsKbGrJmS6fAKaSZCnT0lhahT5rhA2VVy9/EcIgd2JhtEuFOJNx7UHNn/qiTPTY4nrQw==}
     engines: {node: '>= 10'}
-
-  '@netlify/angular-runtime@3.0.1':
-    resolution: {integrity: sha512-YNUkX7uY5ENNnoZu5Vlk9LAIqRUBsgp9md2InGMbRLUg8CKjMrOCwm2ZXYfuCWITwI9slE2EBQtN+len/C7wdA==}
-    engines: {node: '>=18.13.0'}
 
   '@npmcli/agent@3.0.0':
     resolution: {integrity: sha512-S79NdEgDQd/NGCay6TCoVzXSj74skRZIKJcpJjC5lOq34SZzyI6MqtiiWoiVWoVrTcGjNeC4ipbh1VIHlpfF5Q==}
@@ -3996,11 +3989,6 @@ snapshots:
       '@napi-rs/nice-win32-ia32-msvc': 1.1.1
       '@napi-rs/nice-win32-x64-msvc': 1.1.1
     optional: true
-
-  '@netlify/angular-runtime@3.0.1':
-    dependencies:
-      fs-extra: 11.3.3
-      semver: 7.7.3
 
   '@npmcli/agent@3.0.0':
     dependencies:
