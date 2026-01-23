@@ -1,7 +1,6 @@
 services:
 
   frontend:
-    image: jlh-autopam-frontend:latest
     build: .
     restart: unless-stopped
     expose:
