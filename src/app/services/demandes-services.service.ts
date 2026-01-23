@@ -28,95 +28,16 @@ export class DemandesServiceService {
       map(rows => Array.isArray(rows) ? rows : []),
       map(rows =>
         rows
-          .map((d: any) => {
-            const toNum = (v: any, fallback: number | null = null) => this.toNumber(v, fallback);
-
-            const id = toNum(d?.idDemande);
-            if (id == null) return null;
-
-            // Normalisation du type sur l’union attendue par le modèle
-            const rawType: string | undefined = d?.typeDemande?.codeType;
-            const code_type: DemandeWithServices['code_type'] =
-              rawType === 'Devis' || rawType === 'RendezVous' || rawType === 'Service'
-                ? rawType
-                : 'Service';
-
-            const code_statut = (d?.statutDemande?.codeStatut ?? undefined) as DemandeWithServices['code_statut'];
-            const date_demande = (d?.dateDemande ?? d?.dateSoumission ?? '') as string;
-
-            const type_libelle =
-              typeof d?.typeDemande?.libelle === 'string' ? d.typeDemande.libelle : undefined;
-            const statut_libelle =
-              typeof d?.statutDemande?.libelle === 'string' ? d.statutDemande.libelle : undefined;
-
-            const normalizeString = (value: unknown): string | null => {
-              if (value == null) {
-                return null;
-              }
-              const str = String(value).trim();
-              return str.length > 0 ? str : null;
-            };
-
-            const c = d?.client;
-            const client = (c && toNum(c.idClient) != null)
-              ? {
-                id_client: toNum(c.idClient)!,
-                nom: String(c.nom ?? ''),
-                prenom: typeof c.prenom === 'string' ? c.prenom : undefined,
-                email: String(c.email ?? ''),
-                telephone: normalizeString(c.telephone),
-                immatriculation: normalizeString(c.immatriculation),
-                adresseLigne1: normalizeString(c.adresseLigne1),
-                adresseLigne2: normalizeString(c.adresseLigne2),
-                adresseCodePostal: normalizeString(c.adresseCodePostal ?? c.adresse_codePostal),
-                adresseVille: normalizeString(c.adresseVille),
-                vehiculeMarque: normalizeString(c.vehiculeMarque ?? c.marqueVehicule),
-                vehiculeModele: normalizeString(c.vehiculeModele ?? c.modeleVehicule),
-                vehiculeEnergie: normalizeString(c.vehiculeEnergie)
-              }
-              : undefined;
-
-            const services: ServiceItem[] = Array.isArray(d?.services)
-              ? d.services.map((s: any) => ({
-                id_service: toNum(s?.idService ?? s?.serviceId, -1) ?? -1,
-                libelle: String(s?.libelle ?? ''),
-                quantite: toNum(s?.quantite) ?? 1,
-                prix_unitaire: toNum(s?.prixUnitaire ?? s?.prix_unitaire) ?? undefined,
-                quantite_max: toNum(s?.quantiteMax ?? s?.quantite_max) ?? undefined
-              }))
-              : [];
-
-            // <-- IMPORTANT : on passe l'id de la demande pour construire urlPublic si besoin -->
-            const documents = this.normalizeDocuments(d?.documents);
-            const timeline = this.normalizeTimeline(d?.timeline);
-            const rendezVous = this.normalizeRendezVous(d?.rendezVous ?? d?.rdv ?? null);
-            const devisId = toNum(d?.devis?.idDevis);
-            const devis = devisId != null
-              ? {
-                id_devis: devisId,
-                montant_total: toNum(d?.devis?.montantTotal ?? d?.devis?.montant_total),
-                rendezVousId: toNum(d?.devis?.rendezVousId)
-              }
-              : null;
-
-            const out: DemandeWithServices = {
-              id_demande: id,
-              code_type,
-              type_libelle,
-              code_statut,
-              statut_libelle,
-              date_demande,
-              client,
-              services,
-              documents,
-              timeline,
-              rendezVous,
-              devis
-            };
-            return out;
-          })
+          .map((d: any) => this.normalizeDemande(d))
           .filter(Boolean) as DemandeWithServices[]
       )
+    );
+  }
+
+  getById(id: number, options?: { silentError?: boolean }): Observable<DemandeWithServices | null> {
+    const httpOptions = this.buildOptions(options);
+    return this.http.get<any>(`${this.apiBase}/demandes/${id}`, httpOptions).pipe(
+      map(d => this.normalizeDemande(d))
     );
   }
 
@@ -125,6 +46,93 @@ export class DemandesServiceService {
       return undefined;
     }
     return { headers: new HttpHeaders({ 'X-Skip-Error-Toast': '1' }) };
+  }
+
+  private normalizeDemande(d: any): DemandeWithServices | null {
+    const toNum = (v: any, fallback: number | null = null) => this.toNumber(v, fallback);
+
+    const id = toNum(d?.idDemande);
+    if (id == null) return null;
+
+    // Normalisation du type sur l’union attendue par le modèle
+    const rawType: string | undefined = d?.typeDemande?.codeType;
+    const code_type: DemandeWithServices['code_type'] =
+      rawType === 'Devis' || rawType === 'RendezVous' || rawType === 'Service'
+        ? rawType
+        : 'Service';
+
+    const code_statut = (d?.statutDemande?.codeStatut ?? undefined) as DemandeWithServices['code_statut'];
+    const date_demande = (d?.dateDemande ?? d?.dateSoumission ?? '') as string;
+
+    const type_libelle =
+      typeof d?.typeDemande?.libelle === 'string' ? d.typeDemande.libelle : undefined;
+    const statut_libelle =
+      typeof d?.statutDemande?.libelle === 'string' ? d.statutDemande.libelle : undefined;
+
+    const normalizeString = (value: unknown): string | null => {
+      if (value == null) {
+        return null;
+      }
+      const str = String(value).trim();
+      return str.length > 0 ? str : null;
+    };
+
+    const c = d?.client;
+    const client = (c && toNum(c.idClient) != null)
+      ? {
+        id_client: toNum(c.idClient)!,
+        nom: String(c.nom ?? ''),
+        prenom: typeof c.prenom === 'string' ? c.prenom : undefined,
+        email: String(c.email ?? ''),
+        telephone: normalizeString(c.telephone),
+        immatriculation: normalizeString(c.immatriculation),
+        adresseLigne1: normalizeString(c.adresseLigne1),
+        adresseLigne2: normalizeString(c.adresseLigne2),
+        adresseCodePostal: normalizeString(c.adresseCodePostal ?? c.adresse_codePostal),
+        adresseVille: normalizeString(c.adresseVille),
+        vehiculeMarque: normalizeString(c.vehiculeMarque ?? c.marqueVehicule),
+        vehiculeModele: normalizeString(c.vehiculeModele ?? c.modeleVehicule),
+        vehiculeEnergie: normalizeString(c.vehiculeEnergie)
+      }
+      : undefined;
+
+    const services: ServiceItem[] = Array.isArray(d?.services)
+      ? d.services.map((s: any) => ({
+        id_service: toNum(s?.idService ?? s?.serviceId, -1) ?? -1,
+        libelle: String(s?.libelle ?? ''),
+        quantite: toNum(s?.quantite) ?? 1,
+        prix_unitaire: toNum(s?.prixUnitaire ?? s?.prix_unitaire) ?? undefined,
+        quantite_max: toNum(s?.quantiteMax ?? s?.quantite_max) ?? undefined
+      }))
+      : [];
+
+    // <-- IMPORTANT : on passe l'id de la demande pour construire urlPublic si besoin -->
+    const documents = this.normalizeDocuments(d?.documents);
+    const timeline = this.normalizeTimeline(d?.timeline);
+    const rendezVous = this.normalizeRendezVous(d?.rendezVous ?? d?.rdv ?? null);
+    const devisId = toNum(d?.devis?.idDevis);
+    const devis = devisId != null
+      ? {
+        id_devis: devisId,
+        montant_total: toNum(d?.devis?.montantTotal ?? d?.devis?.montant_total),
+        rendezVousId: toNum(d?.devis?.rendezVousId)
+      }
+      : null;
+
+    return {
+      id_demande: id,
+      code_type,
+      type_libelle,
+      code_statut,
+      statut_libelle,
+      date_demande,
+      client,
+      services,
+      documents,
+      timeline,
+      rendezVous,
+      devis
+    };
   }
 
   updateDemande(
