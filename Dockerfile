@@ -28,4 +28,4 @@ COPY --from=builder /app/dist ./dist
 
 EXPOSE 3000
 
-CMD ["node", "dist/jlh-autopam-frontend/server/server.mjs"]
+CMD ["npm", "run", "start:ssr"]
