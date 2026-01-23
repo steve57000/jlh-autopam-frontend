@@ -50,6 +50,23 @@ If you choose to deploy as a static site instead, make sure the **Publish Direct
 
 You can also use the provided `render.static.yaml` blueprint for a static site deploy.
 
+## Hostinger + Traefik deployment (SSR)
+
+If you run the frontend behind the existing Traefik stack, make sure the external
+Docker network already exists (it must be the same one used by Traefik).
+
+Example (run once on the VPS):
+
+```bash
+docker network create jlh
+```
+
+Then start the frontend with the desired hostnames:
+
+```bash
+FRONTEND_HOSTNAME=jlh-autopam.fr TRAEFIK_NETWORK=jlh docker compose -f docker-compose.prod.yml up -d --build
+```
+
 ## Running unit tests
 
 To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
