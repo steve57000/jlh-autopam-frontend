@@ -1,8 +1,17 @@
 services:
   frontend:
-    image: steve57/jlh-autopam-frontend:latest
+    image: jlh-autopam-frontend:latest
+    build: .
     restart: unless-stopped
-    ports:
-      - '80:3000'
-    environment:
-      NEXT_PUBLIC_API_URL: http://backend:8080
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.jlh-autopam-frontend.rule=Host(`${FRONTEND_HOSTNAME}`)
+      - traefik.http.routers.jlh-autopam-frontend.entrypoints=websecure
+      - traefik.http.routers.jlh-autopam-frontend.tls.certresolver=letsencrypt
+      - traefik.http.services.jlh-autopam-frontend.loadbalancer.server.port=3000
+    networks:
+      - jlh
+
+networks:
+  jlh:
+    external: true
