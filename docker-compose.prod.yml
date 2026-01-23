@@ -15,3 +15,4 @@ services:
 networks:
   jlh:
     external: true
+    name: ${TRAEFIK_NETWORK:-jlh}
