@@ -1,14 +1,13 @@
 services:
 
   frontend:
-    image: jlh-autopam-frontend:latest
     build: .
     restart: unless-stopped
     expose:
       - "3000"
     labels:
       - traefik.enable=true
-      - traefik.http.routers.jlh-autopam-frontend.rule=Host(`jlh-autopam.fr`,`www.jlh-autopam.fr`)
+      - traefik.http.routers.jlh-autopam-frontend.rule=Host(`jlh-autopam.fr`) || Host(`www.jlh-autopam.fr`)
       - traefik.http.routers.jlh-autopam-frontend.entrypoints=websecure
       - traefik.http.routers.jlh-autopam-frontend.tls.certresolver=letsencrypt
       - traefik.http.services.jlh-autopam-frontend.loadbalancer.server.port=3000
