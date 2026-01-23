@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Installer les dépendances
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm ci
 
 # Copier le reste du code et builder l'app Angular SSR
 COPY . .
@@ -21,11 +21,11 @@ ENV PORT=3000
 
 # Installer uniquement les dépendances de prod
 COPY package.json package-lock.json ./
-RUN npm install --omit=dev
+RUN npm ci --omit=dev
 
 # Copier le build SSR Angular
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 3000
 
-CMD ["node", "dist/jlh-autopam-frontend/server/server.mjs"]
+CMD ["npm", "run", "start:ssr"]
