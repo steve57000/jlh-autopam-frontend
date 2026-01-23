@@ -805,6 +805,22 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
             : item
           )
         );
+        this.api.getById(demandeId, { silentError: true }).subscribe({
+          next: refreshed => {
+            if (!refreshed) {
+              return;
+            }
+            const merged = this.mergeDraftWithResponse(draft, refreshed);
+            this.updateDraft(d => Object.assign(d, merged));
+            this.demandes.update(list =>
+              list.map(item => this.getDemandeId(item) === demandeId ? merged : item)
+            );
+            const original = this.original();
+            if (original) {
+              this.original.set(this.clone(merged));
+            }
+          }
+        });
         this.devisValidationFeedback.set('Devis validé et transmis au client.');
         this.devisValidationFeedbackType.set('success');
         this.devisValidationSaving.set(false);
