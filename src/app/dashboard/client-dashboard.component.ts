@@ -99,6 +99,7 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   readonly activeSection = signal<'overview' | 'services' | 'account' | 'documents' | 'history'>('overview');
   documents = signal<ClientDocumentDto[]>([]);
   rdvProposals = signal<Record<number, RendezVousProposition[]>>({});
+  rdvRequestComments = signal<Record<number, string>>({});
   // safe api base (no trailing slash)
   private api = environment.apiBaseUrl ? environment.apiBaseUrl.replace(/\/+$/, '') : '';
 
@@ -655,6 +656,65 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     }
     const entry = this.visibleTimeline(d).find(item => !!item.rendezVous);
     return entry?.rendezVous ?? null;
+  }
+
+  hasDevis(d?: DemandeResponse): boolean {
+    return Boolean(d?.devis?.idDevis);
+  }
+
+  canRequestRendezVous(d?: DemandeResponse): boolean {
+    if (!d) return false;
+    if (!this.hasDevis(d)) return false;
+    if (this.isArchived(d)) return false;
+    if (this.rendezVousInfo(d)) return false;
+    const statut = d.statutDemande?.codeStatut;
+    return statut !== 'Annulee' && statut !== 'Traitee';
+  }
+
+  updateRdvRequestComment(demandeId: number, value: string) {
+    this.rdvRequestComments.update(current => ({
+      ...current,
+      [demandeId]: value
+    }));
+  }
+
+  async requestRendezVous(d: DemandeResponse) {
+    if (!d?.idDemande) return;
+    if (!this.canRequestRendezVous(d)) {
+      this.toast.info('Impossible de demander un rendez-vous pour cette demande.');
+      return;
+    }
+    const comment = (this.rdvRequestComments()[d.idDemande] || '').trim();
+    try {
+      await firstValueFrom(
+        this.http.post(
+          `${this.api}/demandes/${d.idDemande}/rendezvous-request`,
+          { commentaire: comment || null }
+        )
+      );
+      this.toast.success('Votre demande de rendez-vous a bien été transmise.');
+      this.updateRdvRequestComment(d.idDemande, '');
+      this.refresh({ silent: true, delayMs: 200 });
+    } catch (err: any) {
+      const msg = err?.error?.message || err?.message || 'Impossible de demander un rendez-vous.';
+      this.toast.error('Erreur', msg);
+    }
+  }
+
+  async archiveDemande(d: DemandeResponse) {
+    if (!d?.idDemande) return;
+    if (this.isArchived(d)) return;
+    if (!confirm('Archiver ce devis ? Il ne sera plus actif et ne pourra pas être planifié.')) {
+      return;
+    }
+    try {
+      await firstValueFrom(this.http.patch(`${this.api}/demandes/${d.idDemande}/archive`, {}));
+      this.toast.success('Demande archivée.');
+      this.refresh({ silent: true, delayMs: 200 });
+    } catch (err: any) {
+      const msg = err?.error?.message || err?.message || 'Archivage impossible.';
+      this.toast.error('Erreur', msg);
+    }
   }
 
   proposalsFor(d?: DemandeResponse): RendezVousProposition[] {
