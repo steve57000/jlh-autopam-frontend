@@ -10,7 +10,7 @@ COPY package.json package-lock.json ./
 # Installer les dépendances
 RUN npm ci
 
-# Copier le reste du code et builder l’app Next.js
+# Copier le reste du code et builder l’app Angular (SSR)
 COPY . .
 RUN npm run build
 
@@ -19,19 +19,19 @@ FROM node:18-alpine AS runner
 
 WORKDIR /app
 
-# Définir NODE_ENV pour Next.js
+# Définir NODE_ENV pour l'app SSR
 ENV NODE_ENV=production
+ENV PORT=4000
 
-# Copier package.json, lockfile et node_modules depuis le builder
-COPY --from=builder /app/package.json /app/package-lock.json ./
-COPY --from=builder /app/node_modules ./node_modules
+# Installer uniquement les dépendances de production
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 
-# Copier le build Next.js et les fichiers statiques
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
+# Copier le build Angular SSR
+COPY --from=builder /app/dist ./dist
 
-# Exposer le port sur lequel Next.js tourne
-EXPOSE 3000
+# Exposer le port SSR
+EXPOSE 4000
 
-# Démarrer Next.js en mode production
-CMD ["npm", "start"]
+# Démarrer le serveur Angular SSR
+CMD ["node", "dist/jlh-autopam-frontend/server/server.mjs"]
