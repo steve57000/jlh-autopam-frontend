@@ -543,6 +543,10 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.updateDraft(d => { d.code_type = value; });
   }
 
+  setDraftStatut(value: DemandeWithServices['code_statut']) {
+    this.updateDraft(d => { d.code_statut = value; });
+  }
+
   updateClientField(
     field: 'telephone'
       | 'immatriculation'
@@ -722,6 +726,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
 
     const payload: Parameters<DemandesServiceService['updateDemande']>[1] = {
       codeType: draft.code_type,
+      codeStatut: draft.code_statut,
       immatriculation: draft.client?.immatriculation ?? null,
       vehiculeMarque: client?.vehiculeMarque ?? null,
       vehiculeModele: client?.vehiculeModele ?? null,
@@ -1175,7 +1180,9 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       return;
     }
     const nextStatut: DemandeWithServices['code_statut'] =
-      rdv.codeStatut === 'Confirme' ? 'Traitee' : 'En_attente';
+      rdv.codeStatut === 'Annule' ? 'Annulee'
+        : rdv.codeStatut === 'Confirme' ? 'Traitee'
+          : 'En_attente';
     if (draft.code_statut === nextStatut) {
       return;
     }

@@ -139,6 +139,7 @@ export class DemandesServiceService {
     id: number,
     payload: {
       codeType?: DemandeWithServices['code_type'];
+      codeStatut?: DemandeWithServices['code_statut'];
       immatriculation?: string | null;
       vehiculeMarque?: string | null;
       vehiculeModele?: string | null;
@@ -168,6 +169,7 @@ export class DemandesServiceService {
     const body: Record<string, unknown> = {};
 
     if (payload.codeType) body['codeType'] = payload.codeType;
+    if (payload.codeStatut) body['codeStatut'] = payload.codeStatut;
     if ('immatriculation' in payload) body['immatriculation'] = payload.immatriculation;
     if ('vehiculeMarque' in payload) body['vehiculeMarque'] = payload.vehiculeMarque;
     if ('vehiculeModele' in payload) body['vehiculeModele'] = payload.vehiculeModele;
@@ -186,11 +188,11 @@ export class DemandesServiceService {
 
     const httpOptions = headers ? { headers } : undefined;
 
-    return this.http.put<DemandeWithServices>(
-      `${this.apiBase}/demandes/${id}`,
-      body,
-      httpOptions
-    );
+    return this.http
+      .put<any>(`${this.apiBase}/demandes/${id}`, body, httpOptions)
+      .pipe(
+        map((response: any) => this.normalizeDemande(response) ?? (response as DemandeWithServices))
+      );
   }
 
   delete(id: number) {
