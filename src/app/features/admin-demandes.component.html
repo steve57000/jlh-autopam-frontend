@@ -280,7 +280,7 @@
 
         <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
           <h4>Paramètres de la demande</h4>
-          <p class="muted">Le statut est géré automatiquement selon l'avancement de la demande.</p>
+          <p class="muted">Le statut peut être ajusté manuellement selon l'avancement de la demande.</p>
           <div class="details-grid">
           <label>
             <span>Type de demande</span>
@@ -292,10 +292,20 @@
               }
             </select>
           </label>
-          <div class="readonly-field">
+          <label>
             <span>Statut de suivi</span>
-            <strong>{{ draft.statut_libelle || draft.code_statut }}</strong>
-          </div>
+            <select
+              [ngModel]="draft.code_statut"
+              (ngModelChange)="setDraftStatut($event)"
+              [disabled]="isLockedForEdit()"
+            >
+              @for (opt of statutOptions(); track opt.value) {
+                @if (opt.value !== 'Tous') {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              }
+            </select>
+          </label>
           </div>
         </section>
 
