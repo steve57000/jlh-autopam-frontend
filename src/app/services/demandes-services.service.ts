@@ -188,11 +188,11 @@ export class DemandesServiceService {
 
     const httpOptions = headers ? { headers } : undefined;
 
-    return this.http.put<DemandeWithServices>(
-      `${this.apiBase}/demandes/${id}`,
-      body,
-      httpOptions
-    );
+    return this.http
+      .put<any>(`${this.apiBase}/demandes/${id}`, body, httpOptions)
+      .pipe(
+        map((response: any) => this.normalizeDemande(response) ?? (response as DemandeWithServices))
+      );
   }
 
   delete(id: number) {

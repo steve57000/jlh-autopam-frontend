@@ -19,15 +19,33 @@ export class DemandesStateService {
   /** Flux SSR-safe pour notifier les refreshs (remplace l’événement DOM) */
   readonly refresh$ = new Subject<void>();
 
+  private isDraftEditable(demande?: DemandeResponse | null): boolean {
+    const statut = demande?.statutDemande?.codeStatut;
+    return !statut || statut === 'Brouillon';
+  }
+
   async initDemande(options?: { silent?: boolean }): Promise<number> {
-    const resp = await firstValueFrom(
+    const current = await firstValueFrom(
       this.http.post<DemandeResponse>(
         `${this.api}/demandes/current`,
         {},
         this.httpOptions(options?.silent)
       )
     );
-    this.cacheId = Number(resp.idDemande);
+
+    if (!this.isDraftEditable(current)) {
+      const created = await firstValueFrom(
+        this.http.post<DemandeResponse>(
+          `${this.api}/demandes`,
+          {},
+          this.httpOptions(options?.silent)
+        )
+      );
+      this.cacheId = Number(created.idDemande);
+      return this.cacheId!;
+    }
+
+    this.cacheId = Number(current.idDemande);
     return this.cacheId!;
   }
 
@@ -41,7 +59,11 @@ export class DemandesStateService {
       )
     );
     // gardons l’ID cohérent dans le cache
-    this.cacheId = Number(resp.idDemande);
+    if (this.isDraftEditable(resp)) {
+      this.cacheId = Number(resp.idDemande);
+    } else {
+      this.cacheId = undefined;
+    }
     return resp;
   }
 
