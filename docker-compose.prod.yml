@@ -1,6 +1,6 @@
 services:
   frontend:
-    image: jlh-autopam-frontend:latest
+    image: ${DOCKERHUB_USERNAME:?DOCKERHUB_USERNAME not set}/jlh-autopam-frontend:latest
     build: .
     expose:
       - 3000
