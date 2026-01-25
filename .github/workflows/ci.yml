@@ -35,7 +35,7 @@ jobs:
 
   deploy-production:
     needs: build-and-push
-    runs-on: [self-hosted, hostinger, prod]
+    runs-on: self-hosted
 
     steps:
       - name: Deploy frontend on Hostinger
