@@ -53,8 +53,10 @@ jobs:
         run: |
           set -euo pipefail
           cd "${{ env.DEPLOY_DIR }}"
-          git fetch --all --prune
-          git reset --hard origin/main
+          if [ -d .git ]; then
+            git fetch --all --prune
+            git reset --hard origin/main
+          fi
           test -f "${{ env.COMPOSE_FILE }}"
 
           docker compose -f "${{ env.COMPOSE_FILE }}" pull
