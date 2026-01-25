@@ -183,13 +183,8 @@ export class ServicesComponent implements OnInit, OnDestroy {
   async refreshDraft() {
     try {
       const q = await this.state.loadDraft({ silent: true });
-      if (this.isDraftEditable(q)) {
-        this.draft = q ?? null;
-        this.syncRendezVousForm(this.draft);
-      } else {
-        this.draft = null;
-        this.state.resetCache();
-      }
+      this.draft = q ?? null;
+      this.syncRendezVousForm(this.draft);
     } catch {
       this.draft = null;
     }
@@ -389,14 +384,6 @@ export class ServicesComponent implements OnInit, OnDestroy {
       return true;
     }
     return rdvPasse;
-  }
-
-  private isDraftEditable(demande?: DemandeResponse | null): boolean {
-    if (!demande) {
-      return false;
-    }
-    const statut = demande.statutDemande?.codeStatut;
-    return !statut || statut === 'Brouillon';
   }
 
   private syncRendezVousForm(demande?: DemandeResponse | null) {

@@ -26,24 +26,14 @@
       align-items: center;
       // Correction espace dans le SVG (décale vers la gauche)
       transform: translateX(-12px); // Ajuste ici selon le "blanc" du SVG !
-      transition: all 0.2s;
       cursor: pointer;
-
-      &:hover {
-        transform: translateX(-16px) scale(1.05); // le même translateX pour garder l’alignement
-      }
 
       img {
         max-width: 100%;
         height: auto;
         width: clamp(180px, 18vw, 245px);
-        transition: width 0.2s, filter 0.2s;
         filter: brightness(1.1);
         display: block;
-
-        &:hover {
-          filter: brightness(1.30) drop-shadow(1px 2px 1px rgba(64, 64, 64, 0.25));
-        }
       }
     }
 
@@ -146,8 +136,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .header .container-max .logo,
-  .header .container-max .logo img,
   .header .container-max nav a {
     transition: none;
   }
@@ -199,13 +187,6 @@
 
       .logo {
         transform: translateX(-12px); // Décale moins sur mobile si besoin
-        &:hover {
-          transform: translateX(-12px) scale(1.02);
-        }
-
-        img:hover {
-          filter: brightness(1.20) drop-shadow(1px 2px 1px rgba(64, 64, 64, 0.25));
-        }
       }
 
       .burger {
