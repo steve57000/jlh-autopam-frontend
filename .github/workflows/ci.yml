@@ -2,12 +2,13 @@ name: CI/CD Frontend
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 env:
   IMAGE_NAME: jlh-autopam-frontend
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DEPLOY_DIR: /root/jlh-autopam-frontend
+  COMPOSE_FILE: docker-compose.prod.yml
 
 jobs:
   build-and-push:
@@ -23,16 +24,28 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set image tag
-        id: tag
-        run: |
-          echo "TAG=latest" >> $GITHUB_ENV
-
-      - name: Build & push frontend image
+      - name: Build & push frontend image (latest)
         uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile
           push: true
           tags: |
-            ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+            ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+
+  deploy-production:
+    needs: build-and-push
+    runs-on: [self-hosted, hostinger, prod]
+
+    steps:
+      - name: Deploy frontend on Hostinger
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "${{ env.DEPLOY_DIR }}"
+          test -f "${{ env.COMPOSE_FILE }}"
+
+          docker compose -f "${{ env.COMPOSE_FILE }}" pull
+          docker compose -f "${{ env.COMPOSE_FILE }}" up -d
+
+          docker image prune -f
