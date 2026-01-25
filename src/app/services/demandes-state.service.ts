@@ -49,8 +49,8 @@ export class DemandesStateService {
     return this.cacheId!;
   }
 
-  /** Renvoie la demande courante (brouillon) telle quelle */
-  async loadDraft(options?: { silent?: boolean }): Promise<DemandeResponse> {
+  /** Renvoie la demande courante (brouillon) ou en crée une nouvelle si nécessaire */
+  async loadDraft(options?: { silent?: boolean }): Promise<DemandeResponse | null> {
     const resp = await firstValueFrom(
       this.http.post<DemandeResponse>(
         `${this.api}/demandes/current`,
@@ -61,10 +61,23 @@ export class DemandesStateService {
     // gardons l’ID cohérent dans le cache
     if (this.isDraftEditable(resp)) {
       this.cacheId = Number(resp.idDemande);
-    } else {
-      this.cacheId = undefined;
+      return resp;
     }
-    return resp;
+
+    this.cacheId = undefined;
+    try {
+      const created = await firstValueFrom(
+        this.http.post<DemandeResponse>(
+          `${this.api}/demandes`,
+          {},
+          this.httpOptions(options?.silent)
+        )
+      );
+      this.cacheId = Number(created.idDemande);
+      return created;
+    } catch {
+      return null;
+    }
   }
 
   resetCache() { this.cacheId = undefined; }
