@@ -430,10 +430,12 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
    * Ouvre un document dans un nouvel onglet (client & admin)
    */
   async openDocument(doc: DemandeDocumentDto, d?: DemandeResponse) {
+    const popup = window.open('', '_blank');
     try {
       const demandeId = d?.idDemande;
       const documentId = doc.idDocument;
       if (!demandeId || !documentId) {
+        popup?.close();
         this.toast.error('Erreur', 'Identifiants du document manquants.');
         return;
       }
@@ -444,26 +446,34 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
 
       const blob = res.body as Blob;
       if (!blob) {
+        popup?.close();
         this.toast.error('Erreur', 'Fichier vide.');
         return;
       }
 
       const blobUrl = URL.createObjectURL(blob);
-      window.open(blobUrl, '_blank');
+      if (popup) {
+        popup.location.href = blobUrl;
+      } else {
+        window.open(blobUrl, '_blank');
+      }
 
       // Nettoyage après ouverture
       setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
     } catch (err: any) {
+      popup?.close();
       const msg = err?.error?.message || err?.message || 'Téléchargement impossible';
       this.toast.error('Erreur', msg);
     }
   }
 
   async openClientDocument(entry: ClientDocumentDto) {
+    const popup = window.open('', '_blank');
     try {
       const demandeId = entry?.demandeId;
       const documentId = entry?.document?.idDocument;
       if (!demandeId || !documentId) {
+        popup?.close();
         this.toast.error('Erreur', 'Identifiants du document manquants.');
         return;
       }
@@ -474,14 +484,20 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
 
       const blob = res.body as Blob;
       if (!blob) {
+        popup?.close();
         this.toast.error('Erreur', 'Fichier vide.');
         return;
       }
 
       const blobUrl = URL.createObjectURL(blob);
-      window.open(blobUrl, '_blank');
+      if (popup) {
+        popup.location.href = blobUrl;
+      } else {
+        window.open(blobUrl, '_blank');
+      }
       setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
     } catch (err: any) {
+      popup?.close();
       const msg = err?.error?.message || err?.message || 'Téléchargement impossible';
       this.toast.error('Erreur', msg);
     }
