@@ -56,7 +56,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cd "${{ env.DEPLOY_DIR }}"
           test -f "${{ env.COMPOSE_FILE }}"
           docker compose -f "${{ env.COMPOSE_FILE }}" pull
           docker compose -f "${{ env.COMPOSE_FILE }}" up -d --force-recreate
