@@ -64,8 +64,7 @@ docker network create jlh
 Then start the frontend with the desired hostnames:
 
 ```bash
-DOCKERHUB_USERNAME=your-dockerhub-username \
-  FRONTEND_HOSTNAME=jlh-autopam.fr \
+FRONTEND_HOSTNAME=jlh-autopam.fr \
   TRAEFIK_NETWORK=jlh \
   docker compose -f docker-compose.prod.yml up -d --build
 ```
