@@ -167,6 +167,29 @@
       align-items: start;
     }
   }
+
+  @media (max-width: 640px) {
+    .services-tabs {
+      padding-inline: 0;
+      border: none;
+
+      &__list {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+      }
+
+      &__tab {
+        flex: 0 0 auto;
+        scroll-snap-align: start;
+        padding: 8px 14px;
+        font-size: 0.9rem;
+      }
+    }
+  }
 }
 
 .page {
