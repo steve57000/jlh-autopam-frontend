@@ -201,11 +201,56 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
 
 .client-dashboard {
   .filters {
+    &__result {
+      margin: 0;
+      font-size: 0.9rem;
+      color: rgba(v.$color-primary, 0.7);
+      font-weight: 600;
+    }
+    &__details {
+      border: 1px dashed rgba(v.$color-secondary, 0.25);
+      border-radius: v.$border-radius-high;
+      padding: 0.75rem 0.85rem;
+      background: rgba(v.$color-secondary, 0.04);
+    }
+    &__summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      color: v.$color-secondary;
+    }
+    &__summary::-webkit-details-marker {
+      display: none;
+    }
+    &__summary::after {
+      content: '▾';
+      font-size: 0.85rem;
+      transition: transform 0.2s ease;
+      margin-left: auto;
+    }
+    &__details[open] &__summary::after {
+      transform: rotate(180deg);
+    }
+    &__count {
+      background: rgba(v.$color-secondary, 0.16);
+      color: v.$color-primary;
+      border-radius: 999px;
+      padding: 0.1rem 0.5rem;
+      font-size: 0.75rem;
+    }
+
     .row {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: .75rem;
       align-items: end;
+    }
+
+    .row--extra {
+      margin-top: 0.75rem;
     }
 
     .field {
@@ -254,16 +299,6 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
         }
 
         &::-ms-expand { display: none; }
-      }
-
-      input[type="date"] {
-        &::-webkit-calendar-picker-indicator {
-          opacity: .8;
-          cursor: pointer;
-          transition: opacity .15s ease, transform .08s ease;
-        }
-        &:hover::-webkit-calendar-picker-indicator { opacity: 1; }
-        &:active::-webkit-calendar-picker-indicator { transform: scale(.96); }
       }
 
       input[type="date"] {
