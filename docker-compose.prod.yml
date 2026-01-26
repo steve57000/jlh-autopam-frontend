@@ -1,7 +1,6 @@
 services:
   frontend:
-    image: ${DOCKERHUB_USERNAME:?DOCKERHUB_USERNAME not set}/jlh-autopam-frontend:latest
-    build: .
+    image: steve57/jlh-autopam-frontend:latest
     expose:
       - 3000
     labels:
