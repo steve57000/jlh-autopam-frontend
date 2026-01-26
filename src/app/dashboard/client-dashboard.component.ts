@@ -1,5 +1,5 @@
-import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { Component, Inject, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { CommonModule, DatePipe, isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -23,6 +23,7 @@ import { firstValueFrom, filter, forkJoin, of, Subscription, catchError } from '
 import { LookupsService } from '../services/lookups.service';
 import { ServicesComponent } from '../pages/services.component';
 import { AccountComponent } from '../account/account.component/account.component';
+import { PLATFORM_ID } from '@angular/core';
 
 type CodeStatut =
   | 'Brouillon' | 'En_attente' | 'Traitee' | 'Annulee'
@@ -100,8 +101,11 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   documents = signal<ClientDocumentDto[]>([]);
   rdvProposals = signal<Record<number, RendezVousProposition[]>>({});
   rdvRequestComments = signal<Record<number, string>>({});
+  isMobile = signal(false);
   // safe api base (no trailing slash)
   private api = environment.apiBaseUrl ? environment.apiBaseUrl.replace(/\/+$/, '') : '';
+  private mobileQuery?: MediaQueryList;
+  private mobileQueryListener?: (event: MediaQueryListEvent) => void;
 
   private readonly fallbackTypeOptions: Array<FilterOption<AnyTypeOrAll>> = [
     { value: 'Devis', label: 'Devis' },
@@ -234,12 +238,14 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     private router: Router,
     private toast: ToastService,
     private lookups: LookupsService,
-    private rdvPropositionsApi: RendezVousPropositionsService
+    private rdvPropositionsApi: RendezVousPropositionsService,
+    @Inject(PLATFORM_ID) private platformId: object
   ) {}
 
   private navSub?: Subscription;
 
   ngOnInit() {
+    this.setupMobileQuery();
     this.refresh({ delayMs: 200, retries: 2 });
     this.bootstrapLookups();
     this.navSub = this.router.events
@@ -249,6 +255,19 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.navSub?.unsubscribe();
+    if (this.mobileQuery && this.mobileQueryListener) {
+      this.mobileQuery.removeEventListener('change', this.mobileQueryListener);
+    }
+  }
+
+  private setupMobileQuery() {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    this.mobileQuery = window.matchMedia('(max-width: 640px)');
+    this.isMobile.set(this.mobileQuery.matches);
+    this.mobileQueryListener = event => this.isMobile.set(event.matches);
+    this.mobileQuery.addEventListener('change', this.mobileQueryListener);
   }
 
   private bootstrapLookups() {
