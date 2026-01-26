@@ -156,6 +156,9 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
 
     return (this.demandes() ?? [])
       .filter(d => {
+        if (this.isEmptyDraft(d)) {
+          return false;
+        }
         // type
         if (f.type !== 'ALL') {
           const t = d?.typeDemande?.codeType as DemandeTypeCode | undefined;
@@ -201,7 +204,7 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   );
 
   readonly latestActiveDemande = computed<DemandeResponse | null>(() => {
-    const list = (this.demandes() ?? []).filter(d => !this.isArchived(d));
+    const list = this.filteredDemandes().filter(d => !this.isArchived(d));
     if (!list.length) {
       return null;
     }
@@ -225,6 +228,18 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   readonly archivedDemandes = computed<DemandeResponse[]>(() =>
     this.filteredDemandes().filter(d => this.isArchived(d))
   );
+
+  readonly filteredDemandesCount = computed(() => this.filteredDemandes().length);
+
+  readonly activeFiltersCount = computed(() => {
+    const f = this.filters();
+    let count = 0;
+    if (f.type !== 'ALL') count += 1;
+    if (f.statut !== 'ALL') count += 1;
+    if (f.dateFrom) count += 1;
+    if (f.dateTo) count += 1;
+    return count;
+  });
 
   readonly prochainsRdvsAVenir = computed<ProchainRdvDto[]>(() =>
     (this.prochainsRdvs() ?? []).filter(rdv =>
@@ -619,6 +634,13 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
 
   visibleDocuments(d?: DemandeResponse): DemandeDocumentDto[] {
     return (d?.documents ?? []).filter(doc => doc.visibleClient !== false && !!doc.urlPrivate);
+  }
+
+  private isEmptyDraft(d?: DemandeResponse): boolean {
+    if (!this.isDraft(d)) {
+      return false;
+    }
+    return !(d?.services?.length);
   }
 
   /**
