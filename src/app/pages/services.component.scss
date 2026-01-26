@@ -6,6 +6,7 @@
   padding: 8px 0 18px;
   margin: 0 auto;
   background: vars.$linear-bg;
+  overflow-x: hidden;
 
   .container-max {
     display: grid;
@@ -185,27 +186,6 @@
         position: relative;
       }
 
-      &__list::before,
-      &__list::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 28px;
-        pointer-events: none;
-        z-index: 1;
-      }
-
-      &__list::before {
-        left: 0;
-        background: linear-gradient(90deg, rgba(vars.$color-quaternary, 0.95), rgba(vars.$color-quaternary, 0));
-      }
-
-      &__list::after {
-        right: 0;
-        background: linear-gradient(270deg, rgba(vars.$color-quaternary, 0.95), rgba(vars.$color-quaternary, 0));
-      }
-
       &__tab {
         flex: 0 0 auto;
         scroll-snap-align: start;
@@ -220,6 +200,10 @@
       &__panel {
         width: 100%;
       }
+    }
+
+    .services-list {
+      grid-template-columns: 1fr;
     }
   }
 }
