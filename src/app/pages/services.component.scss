@@ -167,6 +167,12 @@
       align-items: start;
     }
   }
+
+  @media (max-width: 640px) {
+    .services-tabs {
+      padding-inline: 0;
+    }
+  }
 }
 
 .page {

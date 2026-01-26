@@ -104,9 +104,12 @@
           <header>
             <p class="card__eyebrow">Filtres</p>
             <h3>Affiner vos demandes</h3>
+            <p class="filters__result">
+              {{ filteredDemandesCount() }} résultat{{ filteredDemandesCount() > 1 ? 's' : '' }}
+            </p>
           </header>
           <div class="filters">
-            <div class="row">
+            <div class="row row--main">
               <div class="field">
                 <label>Recherche</label>
                 <input
@@ -115,39 +118,49 @@
                   (ngModelChange)="setQ($event)"
                   placeholder="Service, type, statut, #id…" />
               </div>
-
-              <div class="field">
-                <label>Type</label>
-                <select [ngModel]="filters().type" (ngModelChange)="setType($event)">
-                  @for (opt of typeOptions(); track opt.value) {
-                    <option [value]="opt.value">{{ opt.label }}</option>
-                  }
-                </select>
-              </div>
-
-              <div class="field">
-                <label>Statut</label>
-                <select [ngModel]="filters().statut" (ngModelChange)="setStatut($event)">
-                  @for (opt of statutOptions(); track opt.value) {
-                    <option [value]="opt.value">{{ opt.label }}</option>
-                  }
-                </select>
-              </div>
-
-              <div class="field">
-                <label>Du</label>
-                <input type="date" [ngModel]="filters().dateFrom" (ngModelChange)="setFrom($event)" />
-              </div>
-
-              <div class="field">
-                <label>Au</label>
-                <input type="date" [ngModel]="filters().dateTo" (ngModelChange)="setTo($event)" />
-              </div>
-
               <div class="actions">
-                <button type="button" class="btn btn-outline btn-small" (click)="clearFilters()">Réinitialiser</button>
+                <button type="button" class="btn btn-outline btn-small" (click)="clearFilters()">
+                  Réinitialiser
+                </button>
               </div>
             </div>
+            <details class="filters__details" [open]="activeFiltersCount() > 0">
+              <summary class="filters__summary">
+                Plus de filtres
+                @if (activeFiltersCount() > 0) {
+                  <span class="filters__count">{{ activeFiltersCount() }}</span>
+                }
+              </summary>
+              <div class="row row--extra">
+                <div class="field">
+                  <label>Type</label>
+                  <select [ngModel]="filters().type" (ngModelChange)="setType($event)">
+                    @for (opt of typeOptions(); track opt.value) {
+                      <option [value]="opt.value">{{ opt.label }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label>Statut</label>
+                  <select [ngModel]="filters().statut" (ngModelChange)="setStatut($event)">
+                    @for (opt of statutOptions(); track opt.value) {
+                      <option [value]="opt.value">{{ opt.label }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label>Du</label>
+                  <input type="date" [ngModel]="filters().dateFrom" (ngModelChange)="setFrom($event)" />
+                </div>
+
+                <div class="field">
+                  <label>Au</label>
+                  <input type="date" [ngModel]="filters().dateTo" (ngModelChange)="setTo($event)" />
+                </div>
+              </div>
+            </details>
           </div>
         </article>
 
