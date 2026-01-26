@@ -1,6 +1,6 @@
 services:
   frontend:
-    image: steve57/jlh-autopam-frontend:${FRONTEND_TAG:-latest}
+    image: ${DOCKERHUB_USERNAME}/jlh-autopam-frontend:${FRONTEND_TAG:-latest}
     restart: unless-stopped
     expose:
       - "3000"

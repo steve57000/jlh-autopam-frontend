@@ -56,12 +56,14 @@ jobs:
 
           test -f "${{ env.COMPOSE_FILE }}"
 
-          # Déploie exactement l'image taggée avec le SHA du commit
+          # Variables consommées par docker-compose.prod.yml
+          export DOCKERHUB_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
           export FRONTEND_TAG="${GITHUB_SHA}"
 
+          echo "Using DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME}"
           echo "Using FRONTEND_TAG=${FRONTEND_TAG}"
-          docker compose -f "${{ env.COMPOSE_FILE }}" config | sed -n '1,160p'
 
+          docker compose -f "${{ env.COMPOSE_FILE }}" config | sed -n '1,160p'
           docker compose -f "${{ env.COMPOSE_FILE }}" pull
           docker compose -f "${{ env.COMPOSE_FILE }}" up -d --force-recreate
 
