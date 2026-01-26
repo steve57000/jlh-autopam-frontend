@@ -1,15 +1,25 @@
 services:
   frontend:
-    image: steve57/jlh-autopam-frontend:latest
+    image: steve57/jlh-autopam-frontend:${FRONTEND_TAG:-latest}
+    restart: unless-stopped
     expose:
-      - 3000
+      - "3000"
     labels:
       - traefik.enable=true
+      - traefik.docker.network=jlh
+
+      # HTTP -> HTTPS
+      - traefik.http.routers.jlh-autopam-frontend-http.rule=Host(`jlh-autopam.fr`) || Host(`www.jlh-autopam.fr`)
+      - traefik.http.routers.jlh-autopam-frontend-http.entrypoints=web
+      - traefik.http.routers.jlh-autopam-frontend-http.middlewares=redirect-to-https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+
+      # HTTPS
       - traefik.http.routers.jlh-autopam-frontend.rule=Host(`jlh-autopam.fr`) || Host(`www.jlh-autopam.fr`)
       - traefik.http.routers.jlh-autopam-frontend.entrypoints=websecure
+      - traefik.http.routers.jlh-autopam-frontend.tls=true
       - traefik.http.routers.jlh-autopam-frontend.tls.certresolver=letsencrypt
       - traefik.http.services.jlh-autopam-frontend.loadbalancer.server.port=3000
-    restart: unless-stopped
     networks:
       - jlh
 
