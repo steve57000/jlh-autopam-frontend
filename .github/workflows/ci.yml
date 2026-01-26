@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 env:
-  IMAGE_NAME: steve57/jlh-autopam-frontend
+  IMAGE_NAME: jlh-autopam-frontend
   DEPLOY_DIR: /opt/jlh-autopam-frontend
   COMPOSE_FILE: docker-compose.prod.yml
 
