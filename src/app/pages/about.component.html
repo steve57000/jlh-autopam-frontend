@@ -1,6 +1,20 @@
 <section class="page page--about">
   <div class="container-max page__container">
     <header class="page__intro">
+      <nav class="info-tabs" aria-label="Navigation À propos">
+        <a
+          class="info-tabs__tab"
+          routerLink="/about"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          aria-current="page">
+          Qui sommes-nous&nbsp;?
+        </a>
+        <a class="info-tabs__tab" routerLink="/team" routerLinkActive="is-active">Notre équipe</a>
+        <a class="info-tabs__tab" routerLink="/history" routerLinkActive="is-active">Historique du garage</a>
+        <a class="info-tabs__tab" routerLink="/values" routerLinkActive="is-active">Valeurs &amp; engagements</a>
+      </nav>
+
       <span class="page__eyebrow">À propos</span>
       <h1>Qui sommes-nous&nbsp;?</h1>
       <p class="page__lead">
@@ -14,20 +28,6 @@
         constructeurs.
       </p>
     </header>
-
-    <nav class="info-tabs" aria-label="Navigation À propos">
-      <a
-        class="info-tabs__tab"
-        routerLink="/about"
-        routerLinkActive="is-active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        aria-current="page">
-        Qui sommes-nous&nbsp;?
-      </a>
-      <a class="info-tabs__tab" routerLink="/team" routerLinkActive="is-active">Notre équipe</a>
-      <a class="info-tabs__tab" routerLink="/history" routerLinkActive="is-active">Historique du garage</a>
-      <a class="info-tabs__tab" routerLink="/values" routerLinkActive="is-active">Valeurs &amp; engagements</a>
-    </nav>
 
     <section class="page__section">
       <h2 class="page__section-title">Un garage de proximité ancré dans la région</h2>

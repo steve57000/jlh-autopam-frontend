@@ -1,6 +1,20 @@
 <section class="page page--history">
   <div class="container-max page__container">
     <header class="page__intro">
+      <nav class="info-tabs" aria-label="Navigation À propos">
+        <a class="info-tabs__tab" routerLink="/about" routerLinkActive="is-active">Qui sommes-nous&nbsp;?</a>
+        <a class="info-tabs__tab" routerLink="/team" routerLinkActive="is-active">Notre équipe</a>
+        <a
+          class="info-tabs__tab"
+          routerLink="/history"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          aria-current="page">
+          Historique du garage
+        </a>
+        <a class="info-tabs__tab" routerLink="/values" routerLinkActive="is-active">Valeurs &amp; engagements</a>
+      </nav>
+
       <span class="page__eyebrow">Notre histoire</span>
       <h1>Deux décennies d’évolution au service de vos véhicules</h1>
       <p class="page__lead">
@@ -9,20 +23,6 @@
         qui ont façonné notre garage.
       </p>
     </header>
-
-    <nav class="info-tabs" aria-label="Navigation À propos">
-      <a class="info-tabs__tab" routerLink="/about" routerLinkActive="is-active">Qui sommes-nous&nbsp;?</a>
-      <a class="info-tabs__tab" routerLink="/team" routerLinkActive="is-active">Notre équipe</a>
-      <a
-        class="info-tabs__tab"
-        routerLink="/history"
-        routerLinkActive="is-active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        aria-current="page">
-        Historique du garage
-      </a>
-      <a class="info-tabs__tab" routerLink="/values" routerLinkActive="is-active">Valeurs &amp; engagements</a>
-    </nav>
 
     <section class="page__section">
       <h2 class="page__section-title">Dates clés</h2>
