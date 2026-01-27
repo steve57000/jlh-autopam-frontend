@@ -70,7 +70,7 @@
 .intro-content {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(820px, 1.2fr) minmax(280px, 0.8fr);
+  grid-template-columns: minmax(820px, 1.2fr) minmax(320px, 1fr);
   gap: clamp(18px, 3vw, 30px);
   position: relative;
   margin-top: clamp(12px, 3vh, 24px);
@@ -117,7 +117,7 @@
   background: v.$color-secondary;
   color: v.$color-quaternary;
   border-radius: v.$border-radius-high;
-  box-shadow: v.$shadow-high-left;
+  box-shadow: v.$shadow-small;
   padding: clamp(20px, 2.6vw, 32px);
   z-index: 3;
   display: flex;
