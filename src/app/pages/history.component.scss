@@ -1,6 +1,35 @@
 @use '../../styles/variables' as vars;
 
 .page--history {
+  .info-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(vars.$color-primary, 0.12);
+
+    &__tab {
+      border: none;
+      background: #fff;
+      color: vars.$color-primary;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all vars.$transition-fast;
+
+      &:hover {
+        background: rgba(vars.$color-primary, 0.1);
+      }
+
+      &.is-active {
+        background: vars.$color-primary;
+        color: vars.$color-tertiary;
+        box-shadow: vars.$shadow-btn;
+      }
+    }
+  }
   .timeline {
     list-style: none;
     margin: 0;

@@ -56,51 +56,6 @@
     </div>
   </section>
 
-  <section class="dashboard__info">
-    <article class="card info-card">
-      <header>
-        <p class="card__eyebrow">Nouveautés</p>
-        <h3>Infos utiles pour le paramétrage & les accès API</h3>
-      </header>
-      <div class="info-card__grid">
-        <div>
-          <h4>1) Paramétrage des services (admin)</h4>
-          <ul>
-            <li><strong>quantiteMode</strong> : UNIQUE ou LOT.</li>
-            <li><strong>prixMode</strong> : UNITAIRE ou LOT.</li>
-            <li><strong>tailleLot</strong> : obligatoire si LOT.</li>
-            <li><strong>quantiteMax</strong> : 1 si UNIQUE, multiple de la taille de lot si LOT.</li>
-          </ul>
-        </div>
-        <div>
-          <h4>2) Demande de service côté client/gestionnaire</h4>
-          <p>
-            Les réponses de demande de service exposent désormais
-            <strong>quantiteMode</strong>, <strong>prixMode</strong> et <strong>tailleLot</strong>
-            (snapshot) pour afficher correctement la logique de lot (ex : 2 ou 4 pneus).
-          </p>
-        </div>
-        <div>
-          <h4>3) Accès & endpoints clés (rôles)</h4>
-          <ul>
-            <li><strong>Public</strong> : GET /api/services, /api/services/**, /api/service-icons/**</li>
-            <li><strong>Client/Admin/Manager</strong> : POST/PUT/DELETE /api/demandes-services/**, POST /api/demandes, POST /api/rendezvous…</li>
-            <li><strong>Admin/Manager</strong> : GET /api/admin/dashboard-stats/**, GET /api/demandes-services/**</li>
-            <li><strong>Admin (principal inclus)</strong> : POST/PUT/DELETE /api/services/**, POST/DELETE /api/service-icons/**</li>
-          </ul>
-        </div>
-        <div>
-          <h4>4) Admin principal — gestion des sous-admins/gestionnaires</h4>
-          <p>
-            L’admin principal dispose des rôles <strong>ADMIN</strong> et <strong>ADMIN_PRINCIPAL</strong> :
-            l’endpoint <strong>/api/administrateurs/**</strong> est réservé à ADMIN_PRINCIPAL, il peut donc
-            créer/modifier/supprimer des administrateurs (sous-admins et gestionnaires inclus).
-          </p>
-        </div>
-      </div>
-    </article>
-  </section>
-
   @if (loading()) {
     <div class="dashboard__state" aria-live="polite">Chargement des statistiques…</div>
   } @else if (error()) {
