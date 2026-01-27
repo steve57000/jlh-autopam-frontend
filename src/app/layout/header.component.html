@@ -27,15 +27,24 @@
       aria-label="Navigation principale"
     >
       <!-- liens publics -->
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMenu()">Accueil</a>
-      <a routerLink="/services" routerLinkActive="active" (click)="closeMenu()">Catalogue</a>
-      <details class="nav-group">
-        <summary>À propos</summary>
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMenu(); closeGroups()">Accueil</a>
+      <details class="nav-group" #catalogueGroup [attr.open]="catalogueOpen ? '' : null">
+        <summary (click)="toggleGroup('catalogue', $event)" [attr.aria-expanded]="catalogueOpen">Catalogue</summary>
         <div class="nav-group__menu">
-          <a routerLink="/about" routerLinkActive="active" (click)="closeMenu()">Qui sommes-nous ?</a>
-          <a routerLink="/team" routerLinkActive="active" (click)="closeMenu()">Notre équipe</a>
-          <a routerLink="/history" routerLinkActive="active" (click)="closeMenu()">Historique du garage</a>
-          <a routerLink="/values" routerLinkActive="active" (click)="closeMenu()">Valeurs &amp; engagements</a>
+          <a routerLink="/services" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Catalogue des prestations</a>
+          <a routerLink="/services/entretien" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Entretien &amp; révision</a>
+          <a routerLink="/services/mecanique" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Mécanique générale</a>
+          <a routerLink="/services/pneumatiques" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Pneumatiques &amp; géométrie</a>
+          <a routerLink="/services/diagnostic" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Diagnostic électronique</a>
+        </div>
+      </details>
+      <details class="nav-group" #aboutGroup [attr.open]="aboutOpen ? '' : null">
+        <summary (click)="toggleGroup('about', $event)" [attr.aria-expanded]="aboutOpen">À propos</summary>
+        <div class="nav-group__menu">
+          <a routerLink="/about" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Qui sommes-nous ?</a>
+          <a routerLink="/team" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Notre équipe</a>
+          <a routerLink="/history" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Historique du garage</a>
+          <a routerLink="/values" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Valeurs &amp; engagements</a>
         </div>
       </details>
       <a routerLink="/contact" routerLinkActive="active" (click)="closeMenu()">Contact</a>
