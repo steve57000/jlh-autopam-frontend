@@ -29,9 +29,17 @@
       <!-- liens publics -->
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMenu(); closeGroups()">Accueil</a>
       <details class="nav-group" #catalogueGroup [attr.open]="catalogueOpen ? '' : null">
-        <summary (click)="toggleGroup('catalogue', $event)" [attr.aria-expanded]="catalogueOpen">Catalogue</summary>
+        <summary (click)="toggleGroup('catalogue', $event)" [attr.aria-expanded]="catalogueOpen">
+          Catalogue
+          <span class="nav-group__chevron" aria-hidden="true"></span>
+        </summary>
         <div class="nav-group__menu">
-          <a routerLink="/services" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Catalogue des prestations</a>
+          <a
+            routerLink="/services"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            (click)="closeMenu(); closeGroups()"
+          >Catalogue des prestations</a>
           <a routerLink="/services/entretien" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Entretien &amp; révision</a>
           <a routerLink="/services/mecanique" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Mécanique générale</a>
           <a routerLink="/services/pneumatiques" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Pneumatiques &amp; géométrie</a>
@@ -39,7 +47,10 @@
         </div>
       </details>
       <details class="nav-group" #aboutGroup [attr.open]="aboutOpen ? '' : null">
-        <summary (click)="toggleGroup('about', $event)" [attr.aria-expanded]="aboutOpen">À propos</summary>
+        <summary (click)="toggleGroup('about', $event)" [attr.aria-expanded]="aboutOpen">
+          À propos
+          <span class="nav-group__chevron" aria-hidden="true"></span>
+        </summary>
         <div class="nav-group__menu">
           <a routerLink="/about" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Qui sommes-nous ?</a>
           <a routerLink="/team" routerLinkActive="active" (click)="closeMenu(); closeGroups()">Notre équipe</a>
