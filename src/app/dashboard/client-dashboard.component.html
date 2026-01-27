@@ -691,6 +691,80 @@
                           Total estimatif : <strong>{{ totalDemande(d) | number:'1.2-2' }} €</strong>
                         </div>
                       </div>
+                      <div class="avis-section">
+                        <h4>Votre avis sur les services</h4>
+                        @if (!isDemandeTraitee(d)) {
+                          <p class="avis-section__hint">
+                            Les avis sont disponibles une fois la demande traitée.
+                          </p>
+                        } @else {
+                          <div class="avis-section__list">
+                            @for (s of d.services; track s.idService) {
+                              <div class="avis-entry">
+                                <div class="avis-entry__header">
+                                  <span class="avis-entry__service">{{ s.libelle }}</span>
+                                  @if (avisForService(d.idDemande, s.idService); as existingAvis) {
+                                    <div class="avis-entry__meta">
+                                      <app-rating-stars [rating]="existingAvis.note" [showValue]="false"></app-rating-stars>
+                                      <span class="avis-entry__date">
+                                        {{ existingAvis.creeLe | date:'dd/MM/yyyy' }}
+                                      </span>
+                                    </div>
+                                  } @else {
+                                    <span class="avis-entry__meta avis-entry__meta--empty">Pas encore d'avis</span>
+                                  }
+                                </div>
+
+                                @if (avisForService(d.idDemande, s.idService); as existingAvis) {
+                                  <p class="avis-entry__comment">
+                                    {{ existingAvis.commentaire || 'Avis sans commentaire.' }}
+                                  </p>
+                                } @else {
+                                  <form class="avis-form" (ngSubmit)="submitAvis(d.idDemande, s.idService)">
+                                    <div class="avis-form__row">
+                                      <label [for]="'note-' + d.idDemande + '-' + s.idService">Note</label>
+                                      <select
+                                        [id]="'note-' + d.idDemande + '-' + s.idService"
+                                        [ngModel]="reviewForm(d.idDemande, s.idService).note"
+                                        (ngModelChange)="updateReviewForm(d.idDemande, s.idService, { note: $event })"
+                                        [disabled]="reviewForm(d.idDemande, s.idService).submitting"
+                                        name="note-{{ d.idDemande }}-{{ s.idService }}">
+                                        @for (score of [1,2,3,4,5]; track score) {
+                                          <option [value]="score">{{ score }}</option>
+                                        }
+                                      </select>
+                                    </div>
+                                    <div class="avis-form__row">
+                                      <label [for]="'commentaire-' + d.idDemande + '-' + s.idService">Commentaire</label>
+                                      <textarea
+                                        [id]="'commentaire-' + d.idDemande + '-' + s.idService"
+                                        rows="3"
+                                        [ngModel]="reviewForm(d.idDemande, s.idService).commentaire"
+                                        (ngModelChange)="updateReviewForm(d.idDemande, s.idService, { commentaire: $event })"
+                                        [disabled]="reviewForm(d.idDemande, s.idService).submitting"
+                                        name="commentaire-{{ d.idDemande }}-{{ s.idService }}"
+                                        placeholder="Partagez votre expérience (facultatif)"></textarea>
+                                    </div>
+                                    <div class="avis-form__actions">
+                                      <button
+                                        class="btn btn-outline btn-small"
+                                        type="submit"
+                                        [disabled]="reviewForm(d.idDemande, s.idService).submitting">
+                                        {{ reviewForm(d.idDemande, s.idService).submitting ? 'Envoi…' : 'Publier mon avis' }}
+                                      </button>
+                                      @if (reviewForm(d.idDemande, s.idService).error) {
+                                        <span class="avis-form__error">
+                                          {{ reviewForm(d.idDemande, s.idService).error }}
+                                        </span>
+                                      }
+                                    </div>
+                                  </form>
+                                }
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
                     }
                   </details>
                 </article>

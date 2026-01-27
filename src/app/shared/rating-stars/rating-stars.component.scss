@@ -1,0 +1,31 @@
+@use '../../styles/variables' as v;
+
+.rating-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+  color: inherit;
+  --star-filled: #{v.$color-tertiary};
+  --star-empty: rgba(255, 255, 255, 0.35);
+  --value-color: currentColor;
+}
+
+.rating-stars__icons {
+  display: inline-flex;
+  gap: 0.15rem;
+}
+
+.rating-stars__star {
+  color: var(--star-empty);
+  font-size: 1rem;
+}
+
+.rating-stars__star.is-filled {
+  color: var(--star-filled);
+}
+
+.rating-stars__value {
+  font-weight: 600;
+  color: var(--value-color);
+}

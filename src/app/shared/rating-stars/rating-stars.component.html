@@ -1,0 +1,10 @@
+<div class="rating-stars" [attr.aria-label]="showValue ? 'Note ' + roundedRating + ' sur ' + max : 'Note sur ' + max">
+  <span class="rating-stars__icons" aria-hidden="true">
+    @for (filled of starStates; track $index) {
+      <span class="rating-stars__star" [class.is-filled]="filled">★</span>
+    }
+  </span>
+  @if (showValue) {
+    <span class="rating-stars__value">{{ roundedRating.toFixed(1) }}</span>
+  }
+</div>

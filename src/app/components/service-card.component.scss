@@ -121,6 +121,26 @@
     @include anim.fade-in(.6s);
     animation-delay: calc(var(--delay) + 0.4s);
   }
+
+  .service-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.95rem;
+    color: rgba(vars.$color-primary, 0.7);
+    --star-empty: rgba(#{vars.$color-primary}, 0.25);
+    --value-color: #{vars.$color-primary};
+  }
+
+  .service-rating__count {
+    font-size: 0.85rem;
+    color: rgba(vars.$color-primary, 0.6);
+  }
+
+  .service-rating__empty {
+    font-size: 0.9rem;
+    color: rgba(vars.$color-primary, 0.55);
+  }
 }
 
 .cta-btn{

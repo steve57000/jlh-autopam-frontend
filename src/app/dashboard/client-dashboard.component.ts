@@ -19,11 +19,14 @@ import {
 } from '../modeles/rendezvous-proposition.model';
 import { RendezVousPropositionsService } from '../services/rendezvous-propositions.service';
 import { ToastService } from '../shared/toast/toast.service';
-import { firstValueFrom, filter, forkJoin, of, Subscription, catchError } from 'rxjs';
+import { firstValueFrom, filter, forkJoin, of, Subscription, catchError, map } from 'rxjs';
 import { LookupsService } from '../services/lookups.service';
 import { ServicesComponent } from '../pages/services.component';
 import { AccountComponent } from '../account/account.component/account.component';
 import { PLATFORM_ID } from '@angular/core';
+import { AvisServicesService } from '../services/avis-services.service';
+import type { AvisServiceCreatePayload, AvisServiceDto } from '../modeles/avis-service.model';
+import { RatingStarsComponent } from '../shared/rating-stars/rating-stars.component';
 
 type CodeStatut =
   | 'Brouillon' | 'En_attente' | 'Traitee' | 'Annulee'
@@ -82,7 +85,8 @@ interface FilterOption<T extends string> {
     DatePipe,
     FormsModule,
     ServicesComponent,
-    AccountComponent
+    AccountComponent,
+    RatingStarsComponent
   ],
   templateUrl: './client-dashboard.component.html',
   styleUrls: ['./client-dashboard.component.scss']
@@ -102,6 +106,8 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   rdvProposals = signal<Record<number, RendezVousProposition[]>>({});
   rdvRequestComments = signal<Record<number, string>>({});
   isMobile = signal(false);
+  avisByDemande = signal<Record<number, AvisServiceDto[]>>({});
+  avisForms = signal<Record<string, { note: number; commentaire: string; submitting: boolean; error?: string }>>({});
   // safe api base (no trailing slash)
   private api = environment.apiBaseUrl ? environment.apiBaseUrl.replace(/\/+$/, '') : '';
   private mobileQuery?: MediaQueryList;
@@ -254,6 +260,7 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     private toast: ToastService,
     private lookups: LookupsService,
     private rdvPropositionsApi: RendezVousPropositionsService,
+    private avisApi: AvisServicesService,
     @Inject(PLATFORM_ID) private platformId: object
   ) {}
 
@@ -368,6 +375,7 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
         const demandes = list ?? [];
         this.demandes.set(demandes);
         this.loadProposalsForDemandes(demandes);
+        this.loadAvisForDemandes(demandes);
         finalize();
       },
       error: err => {
@@ -456,6 +464,57 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.rdvProposals.set({});
+      }
+    });
+  }
+
+  private loadAvisForDemandes(demandes: DemandeResponse[]) {
+    const targets = (demandes ?? [])
+      .filter(demande => demande?.idDemande && demande?.statutDemande?.codeStatut === 'Traitee')
+      .map(demande => Number(demande.idDemande))
+      .filter(id => Number.isFinite(id));
+
+    if (!targets.length) {
+      this.avisByDemande.set({});
+      return;
+    }
+
+    const requests = targets.map(demandeId => ({
+      demandeId,
+      request: this.avisApi.getAvisByDemande(demandeId, { page: 0, size: 50, sort: 'creeLe,desc' }).pipe(
+        map(response => response.content ?? []),
+        catchError(() => of([] as AvisServiceDto[]))
+      )
+    }));
+
+    forkJoin(requests.map(item => item.request)).subscribe({
+      next: results => {
+        const map: Record<number, AvisServiceDto[]> = {};
+        requests.forEach((item, index) => {
+          map[item.demandeId] = results[index] ?? [];
+        });
+        this.avisByDemande.set(map);
+      },
+      error: () => {
+        this.avisByDemande.set({});
+      }
+    });
+  }
+
+  private refreshAvisForDemande(demandeId: number) {
+    if (!Number.isFinite(demandeId)) {
+      return;
+    }
+    this.avisApi.getAvisByDemande(demandeId, { page: 0, size: 50, sort: 'creeLe,desc' }).subscribe({
+      next: response => {
+        const map = { ...this.avisByDemande() };
+        map[demandeId] = response.content ?? [];
+        this.avisByDemande.set(map);
+      },
+      error: () => {
+        const map = { ...this.avisByDemande() };
+        map[demandeId] = [];
+        this.avisByDemande.set(map);
       }
     });
   }
@@ -583,6 +642,81 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   totalDemande(d: DemandeResponse): number {
     if (!d?.services?.length) return 0;
     return d.services.reduce((sum, s) => sum + (s.prixUnitaire || 0) * (s.quantite || 0), 0);
+  }
+
+  isDemandeTraitee(d?: DemandeResponse): boolean {
+    return d?.statutDemande?.codeStatut === 'Traitee';
+  }
+
+  avisForDemande(demandeId: number): AvisServiceDto[] {
+    return this.avisByDemande()[demandeId] ?? [];
+  }
+
+  avisForService(demandeId: number, serviceId: number): AvisServiceDto | undefined {
+    return this.avisForDemande(demandeId).find(avis => avis.serviceId === serviceId);
+  }
+
+  reviewFormKey(demandeId: number, serviceId: number): string {
+    return `${demandeId}-${serviceId}`;
+  }
+
+  reviewForm(demandeId: number, serviceId: number) {
+    const key = this.reviewFormKey(demandeId, serviceId);
+    return this.avisForms()[key] ?? { note: 5, commentaire: '', submitting: false };
+  }
+
+  updateReviewForm(
+    demandeId: number,
+    serviceId: number,
+    patch: Partial<{ note: number; commentaire: string; submitting: boolean; error?: string }>
+  ) {
+    const key = this.reviewFormKey(demandeId, serviceId);
+    const current = this.reviewForm(demandeId, serviceId);
+    this.avisForms.set({
+      ...this.avisForms(),
+      [key]: { ...current, ...patch }
+    });
+  }
+
+  submitAvis(demandeId: number, serviceId: number) {
+    const form = this.reviewForm(demandeId, serviceId);
+    if (form.submitting) {
+      return;
+    }
+
+    const note = Number(form.note);
+    const commentaire = (form.commentaire ?? '').trim();
+
+    if (!Number.isFinite(note) || note < 1 || note > 5) {
+      this.toast.error('Note invalide', 'La note doit être comprise entre 1 et 5.');
+      return;
+    }
+
+    if (commentaire.length > 1000) {
+      this.toast.error('Commentaire trop long', 'Le commentaire est limité à 1000 caractères.');
+      return;
+    }
+
+    const payload: AvisServiceCreatePayload = {
+      demandeId,
+      note,
+      commentaire
+    };
+
+    this.updateReviewForm(demandeId, serviceId, { submitting: true, error: undefined });
+
+    this.avisApi.createAvis(payload).subscribe({
+      next: () => {
+        this.toast.success('Merci pour votre avis !');
+        this.updateReviewForm(demandeId, serviceId, { submitting: false, commentaire: '' });
+        this.refreshAvisForDemande(demandeId);
+      },
+      error: err => {
+        const message = err?.error?.message || 'Impossible de publier votre avis.';
+        this.toast.error('Erreur', message);
+        this.updateReviewForm(demandeId, serviceId, { submitting: false, error: message });
+      }
+    });
   }
 
   badgeClassForDemande(code?: string): string {

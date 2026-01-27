@@ -1,12 +1,14 @@
 import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy, OnInit, Inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { DatePipe, isPlatformBrowser } from '@angular/common';
 
 import { PromotionService } from '../services/promotion.service';
 import { ServicesService } from '../services/services.service';
 import { MediaUrlService } from '../services/media-url.service';
+import { AvisServicesService } from '../services/avis-services.service';
 
 import { PromotionModel } from '../modeles/promotion.model';
 import { ServiceDto } from '../modeles/service.model';
+import type { AvisServiceDto } from '../modeles/avis-service.model';
 
 import { PromotionsSliderComponent } from '../features/promotions-slider.component';
 import { IntroAccueilComponent } from '../features/intro-accueil.component';
@@ -14,6 +16,8 @@ import { SectionCarousselComponent } from '../features/section-caroussel.compone
 import {MetiersPictosComponent} from '../features/metiers-pictos.component';
 
 import { BrandsComponent } from '../shared/brands/brands.component';
+import { RatingStarsComponent } from '../shared/rating-stars/rating-stars.component';
+import { catchError, forkJoin, of } from 'rxjs';
 
 type MetiersPicto = {
   img: string;
@@ -94,12 +98,17 @@ type MetiersPicto = {
     IntroAccueilComponent,
     SectionCarousselComponent,
     MetiersPictosComponent,
-    BrandsComponent
+    BrandsComponent,
+    RatingStarsComponent,
+    DatePipe
   ]
 })
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   promotions: PromotionModel[] = [];
+  latestAvis: AvisServiceDto[] = [];
+  avisLoading = false;
+  avisError = false;
 
   activeIndexMetiers = 0;
   activeIndexAgrements = 0;
@@ -116,6 +125,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     private promoService: PromotionService,
     private servicesService: ServicesService,
     private mediaUrl: MediaUrlService,
+    private avisService: AvisServicesService,
     @Inject(PLATFORM_ID) private platformId: Object // <-- pour SSR
   ) {}
 
@@ -145,9 +155,12 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       next: services => {
         const fromServices = this.buildMetiersFromServices(services || []);
         this.metiersPictos = fromServices.length > 0 ? fromServices : this.getDefaultMetiersPictos();
+        this.loadHomeAvis(services || []);
       },
       error: () => {
         this.metiersPictos = this.getDefaultMetiersPictos();
+        this.latestAvis = [];
+        this.avisError = true;
       }
     });
   }
@@ -205,6 +218,47 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private resolveIcon(url: string): string | null {
     return this.mediaUrl.resolve(url);
+  }
+
+  private loadHomeAvis(services: ServiceDto[]) {
+    const targets = services.filter(svc => typeof svc.idService === 'number').slice(0, 3);
+    if (!targets.length) {
+      this.latestAvis = [];
+      return;
+    }
+
+    this.avisLoading = true;
+    this.avisError = false;
+
+    forkJoin(
+      targets.map(svc =>
+        this.avisService.getAvisByService(svc.idService as number, {
+          page: 0,
+          size: 3,
+          sort: 'creeLe,desc'
+        }).pipe(
+          catchError(() => of({ content: [] }))
+        )
+      )
+    ).subscribe({
+      next: responses => {
+        const merged = responses.flatMap(res => res.content ?? []);
+        this.latestAvis = merged
+          .slice()
+          .sort((a, b) => {
+            const tsA = a?.creeLe ? new Date(a.creeLe).getTime() : 0;
+            const tsB = b?.creeLe ? new Date(b.creeLe).getTime() : 0;
+            return tsB - tsA;
+          })
+          .slice(0, 6);
+        this.avisLoading = false;
+      },
+      error: () => {
+        this.latestAvis = [];
+        this.avisLoading = false;
+        this.avisError = true;
+      }
+    });
   }
   clearMetiersSlide() {
     if (this.metiersInterval) {
