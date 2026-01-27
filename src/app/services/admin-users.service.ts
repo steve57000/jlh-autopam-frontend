@@ -20,7 +20,7 @@ export interface AdminUserSummary {
   username?: string | null;
   nom?: string | null;
   prenom?: string | null;
-  niveauAcces: 'ADMIN' | 'GESTIONNAIRE';
+  niveauAcces: 'ADMIN' | 'GESTIONNAIRE' | 'PRINCIPAL';
   niveau_acces?: string | null;
 }
 
@@ -29,7 +29,7 @@ export interface AdminUserUpdatePayload {
   username?: string | null;
   nom?: string | null;
   prenom?: string | null;
-  niveauAcces: 'ADMIN' | 'GESTIONNAIRE';
+  niveauAcces: 'ADMIN' | 'GESTIONNAIRE' | 'PRINCIPAL';
 }
 
 @Injectable({ providedIn: 'root' })
