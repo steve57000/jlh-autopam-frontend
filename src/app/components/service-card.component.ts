@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input, ViewChild, ElementRef, OnChanges, SimpleChanges, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FrCurrencyPipe } from '../pipes/fr-currency.pipe';
 import { ServiceDto } from '../modeles/service.model';
 import { DemandesStateService } from '../services/demandes-state.service';
@@ -10,13 +10,13 @@ import { ToastService } from '../shared/toast/toast.service';
 import { AuthService } from '../services/auth.service';
 import { MediaUrlService } from '../services/media-url.service';
 import { AvisServicesService } from '../services/avis-services.service';
-import type { AvisServiceStatsDto } from '../modeles/avis-service.model';
+import type { AvisServiceDto, AvisServiceStatsDto } from '../modeles/avis-service.model';
 import { RatingStarsComponent } from '../shared/rating-stars/rating-stars.component';
 
 @Component({
   selector: 'app-service-card',
   standalone: true,
-  imports: [CommonModule, FrCurrencyPipe, HasRoleDirective, RatingStarsComponent],
+  imports: [CommonModule, DatePipe, FrCurrencyPipe, HasRoleDirective, RatingStarsComponent],
   templateUrl: './service-card.component.html',
   styleUrls: ['./service-card.component.scss']
 })
@@ -26,6 +26,7 @@ export class ServiceCardComponent implements OnChanges {
   @Input() showAdd = false;
 
   @ViewChild('confirmDialog') dialogRef?: ElementRef<HTMLDialogElement>;
+  @ViewChild('avisDialog') avisDialogRef?: ElementRef<HTMLDialogElement>;
   lotCount = 1;
 
   private demandeState = inject(DemandesStateService);
@@ -36,7 +37,11 @@ export class ServiceCardComponent implements OnChanges {
   private avisService  = inject(AvisServicesService);
 
   avisStats: AvisServiceStatsDto | null = null;
+  avisList: AvisServiceDto[] = [];
+  avisLoading = false;
+  avisError = false;
   private lastServiceId: number | null = null;
+  private lastAvisServiceId: number | null = null;
 
   @HostBinding('style.--delay') get cssDelay() { return `${this.delay}s`; }
   @HostBinding('style.animation-delay') get animationDelay() { return `var(--delay)`; }
@@ -73,6 +78,38 @@ export class ServiceCardComponent implements OnChanges {
     this.dialogRef?.nativeElement.showModal();
   }
   closeConfirm() { this.dialogRef?.nativeElement.close(); }
+
+  openAvis() {
+    const serviceId = this.service?.idService ?? null;
+    if (!serviceId) {
+      return;
+    }
+    this.avisDialogRef?.nativeElement.showModal();
+    if (serviceId !== this.lastAvisServiceId) {
+      this.fetchAvis(serviceId);
+    }
+  }
+
+  closeAvis() {
+    this.avisDialogRef?.nativeElement.close();
+  }
+
+  private fetchAvis(serviceId: number) {
+    this.lastAvisServiceId = serviceId;
+    this.avisLoading = true;
+    this.avisError = false;
+    this.avisService.getAllAvisByService(serviceId, { size: 50, sort: 'creeLe,desc' }).subscribe({
+      next: avis => {
+        this.avisList = avis ?? [];
+        this.avisLoading = false;
+      },
+      error: () => {
+        this.avisList = [];
+        this.avisLoading = false;
+        this.avisError = true;
+      }
+    });
+  }
 
   get isLotMode() {
     return this.service?.quantiteMode === 'LOT' && this.lotSize > 0;

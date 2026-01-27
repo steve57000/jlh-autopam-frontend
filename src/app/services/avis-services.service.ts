@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
+import { expand, map, reduce } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import type {
   AvisServiceCreatePayload,
@@ -31,6 +32,23 @@ export class AvisServicesService {
 
   getAvisStats(serviceId: number): Observable<AvisServiceStatsDto> {
     return this.http.get<AvisServiceStatsDto>(`${environment.apiBaseUrl}/services/${serviceId}/avis/stats`);
+  }
+
+  getAllAvisByService(serviceId: number, params: AvisQueryParams = {}): Observable<AvisServiceDto[]> {
+    const size = params.size ?? 50;
+    const sort = params.sort ?? 'creeLe,desc';
+
+    return this.getAvisByService(serviceId, { page: 0, size, sort }).pipe(
+      expand(response => {
+        const nextPage = response.number + 1;
+        if (nextPage >= response.totalPages) {
+          return EMPTY;
+        }
+        return this.getAvisByService(serviceId, { page: nextPage, size, sort });
+      }),
+      map(response => response.content ?? []),
+      reduce((acc, chunk) => acc.concat(chunk), [] as AvisServiceDto[])
+    );
   }
 
   getAvisDetail(avisId: number): Observable<AvisServiceDto> {
