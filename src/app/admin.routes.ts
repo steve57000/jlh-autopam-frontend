@@ -8,7 +8,6 @@ import { AdminClientsComponent } from './features/admin-clients.component';
 import { AdminServiceIconsComponent } from './features/admin-service-icons.component';
 import { AdminUsersComponent } from './features/admin-users.component';
 import { AdminGuard } from './guards/admin.guard';
-import { AdminPrincipalGuard } from './guards/admin-principal.guard';
 
 export const adminRoutes: Routes = [
   {
@@ -44,7 +43,6 @@ export const adminRoutes: Routes = [
       {
         path: 'utilisateurs',
         component: AdminUsersComponent,
-        canActivate: [AdminPrincipalGuard],
         data: { title: 'Utilisateurs' },
       },
       {
