@@ -33,9 +33,11 @@
         <li><a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="closeMenu()">Dashboard</a></li>
         <li><a routerLink="/admin/demandes" routerLinkActive="active" (click)="closeMenu()">Demandes</a></li>
         <li><a routerLink="/admin/clients" routerLinkActive="active" (click)="closeMenu()">Clients</a></li>
-        @if (isAdminPrincipal) {
-          <li><a routerLink="/admin/utilisateurs" routerLinkActive="active" (click)="closeMenu()">Utilisateurs</a></li>
-        }
+        <li>
+          <a routerLink="/admin/utilisateurs" routerLinkActive="active" (click)="closeMenu()">
+            @if (isAdminPrincipal) { Utilisateurs } @else { Gestionnaires }
+          </a>
+        </li>
         <li><a routerLink="/admin/services" routerLinkActive="active" (click)="closeMenu()">Services</a></li>
         <li><a routerLink="/admin/icons" routerLinkActive="active" (click)="closeMenu()">Icônes</a></li>
         <li><a routerLink="/admin/promotions" routerLinkActive="active" (click)="closeMenu()">Promotions</a></li>
