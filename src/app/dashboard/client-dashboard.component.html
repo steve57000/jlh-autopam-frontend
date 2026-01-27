@@ -10,6 +10,13 @@
     <div class="dashboard__actions">
       <button class="btn" (click)="refresh()">Actualiser</button>
       <button
+        class="btn"
+        type="button"
+        (click)="showServices()"
+      >
+        Nouvelle demande
+      </button>
+      <button
         class="btn btn-outline"
         type="button"
         [class.is-active]="activeSection() === 'overview'"
