@@ -6,6 +6,9 @@ export interface ServiceItem {
   quantite: number;
   prix_unitaire?: number;
   quantite_max?: number;
+  quantiteMode?: 'UNIQUE' | 'LOT';
+  prixMode?: 'UNITAIRE' | 'LOT';
+  tailleLot?: number | null;
 }
 
 export interface DemandeDto {
@@ -67,6 +70,9 @@ export interface DemandeServiceDto {
   libelle: string;
   prixUnitaire: number;
   quantite: number;
+  quantiteMode?: 'UNIQUE' | 'LOT';
+  prixMode?: 'UNITAIRE' | 'LOT';
+  tailleLot?: number | null;
 }
 
 export interface DemandeDocumentDto {

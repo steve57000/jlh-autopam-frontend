@@ -839,6 +839,17 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     return d?.client?.immatriculation || null;
   }
 
+  formatServiceQuantity(service: { quantite: number; quantiteMode?: 'UNIQUE' | 'LOT'; tailleLot?: number | null }): string {
+    const qty = service.quantite ?? 0;
+    if (service.quantiteMode === 'LOT' && service.tailleLot) {
+      if (qty === service.tailleLot) {
+        return `Lot de ${service.tailleLot}`;
+      }
+      return `${qty} (lot de ${service.tailleLot})`;
+    }
+    return `x${qty}`;
+  }
+
   async downloadRdvIcs(rdvId: number) {
     try {
       const res = await firstValueFrom(this.srv.getRendezVousIcs(rdvId));

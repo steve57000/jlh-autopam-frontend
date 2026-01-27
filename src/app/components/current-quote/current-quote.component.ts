@@ -61,6 +61,17 @@ export class CurrentQuoteComponent implements OnChanges {
     return s.reduce((sum, line) => sum + (line.prixUnitaire || 0) * (line.quantite || 0), 0);
   }
 
+  formatServiceQuantity(service: { quantite: number; quantiteMode?: 'UNIQUE' | 'LOT'; tailleLot?: number | null }): string {
+    const qty = service.quantite ?? 0;
+    if (service.quantiteMode === 'LOT' && service.tailleLot) {
+      if (qty === service.tailleLot) {
+        return `Lot de ${service.tailleLot}`;
+      }
+      return `${qty} (lot de ${service.tailleLot})`;
+    }
+    return `x${qty}`;
+  }
+
   onRemove(idService: number) {
     if (this.locked) return;
     if (!this.demande?.idDemande) return;

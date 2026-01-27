@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ServicesService } from '../services/services.service';
 import { ServiceDto } from '../modeles/service.model';
 import { ToastService } from '../shared/toast/toast.service';
@@ -48,8 +48,31 @@ export class AdminServicesComponent implements OnInit {
       description: ['', [Validators.maxLength(2000)]],
       descriptionLongue: ['', [Validators.maxLength(4000)]],
       iconId: [null],
+      quantiteMode: ['UNIQUE', [Validators.required]],
+      prixMode: ['UNITAIRE', [Validators.required]],
+      tailleLot: [{ value: null, disabled: true }, [Validators.min(1)]],
       prixUnitaire: ['', [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
       quantiteMax: [1, [Validators.required, Validators.min(1)]],
+    }, { validators: [this.lotValidator()] });
+
+    this.form.get('quantiteMode')?.valueChanges.subscribe(mode => {
+      const tailleLot = this.form.get('tailleLot');
+      const quantiteMax = this.form.get('quantiteMax');
+      if (mode === 'LOT') {
+        tailleLot?.enable({ emitEvent: false });
+        if (!tailleLot?.value) {
+          tailleLot?.setValue(1, { emitEvent: false });
+        }
+      } else {
+        tailleLot?.reset(null, { emitEvent: false });
+        tailleLot?.disable({ emitEvent: false });
+        quantiteMax?.setValue(1, { emitEvent: false });
+      }
+      this.form.updateValueAndValidity({ emitEvent: false });
+    });
+
+    this.form.get('tailleLot')?.valueChanges.subscribe(() => {
+      this.form.updateValueAndValidity({ emitEvent: false });
     });
   }
 
@@ -88,7 +111,13 @@ export class AdminServicesComponent implements OnInit {
 
   openAjoutService() {
     this.editingService = null;
-    this.form.reset();
+    this.form.reset({
+      quantiteMode: 'UNIQUE',
+      prixMode: 'UNITAIRE',
+      quantiteMax: 1,
+      tailleLot: null,
+      iconId: null
+    });
     this.iconPreview = null;
     this.showIconLibrary = false;
     this.showModal = true;
@@ -101,6 +130,9 @@ export class AdminServicesComponent implements OnInit {
       description: service.description,
       descriptionLongue: service.descriptionLongue,
       iconId: service.iconId ?? null,
+      quantiteMode: service.quantiteMode ?? 'UNIQUE',
+      prixMode: service.prixMode ?? 'UNITAIRE',
+      tailleLot: service.tailleLot ?? null,
       prixUnitaire: service.prixUnitaire,
       quantiteMax: service.quantiteMax ?? 1,
     });
@@ -146,15 +178,28 @@ export class AdminServicesComponent implements OnInit {
       return;
     }
 
-    const { libelle, description, descriptionLongue, prixUnitaire, quantiteMax } = this.form.value;
+    const {
+      libelle,
+      description,
+      descriptionLongue,
+      prixUnitaire,
+      quantiteMax,
+      quantiteMode,
+      prixMode,
+      tailleLot
+    } = this.form.value;
     const prixValue = typeof prixUnitaire === 'number' ? prixUnitaire : Number(prixUnitaire);
     const quantiteValue = typeof quantiteMax === 'number' ? quantiteMax : Number(quantiteMax);
+    const tailleLotValue = typeof tailleLot === 'number' ? tailleLot : Number(tailleLot);
     const body = {
       libelle,
       description,
       descriptionLongue,
       iconId: this.form.value.iconId ?? null,
       prixUnitaire: prixValue,
+      quantiteMode,
+      prixMode,
+      tailleLot: Number.isFinite(tailleLotValue) ? tailleLotValue : null,
       quantiteMax: quantiteValue
     };
 
@@ -223,5 +268,31 @@ export class AdminServicesComponent implements OnInit {
 
   resolveIconUrl(url?: string | null): string | null {
     return this.mediaUrl.resolve(url);
+  }
+
+  private lotValidator() {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const quantiteMode = control.get('quantiteMode')?.value;
+      const quantiteMax = Number(control.get('quantiteMax')?.value);
+      const tailleLot = Number(control.get('tailleLot')?.value);
+
+      if (quantiteMode === 'UNIQUE') {
+        if (Number.isFinite(quantiteMax) && quantiteMax !== 1) {
+          return { quantiteModeUnique: true };
+        }
+        return null;
+      }
+
+      if (quantiteMode === 'LOT') {
+        if (!Number.isFinite(tailleLot) || tailleLot < 1) {
+          return { tailleLotRequired: true };
+        }
+        if (Number.isFinite(quantiteMax) && quantiteMax % tailleLot !== 0) {
+          return { quantiteMaxLot: true };
+        }
+      }
+
+      return null;
+    };
   }
 }

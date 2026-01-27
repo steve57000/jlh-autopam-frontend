@@ -344,6 +344,17 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     return `${did}-${sid}`;
   }
 
+  formatServiceQuantity(service: { quantite: number; quantiteMode?: 'UNIQUE' | 'LOT'; tailleLot?: number | null }): string {
+    const qty = service.quantite ?? 0;
+    if (service.quantiteMode === 'LOT' && service.tailleLot) {
+      if (qty === service.tailleLot) {
+        return `Lot de ${service.tailleLot}`;
+      }
+      return `${qty} (lot de ${service.tailleLot})`;
+    }
+    return `x${qty}`;
+  }
+
   openDetails(d: DemandeWithServices) {
     const id = this.getDemandeId(d);
     if (id == null) return;
