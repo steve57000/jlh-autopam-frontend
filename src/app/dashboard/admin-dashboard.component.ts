@@ -16,6 +16,7 @@ import {
 import { ServicesService } from '../services/services.service';
 import { ServiceDto } from '../modeles/service.model';
 import { filter, Subscription } from 'rxjs';
+import { AuthService } from '../services/auth.service';
 type DemandeType = DemandeWithServices['code_type'];
 
 const TYPE_COLORS: Record<string, string> = {
@@ -262,6 +263,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private readonly demandesApi = inject(DemandesServiceService);
   private readonly adminStatsApi = inject(AdminDashboardStatsService);
   private readonly servicesApi = inject(ServicesService);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private navSub?: Subscription;
 
@@ -284,6 +286,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   readonly serviceMixMetric = signal<'revenue' | 'count'>('revenue');
   readonly weekdayMetric = signal<'count' | 'percentage'>('count');
   private readonly monthFormatter = new Intl.DateTimeFormat('fr-FR', { month: 'short', year: '2-digit' });
+
+  get isAdminPrincipal(): boolean {
+    return this.auth.isAdminPrincipal();
+  }
   readonly typeChart = computed<TypeChartModel | null>(() => {
     const rows = (this.analytics()?.typeStats ?? []) as AdminDashboardTypeStat[];
     if (!rows.length) {
