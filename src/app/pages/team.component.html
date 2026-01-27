@@ -10,6 +10,20 @@
       </p>
     </header>
 
+    <nav class="info-tabs" aria-label="Navigation À propos">
+      <a class="info-tabs__tab" routerLink="/about" routerLinkActive="is-active">Qui sommes-nous&nbsp;?</a>
+      <a
+        class="info-tabs__tab"
+        routerLink="/team"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        aria-current="page">
+        Notre équipe
+      </a>
+      <a class="info-tabs__tab" routerLink="/history" routerLinkActive="is-active">Historique du garage</a>
+      <a class="info-tabs__tab" routerLink="/values" routerLinkActive="is-active">Valeurs &amp; engagements</a>
+    </nav>
+
     <section class="page__section">
       <h2 class="page__section-title">Vos interlocuteurs dédiés</h2>
       <div class="page__grid page__grid--three">
