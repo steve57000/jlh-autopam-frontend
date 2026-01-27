@@ -42,7 +42,30 @@
     </header>
     <p class="service-dialog__summary">
       <strong>{{ service.libelle }}</strong> — {{ service.prixUnitaire | frCurrency }}
+      @if (isLotMode) {
+        <span class="service-dialog__qty">• {{ quantityLabel }}</span>
+      }
     </p>
+
+    @if (isLotMode) {
+      <div class="service-dialog__field">
+        <label for="lot-count">Nombre de lots</label>
+        <div class="service-dialog__input">
+          <input
+            id="lot-count"
+            type="number"
+            min="1"
+            [attr.max]="maxLots ?? null"
+            [value]="lotCount"
+            (input)="setLotCount(($any($event.target)).value)"
+          />
+          <span class="service-dialog__hint">Lot de {{ lotSize }} unités</span>
+        </div>
+        <p class="service-dialog__total">
+          Quantité totale : <strong>{{ requestedQuantity }}</strong>
+        </p>
+      </div>
+    }
 
     <div class="service-dialog__actions">
       <button value="cancel" class="btn">Annuler</button>

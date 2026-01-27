@@ -26,7 +26,7 @@ export class ServiceCardComponent implements OnChanges {
   @Input() showAdd = false;
 
   @ViewChild('confirmDialog') dialogRef?: ElementRef<HTMLDialogElement>;
-  private readonly qty = 1;
+  lotCount = 1;
 
   private demandeState = inject(DemandesStateService);
   private dsSrv        = inject(DemandesServiceService);
@@ -49,6 +49,9 @@ export class ServiceCardComponent implements OnChanges {
         this.lastServiceId = serviceId;
         this.loadAvisStats(serviceId);
       }
+      if (this.isLotMode) {
+        this.resetLotCount();
+      }
     }
   }
 
@@ -63,8 +66,68 @@ export class ServiceCardComponent implements OnChanges {
     });
   }
 
-  openConfirm() { this.dialogRef?.nativeElement.showModal(); }
+  openConfirm() {
+    if (this.isLotMode) {
+      this.resetLotCount();
+    }
+    this.dialogRef?.nativeElement.showModal();
+  }
   closeConfirm() { this.dialogRef?.nativeElement.close(); }
+
+  get isLotMode() {
+    return this.service?.quantiteMode === 'LOT' && this.lotSize > 0;
+  }
+
+  get lotSize() {
+    return this.service?.tailleLot ?? 1;
+  }
+
+  get maxLots() {
+    if (!this.isLotMode) {
+      return null;
+    }
+    const max = this.service?.quantiteMax;
+    if (typeof max !== 'number' || !Number.isFinite(max)) {
+      return null;
+    }
+    return Math.max(1, Math.floor(max / this.lotSize));
+  }
+
+  get requestedQuantity() {
+    if (this.isLotMode) {
+      return this.lotCount * this.lotSize;
+    }
+    return 1;
+  }
+
+  get quantityLabel() {
+    if (!this.isLotMode) {
+      return 'Quantité : 1';
+    }
+    if (this.lotCount === 1) {
+      return `1 lot de ${this.lotSize}`;
+    }
+    return `${this.lotCount} lots (${this.requestedQuantity} unités)`;
+  }
+
+  setLotCount(value: string) {
+    const parsed = Number(value);
+    let next = Number.isFinite(parsed) ? Math.floor(parsed) : 1;
+    next = Math.max(1, next);
+    const maxLots = this.maxLots;
+    if (maxLots) {
+      next = Math.min(next, maxLots);
+    }
+    this.lotCount = next;
+  }
+
+  private resetLotCount() {
+    this.lotCount = 1;
+    const maxLots = this.maxLots;
+    if (maxLots && this.lotCount > maxLots) {
+      this.lotCount = maxLots;
+    }
+  }
 
   async confirmAdd() {
     try {
@@ -81,7 +144,7 @@ export class ServiceCardComponent implements OnChanges {
       await firstValueFrom(this.dsSrv.addUnique({
         demandeId:  idDemande,
         serviceId:  this.service.idService!,
-        quantite:   this.qty
+        quantite:   this.requestedQuantity
       }));
 
       // 3) notifie l’encart et feedback UI
