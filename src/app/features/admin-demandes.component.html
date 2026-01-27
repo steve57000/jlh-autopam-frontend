@@ -94,7 +94,7 @@
                 @for (s of d.services; let j = $index; track getServiceKey(s)) {
                   <span class="chip">
                       {{ s.libelle }}
-                    @if (s.quantite) { <small>×{{ s.quantite }}</small> }
+                    @if (s.quantite) { <small>{{ formatServiceQuantity(s) }}</small> }
                     </span>
                 }
               </td>

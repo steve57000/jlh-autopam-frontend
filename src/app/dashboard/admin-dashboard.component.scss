@@ -71,6 +71,10 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
     align-items: end;
   }
 
+  &__info {
+    display: grid;
+  }
+
   &__state {
     padding: 1rem 1.25rem;
     border-radius: v.$border-radius-high;
@@ -87,6 +91,33 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
       gap: 0.75rem;
     }
   }
+}
+
+.info-card {
+  h4 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    color: v.$color-primary;
+  }
+
+  p {
+    margin: 0;
+    color: rgba(v.$color-primary, 0.7);
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    display: grid;
+    gap: 0.35rem;
+    color: rgba(v.$color-primary, 0.75);
+  }
+}
+
+.info-card__grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
 .btn {

@@ -56,7 +56,7 @@
         <li>
           <div class="line">
             <div class="line__libelle">{{ s.libelle }}</div>
-            <div class="line__qty">x{{ s.quantite }}</div>
+            <div class="line__qty">{{ formatServiceQuantity(s) }}</div>
             <div class="line__price">{{ s.prixUnitaire | number:'1.2-2' }} €</div>
             <button type="button" class="link danger" (click)="onRemove(s.idService)" [disabled]="locked">
               Retirer
