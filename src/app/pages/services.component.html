@@ -19,6 +19,18 @@
       </p>
 
       <section class="services-tabs" aria-label="Nos services et expertises détaillées">
+        <div class="services-tabs__selector">
+          <label class="services-tabs__label" for="services-tab-select">Choisir un service</label>
+          <select
+            id="services-tab-select"
+            class="services-tabs__select"
+            [ngModel]="activeTab"
+            (ngModelChange)="setActiveTab($event)">
+            @for (tab of tabs; track tab.id) {
+              <option [value]="tab.id">{{ tab.label }}</option>
+            }
+          </select>
+        </div>
         <div class="services-tabs__list" role="tablist">
           @for (tab of tabs; track tab.id) {
             <a
