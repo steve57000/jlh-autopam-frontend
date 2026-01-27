@@ -27,7 +27,7 @@
 
   .services-intro {
     margin: 0 0 16px;
-    color: color.scale(vars.$color-quaternary, $alpha: -35%);
+    color: color.scale(vars.$color-quaternary, $alpha: -20%);
     max-width: 760px;
   }
 
@@ -63,7 +63,7 @@
       transition: all vars.$transition-fast;
 
       &:hover {
-        background: color.scale(vars.$color-primary, $alpha: -70%);
+        background: color.scale(vars.$color-primary, $alpha: -50%);
       }
 
       &.is-active {
@@ -72,10 +72,10 @@
         box-shadow: vars.$shadow-btn;
       }
 
-    &__panels {
-      display: grid;
+      &__panels {
+        display: grid;
+      }
     }
-  }
 
     &__panel {
       display: none;
@@ -94,13 +94,15 @@
 
       p {
         margin: 0;
-        color: color.scale(vars.$color-quaternary, $lightness: 18%);
+        color: color.scale(vars.$color-quaternary, $alpha: -25%);
       }
-
+      .service-card article {
+        height: -webkit-fill-available;
+      }
       .services-tabs__highlights {
         margin: 0;
         padding-left: 1rem;
-        color: color.scale(vars.$color-quaternary, $lightness: 10%);
+        color: color.scale(vars.$color-quaternary, $lightness: 25%);
         display: grid;
         gap: 6px;
       }
@@ -154,7 +156,10 @@
     align-items: stretch;
     grid-auto-rows: 1fr;
 
-    > app-service-card { display: block; height: 100%; }
+
+    > app-service-card {
+      display: block; height: 100%;
+    }
     @include anim.staggered-list('> app-service-card', .1s, 20);
   }
 
@@ -171,39 +176,8 @@
 
   @media (max-width: 640px) {
     .services-tabs {
-      padding-inline: 0;
       border: none;
-      overflow: hidden;
-
-      &__list {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x mandatory;
-        scroll-padding-inline: 16px;
-        padding-bottom: 14px;
-        margin-bottom: 16px;
-        border-bottom: none;
-        position: relative;
-        box-shadow: inset -18px 0 18px -18px rgba(vars.$color-primary, 0.35);
-      }
-
-      &__tab {
-        flex: 0 0 auto;
-        scroll-snap-align: start;
-        padding: 8px 14px;
-        font-size: 0.9rem;
-      }
-
-      &__panels {
-        overflow: hidden;
-        min-width: 0;
-      }
-
-      &__panel {
-        width: 100%;
-        min-width: 0;
-      }
+      padding: 0;
     }
 
     .services-list {
@@ -216,6 +190,7 @@
     }
   }
 }
+
 
 .page {
   background: transparent !important;

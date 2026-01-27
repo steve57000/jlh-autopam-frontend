@@ -19,7 +19,6 @@
     justify-content: space-between;
     flex-wrap: wrap;
     width: 100%;
-    padding: 0 2rem;
     gap: 1.5rem;
   }
 
@@ -77,7 +76,7 @@
 
     &-item {
       display: flex;
-      align-items: center;
+
       gap: 0.6rem;
       color: variables.$color-quaternary;
       a, span {
@@ -87,7 +86,7 @@
         font-family: variables.$font-body;
       }
       img {
-
+        width: 25px;
       }
     }
   }
@@ -235,6 +234,14 @@
         font-size: 1.05rem;
         a, span {
           font-size: 1.05rem;
+        }
+        a {
+          display: flex;
+        }
+        @media (max-width: 800px) {
+          a {
+            flex-direction: column;
+          }
         }
       }
     }

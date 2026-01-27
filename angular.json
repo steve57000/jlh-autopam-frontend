@@ -76,7 +76,7 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "12kB",
+                  "maximumWarning": "16kB",
                   "maximumError": "16kB"
                 }
               ],
@@ -99,9 +99,6 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "configurations": {
-            "demo": {
-              "buildTarget": "jlh-autopam-frontend:build:demo"
-            },
             "production": {
               "buildTarget": "jlh-autopam-frontend:build:production"
             },
