@@ -28,8 +28,17 @@
     >
       <!-- liens publics -->
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMenu()">Accueil</a>
-      <a routerLink="/services" routerLinkActive="active" (click)="closeMenu()">Services</a>
-      <a routerLink="/contact"   routerLinkActive="active" (click)="closeMenu()">Contact</a>
+      <a routerLink="/services" routerLinkActive="active" (click)="closeMenu()">Catalogue</a>
+      <details class="nav-group">
+        <summary>À propos</summary>
+        <div class="nav-group__menu">
+          <a routerLink="/about" routerLinkActive="active" (click)="closeMenu()">Qui sommes-nous ?</a>
+          <a routerLink="/team" routerLinkActive="active" (click)="closeMenu()">Notre équipe</a>
+          <a routerLink="/history" routerLinkActive="active" (click)="closeMenu()">Historique du garage</a>
+          <a routerLink="/values" routerLinkActive="active" (click)="closeMenu()">Valeurs &amp; engagements</a>
+        </div>
+      </details>
+      <a routerLink="/contact" routerLinkActive="active" (click)="closeMenu()">Contact</a>
 
       <!-- si connecté : Dashboard + Déconnexion -->
       @if (loggedIn) {

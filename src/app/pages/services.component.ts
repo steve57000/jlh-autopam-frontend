@@ -61,8 +61,8 @@ export class ServicesComponent implements OnInit, OnDestroy {
   tabs: ServicesTab[] = [
     {
       id: 'services',
-      label: 'Nos services',
-      title: 'Nos services',
+      label: 'Catalogue des prestations',
+      title: 'Catalogue des prestations',
       description:
         'Découvrez l’ensemble de nos prestations et trouvez rapidement la solution adaptée à votre véhicule.',
       cta: 'Découvrir nos services',
