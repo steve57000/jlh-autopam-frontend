@@ -349,7 +349,14 @@ export class AdminUsersComponent implements OnInit {
         const normalized = (admins ?? []).reduce<AdminUserSummary[]>((acc, admin) => {
           const id = this.getAdminId(admin);
           if (!id) return acc;
-          acc.push({ ...admin, id });
+          const accessLevel = this.normalizeAccessLevel(
+            admin.niveauAcces ?? (admin as { niveau_acces?: string | null }).niveau_acces
+          );
+          acc.push({
+            ...admin,
+            id,
+            niveauAcces: accessLevel
+          });
           return acc;
         }, []);
         this.adminUsersList.set(normalized);
@@ -364,6 +371,17 @@ export class AdminUsersComponent implements OnInit {
   }
 
   private getAdminId(admin: AdminUserSummary): number | null {
-    return admin.id ?? admin.idAdministrateur ?? null;
+    return admin.id ?? admin.idAdministrateur ?? admin.idAdmin ?? admin.id_admin ?? null;
+  }
+
+  private normalizeAccessLevel(level?: string | null): 'ADMIN' | 'GESTIONNAIRE' {
+    const raw = (level ?? '').toUpperCase();
+    if (['GESTIONNAIRE', 'MANAGER', 'ROLE_MANAGER'].includes(raw)) {
+      return 'GESTIONNAIRE';
+    }
+    if (['PRINCIPAL', 'ADMIN_PRINCIPAL', 'ROLE_ADMIN_PRINCIPAL'].includes(raw)) {
+      return 'ADMIN';
+    }
+    return 'ADMIN';
   }
 }
