@@ -141,6 +141,22 @@
     font-size: 0.9rem;
     color: rgba(vars.$color-primary, 0.55);
   }
+
+  .service-rating__link {
+    border: none;
+    background: none;
+    padding: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: vars.$color-secondary;
+    text-decoration: underline;
+    cursor: pointer;
+    align-self: flex-start;
+
+    &:hover {
+      color: vars.$color-primary;
+    }
+  }
 }
 
 .cta-btn{
@@ -271,4 +287,66 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
+}
+
+.service-dialog--avis {
+  max-width: min(640px, 92vw);
+}
+
+.service-avis__summary {
+  margin: 0.5rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(vars.$color-primary, 0.7);
+  --star-empty: rgba(#{vars.$color-primary}, 0.25);
+  --value-color: #{vars.$color-primary};
+}
+
+.service-avis__state {
+  margin: 0;
+  color: rgba(vars.$color-primary, 0.7);
+}
+
+.service-avis__state--error {
+  color: vars.$color-tertiary;
+}
+
+.service-avis__list {
+  display: grid;
+  gap: 1rem;
+}
+
+.service-avis__entry {
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  background: rgba(vars.$color-primary, 0.05);
+  display: grid;
+  gap: 0.5rem;
+}
+
+.service-avis__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  --star-empty: rgba(#{vars.$color-primary}, 0.25);
+  --value-color: #{vars.$color-primary};
+}
+
+.service-avis__date {
+  font-size: 0.85rem;
+  color: rgba(vars.$color-primary, 0.6);
+}
+
+.service-avis__comment {
+  margin: 0;
+  color: rgba(vars.$color-primary, 0.85);
+}
+
+.service-avis__client {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(vars.$color-primary, 0.7);
 }

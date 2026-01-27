@@ -19,6 +19,11 @@
       <span class="service-rating__empty">Pas encore d'avis</span>
     }
   </div>
+  @if ((avisStats?.totalAvis ?? 0) > 0) {
+    <button class="service-rating__link" type="button" (click)="openAvis()">
+      Voir tous les avis
+    </button>
+  }
   <p class="service-description">
     {{ service.descriptionLongue || service.description }}
   </p>
@@ -72,4 +77,49 @@
       <button value="ok" class="btn primary" (click)="confirmAdd()">Confirmer</button>
     </div>
   </form>
+</dialog>
+
+<dialog #avisDialog class="service-dialog service-dialog--avis">
+  <div class="service-dialog__card">
+    <header class="service-dialog__header">
+      <div>
+        <p class="service-dialog__eyebrow">Avis clients</p>
+        <h3>Avis sur {{ service.libelle }}</h3>
+        @if ((avisStats?.totalAvis ?? 0) > 0) {
+          <p class="service-avis__summary">
+            <app-rating-stars [rating]="avisStats?.moyenneNote ?? 0" [showValue]="true"></app-rating-stars>
+            <span>{{ avisStats?.totalAvis ?? 0 }} avis</span>
+          </p>
+        }
+      </div>
+      <button class="service-dialog__close" type="button" (click)="closeAvis()" aria-label="Fermer">
+        ×
+      </button>
+    </header>
+    @if (avisLoading) {
+      <p class="service-avis__state">Chargement des avis…</p>
+    } @else if (avisError) {
+      <p class="service-avis__state service-avis__state--error">
+        Impossible de charger les avis pour le moment.
+      </p>
+    } @else if (avisList.length) {
+      <div class="service-avis__list">
+        @for (avis of avisList; track avis.idAvis) {
+          <article class="service-avis__entry">
+            <header class="service-avis__header">
+              <app-rating-stars [rating]="avis.note" [showValue]="false"></app-rating-stars>
+              <span class="service-avis__date">{{ avis.creeLe | date:'dd/MM/yyyy' }}</span>
+            </header>
+            <p class="service-avis__comment">{{ avis.commentaire || 'Avis sans commentaire.' }}</p>
+            <p class="service-avis__client">{{ avis.clientNomPrenom || 'Client' }}</p>
+          </article>
+        }
+      </div>
+    } @else {
+      <p class="service-avis__state">Aucun avis disponible pour le moment.</p>
+    }
+    <div class="service-dialog__actions">
+      <button class="btn" type="button" (click)="closeAvis()">Fermer</button>
+    </div>
+  </div>
 </dialog>
