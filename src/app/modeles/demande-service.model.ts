@@ -12,4 +12,7 @@ export interface DemandeServiceKeyDto {
 export interface DemandeServiceResponse {
   id: DemandeServiceKeyDto;
   quantite: number;
+  quantiteMode?: 'UNIQUE' | 'LOT';
+  prixMode?: 'UNITAIRE' | 'LOT';
+  tailleLot?: number | null;
 }

@@ -94,6 +94,27 @@
             }
           </div>
           <div class="field">
+            <label for="service-quantite-mode">Mode de quantité</label>
+            <select id="service-quantite-mode" formControlName="quantiteMode">
+              <option value="UNIQUE">Unique</option>
+              <option value="LOT">Par lot</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="service-prix-mode">Mode de prix</label>
+            <select id="service-prix-mode" formControlName="prixMode">
+              <option value="UNITAIRE">Unitaire</option>
+              <option value="LOT">Par lot</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="service-taille-lot">Taille du lot</label>
+            <input id="service-taille-lot" formControlName="tailleLot" type="number" min="1" />
+            @if (form.hasError('tailleLotRequired') && form.touched) {
+              <div class="field__error">La taille du lot est requise en mode lot.</div>
+            }
+          </div>
+          <div class="field">
             <label for="service-prix">Prix unitaire (€)</label>
             <input id="service-prix" formControlName="prixUnitaire" type="number" step="0.01" min="0" required />
             @if (form.controls['prixUnitaire'].invalid && form.controls['prixUnitaire'].touched) {
@@ -105,6 +126,12 @@
             <input id="service-quantite-max" formControlName="quantiteMax" type="number" min="1" required />
             @if (form.controls['quantiteMax'].invalid && form.controls['quantiteMax'].touched) {
               <div class="field__error">Indiquez une quantité maximale supérieure ou égale à 1.</div>
+            }
+            @if (form.hasError('quantiteModeUnique') && form.touched) {
+              <div class="field__error">La quantité maximale doit être égale à 1 en mode unique.</div>
+            }
+            @if (form.hasError('quantiteMaxLot') && form.touched) {
+              <div class="field__error">La quantité maximale doit être un multiple de la taille du lot.</div>
             }
           </div>
           <div class="modal-actions">

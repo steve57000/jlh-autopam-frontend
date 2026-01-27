@@ -6,6 +6,9 @@ export interface ServiceDto {
   iconId?: number | null;
   iconUrl?: string | null;
   prixUnitaire: number | string;
+  quantiteMode?: 'UNIQUE' | 'LOT';
+  prixMode?: 'UNITAIRE' | 'LOT';
+  tailleLot?: number | null;
   quantiteMax?: number | null;
   archived?: boolean;
 }
