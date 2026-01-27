@@ -2,6 +2,7 @@ import { Component }        from '@angular/core';
 import { MatIconModule }    from '@angular/material/icon';
 import { NgOptimizedImage } from '@angular/common';
 import { InViewportDirective } from '../directives/in-viewport.directive';
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-intro-accueil',
@@ -9,7 +10,9 @@ import { InViewportDirective } from '../directives/in-viewport.directive';
   imports: [
     MatIconModule,
     NgOptimizedImage,
-    InViewportDirective      // ← on importe la directive
+    InViewportDirective,
+    RouterLink,
+    // ← on importe la directive
   ],
   templateUrl: './intro-accueil.component.html',
   styleUrls: ['./intro-accueil.component.scss']
