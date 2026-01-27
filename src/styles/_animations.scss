@@ -26,7 +26,7 @@
   $fill: forwards,
   $offset: 20px
 ) {
-  height: -webkit-fill-available;
+  min-height: 100%;
   // on stocke l’offset dans une variable CSS pour la clef
   --initial-offset: #{$offset};
   animation: fade-in-up $duration $ease $fill;
