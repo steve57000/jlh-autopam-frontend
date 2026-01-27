@@ -14,11 +14,14 @@ export interface AdminUserPayload {
 export interface AdminUserSummary {
   id?: number;
   idAdministrateur?: number;
+  idAdmin?: number;
+  id_admin?: number;
   email: string;
   username?: string | null;
   nom?: string | null;
   prenom?: string | null;
   niveauAcces: 'ADMIN' | 'GESTIONNAIRE';
+  niveau_acces?: string | null;
 }
 
 export interface AdminUserUpdatePayload {
