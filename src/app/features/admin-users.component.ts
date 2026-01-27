@@ -27,6 +27,8 @@ export class AdminUsersComponent implements OnInit {
   editingId = signal<number | null>(null);
   editSubmitting = signal(false);
   deleteSubmitting = signal<number | null>(null);
+  isEditingPrincipal = signal(false);
+  private editingAccessLevel = signal<'ADMIN' | 'GESTIONNAIRE' | 'PRINCIPAL' | null>(null);
 
   adminForm!: FormGroup;
   clientForm!: FormGroup;
@@ -164,7 +166,10 @@ export class AdminUsersComponent implements OnInit {
     if (!this.isAdminPrincipal && admin.niveauAcces !== 'GESTIONNAIRE') {
       return;
     }
+    const isPrincipalAccount = admin.niveauAcces === 'PRINCIPAL';
     this.editingId.set(adminId);
+    this.isEditingPrincipal.set(isPrincipalAccount);
+    this.editingAccessLevel.set(admin.niveauAcces);
     this.editForm.reset({
       email: admin.email ?? '',
       username: admin.username ?? '',
@@ -174,11 +179,20 @@ export class AdminUsersComponent implements OnInit {
     });
     if (!this.isAdminPrincipal) {
       this.editForm.get('niveauAcces')?.setValue('GESTIONNAIRE');
+      this.editForm.get('niveauAcces')?.disable({ emitEvent: false });
+    } else if (isPrincipalAccount) {
+      this.editForm.get('niveauAcces')?.disable({ emitEvent: false });
+    } else {
+      this.editForm.get('niveauAcces')?.enable({ emitEvent: false });
     }
   }
 
   cancelEdit() {
     this.editingId.set(null);
+    this.isEditingPrincipal.set(false);
+    if (this.isAdminPrincipal) {
+      this.editForm.get('niveauAcces')?.enable({ emitEvent: false });
+    }
   }
 
   submitEdit() {
@@ -193,7 +207,9 @@ export class AdminUsersComponent implements OnInit {
     }
     this.editSubmitting.set(true);
     const payload = this.editForm.getRawValue();
-    if (!this.isAdminPrincipal) {
+    if (this.isEditingPrincipal()) {
+      payload.niveauAcces = this.editingAccessLevel() ?? payload.niveauAcces;
+    } else if (!this.isAdminPrincipal) {
       payload.niveauAcces = 'GESTIONNAIRE';
     }
     this.adminUsers.updateAdmin(id, payload).subscribe({
@@ -374,13 +390,13 @@ export class AdminUsersComponent implements OnInit {
     return admin.id ?? admin.idAdministrateur ?? admin.idAdmin ?? admin.id_admin ?? null;
   }
 
-  private normalizeAccessLevel(level?: string | null): 'ADMIN' | 'GESTIONNAIRE' {
+  private normalizeAccessLevel(level?: string | null): 'ADMIN' | 'GESTIONNAIRE' | 'PRINCIPAL' {
     const raw = (level ?? '').toUpperCase();
     if (['GESTIONNAIRE', 'MANAGER', 'ROLE_MANAGER'].includes(raw)) {
       return 'GESTIONNAIRE';
     }
     if (['PRINCIPAL', 'ADMIN_PRINCIPAL', 'ROLE_ADMIN_PRINCIPAL'].includes(raw)) {
-      return 'ADMIN';
+      return 'PRINCIPAL';
     }
     return 'ADMIN';
   }

@@ -82,7 +82,11 @@
                   <p class="admin-users__meta">{{ admin.email }}</p>
                 </div>
                 <span class="admin-users__badge">
-                  {{ admin.niveauAcces === 'ADMIN' ? 'Sous-admin' : 'Gestionnaire' }}
+                  @if (admin.niveauAcces === 'PRINCIPAL') {
+                    Admin principal
+                  } @else {
+                    {{ admin.niveauAcces === 'ADMIN' ? 'Sous-admin' : 'Gestionnaire' }}
+                  }
                 </span>
               </div>
               <div class="admin-users__actions">
@@ -121,7 +125,8 @@
                     @if (isAdminPrincipal) {
                       <label>
                         <span>Niveau d'accès</span>
-                        <select formControlName="niveauAcces">
+                        <select formControlName="niveauAcces" [disabled]="isEditingPrincipal()">
+                          <option value="PRINCIPAL" [disabled]="true">Admin principal</option>
                           <option value="ADMIN">Administrateur</option>
                           <option value="GESTIONNAIRE">Gestionnaire</option>
                         </select>
