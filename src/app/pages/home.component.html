@@ -20,6 +20,48 @@
     </app-section-caroussel>
   </div>
 
+  <div class="home-section home-section--reviews">
+    <section class="home-avis">
+      <header class="home-avis__header">
+        <div>
+          <p class="home-avis__eyebrow">Avis clients</p>
+          <h2>Ils partagent leur expérience</h2>
+          <p class="home-avis__lead">
+            Retrouvez les derniers retours sur les services réalisés dans notre atelier.
+          </p>
+        </div>
+      </header>
+
+      @if (avisLoading) {
+        <p class="home-avis__state">Chargement des avis…</p>
+      } @else if (avisError) {
+        <p class="home-avis__state home-avis__state--error">
+          Impossible de charger les avis pour le moment.
+        </p>
+      } @else {
+        <div class="home-avis__grid">
+          @for (avis of latestAvis; track avis.idAvis) {
+            <article class="avis-card">
+              <header class="avis-card__header">
+                <app-rating-stars [rating]="avis.note" [showValue]="false"></app-rating-stars>
+                <span class="avis-card__service">{{ avis.serviceLibelle || 'Service' }}</span>
+              </header>
+              <p class="avis-card__comment">
+                {{ avis.commentaire || 'Avis sans commentaire.' }}
+              </p>
+              <footer class="avis-card__footer">
+                <span class="avis-card__client">{{ avis.clientNomPrenom || 'Client' }}</span>
+                <span class="avis-card__date">{{ avis.creeLe | date:'dd/MM/yyyy' }}</span>
+              </footer>
+            </article>
+          } @empty {
+            <p class="home-avis__state">Aucun avis disponible pour le moment.</p>
+          }
+        </div>
+      }
+    </section>
+  </div>
+
   <div class="home-section home-section--dark">
     <app-brands></app-brands>
   </div>

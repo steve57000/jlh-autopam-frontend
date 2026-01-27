@@ -11,6 +11,14 @@
   </span>
 
   <h3 class="service-title">{{ service.libelle }}</h3>
+  <div class="service-rating">
+    @if ((avisStats?.totalAvis ?? 0) > 0) {
+      <app-rating-stars [rating]="avisStats?.moyenneNote ?? 0" [showValue]="true"></app-rating-stars>
+      <span class="service-rating__count">({{ avisStats?.totalAvis ?? 0 }} avis)</span>
+    } @else {
+      <span class="service-rating__empty">Pas encore d'avis</span>
+    }
+  </div>
   <p class="service-description">
     {{ service.descriptionLongue || service.description }}
   </p>

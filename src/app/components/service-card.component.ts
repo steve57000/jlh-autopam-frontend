@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, ViewChild, ElementRef, inject } from '@angular/core';
+import { Component, HostBinding, Input, ViewChild, ElementRef, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FrCurrencyPipe } from '../pipes/fr-currency.pipe';
 import { ServiceDto } from '../modeles/service.model';
@@ -9,15 +9,18 @@ import { HasRoleDirective } from '../directives/has-role.directive';
 import { ToastService } from '../shared/toast/toast.service';
 import { AuthService } from '../services/auth.service';
 import { MediaUrlService } from '../services/media-url.service';
+import { AvisServicesService } from '../services/avis-services.service';
+import type { AvisServiceStatsDto } from '../modeles/avis-service.model';
+import { RatingStarsComponent } from '../shared/rating-stars/rating-stars.component';
 
 @Component({
   selector: 'app-service-card',
   standalone: true,
-  imports: [CommonModule, FrCurrencyPipe, HasRoleDirective],
+  imports: [CommonModule, FrCurrencyPipe, HasRoleDirective, RatingStarsComponent],
   templateUrl: './service-card.component.html',
   styleUrls: ['./service-card.component.scss']
 })
-export class ServiceCardComponent {
+export class ServiceCardComponent implements OnChanges {
   @Input() service!: ServiceDto;
   @Input() delay = 0;
   @Input() showAdd = false;
@@ -30,10 +33,35 @@ export class ServiceCardComponent {
   private toast        = inject(ToastService);
   private auth         = inject(AuthService);
   private mediaUrl     = inject(MediaUrlService);
+  private avisService  = inject(AvisServicesService);
+
+  avisStats: AvisServiceStatsDto | null = null;
+  private lastServiceId: number | null = null;
 
   @HostBinding('style.--delay') get cssDelay() { return `${this.delay}s`; }
   @HostBinding('style.animation-delay') get animationDelay() { return `var(--delay)`; }
   get iconUrl() { return this.mediaUrl.resolve(this.service?.iconUrl); }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['service']) {
+      const serviceId = this.service?.idService ?? null;
+      if (serviceId && serviceId !== this.lastServiceId) {
+        this.lastServiceId = serviceId;
+        this.loadAvisStats(serviceId);
+      }
+    }
+  }
+
+  private loadAvisStats(serviceId: number) {
+    this.avisService.getAvisStats(serviceId).subscribe({
+      next: stats => {
+        this.avisStats = stats;
+      },
+      error: () => {
+        this.avisStats = null;
+      }
+    });
+  }
 
   openConfirm() { this.dialogRef?.nativeElement.showModal(); }
   closeConfirm() { this.dialogRef?.nativeElement.close(); }

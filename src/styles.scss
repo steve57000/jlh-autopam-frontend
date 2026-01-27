@@ -137,6 +137,104 @@ a.cta-btn-secondary { text-align: center; }
   &:disabled { opacity:.6; cursor:not-allowed; box-shadow:none; &::before{display:none;} }
 }
 
+.client-dashboard {
+  .avis-section {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(v.$color-primary, 0.08);
+
+    h4 {
+      margin: 0 0 0.75rem;
+      font-family: v.$font-title;
+      color: v.$color-primary;
+    }
+  }
+
+  .avis-section__hint {
+    margin: 0;
+    color: rgba(v.$color-primary, 0.65);
+  }
+
+  .avis-section__list {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .avis-entry {
+    background: rgba(v.$color-primary, 0.03);
+    border-radius: 14px;
+    padding: 1rem;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .avis-entry__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    --star-empty: rgba(#{v.$color-primary}, 0.25);
+    --value-color: #{v.$color-primary};
+  }
+
+  .avis-entry__service {
+    font-weight: 600;
+    color: v.$color-primary;
+  }
+
+  .avis-entry__meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: rgba(v.$color-primary, 0.65);
+  }
+
+  .avis-entry__meta--empty {
+    color: rgba(v.$color-primary, 0.5);
+  }
+
+  .avis-entry__comment {
+    margin: 0;
+    color: rgba(v.$color-primary, 0.85);
+  }
+
+  .avis-form {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .avis-form__row {
+    display: grid;
+    gap: 0.35rem;
+
+    label {
+      font-size: 0.85rem;
+      color: rgba(v.$color-primary, 0.7);
+    }
+
+    select,
+    textarea {
+      border-radius: 10px;
+      border: 1px solid rgba(v.$color-primary, 0.15);
+      padding: 0.5rem 0.75rem;
+      font-family: v.$font-body;
+    }
+  }
+
+  .avis-form__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .avis-form__error {
+    font-size: 0.8rem;
+    color: v.$color-tertiary;
+  }
+}
+
 
 /* — Mobile : on limite l’anim coûteuse — */
 @media (hover: none) {
