@@ -384,4 +384,12 @@ export class AdminUsersComponent implements OnInit {
     }
     return 'ADMIN';
   }
+
+  private normalizeAccessLevel(level?: string | null): 'ADMIN' | 'GESTIONNAIRE' {
+    const raw = (level ?? '').toUpperCase();
+    if (['GESTIONNAIRE', 'MANAGER', 'ROLE_MANAGER'].includes(raw)) {
+      return 'GESTIONNAIRE';
+    }
+    return 'ADMIN';
+  }
 }
