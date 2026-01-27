@@ -12,7 +12,8 @@ export interface AdminUserPayload {
 }
 
 export interface AdminUserSummary {
-  id: number;
+  id?: number;
+  idAdministrateur?: number;
   email: string;
   username?: string | null;
   nom?: string | null;

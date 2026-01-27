@@ -1,7 +1,7 @@
 import { Component, computed, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AdminUsersService } from '../services/admin-users.service';
+import { AdminUserSummary, AdminUsersService } from '../services/admin-users.service';
 import { AdminClientsService } from '../services/admin-clients.service';
 import { ToastService } from '../shared/toast/toast.service';
 import { AuthService } from '../services/auth.service';
@@ -40,14 +40,7 @@ export class AdminUsersComponent implements OnInit {
   isBrandCustom = signal(false);
   isModelCustom = signal(false);
   readonly isAdminPrincipal: boolean;
-  readonly adminUsersList = signal<{
-    id: number;
-    email: string;
-    username?: string | null;
-    nom?: string | null;
-    prenom?: string | null;
-    niveauAcces: 'ADMIN' | 'GESTIONNAIRE';
-  }[]>([]);
+  readonly adminUsersList = signal<AdminUserSummary[]>([]);
   readonly visibleAdmins = computed(() => {
     const admins = this.adminUsersList();
     if (this.isAdminPrincipal) return admins;
@@ -162,11 +155,16 @@ export class AdminUsersComponent implements OnInit {
     });
   }
 
-  startEdit(admin: { id: number; email: string; username?: string | null; nom?: string | null; prenom?: string | null; niveauAcces: 'ADMIN' | 'GESTIONNAIRE' }) {
+  startEdit(admin: AdminUserSummary) {
+    const adminId = this.getAdminId(admin);
+    if (!adminId) {
+      this.toast.error('Échec de modification', 'Identifiant du compte introuvable.');
+      return;
+    }
     if (!this.isAdminPrincipal && admin.niveauAcces !== 'GESTIONNAIRE') {
       return;
     }
-    this.editingId.set(admin.id);
+    this.editingId.set(adminId);
     this.editForm.reset({
       email: admin.email ?? '',
       username: admin.username ?? '',
@@ -189,7 +187,10 @@ export class AdminUsersComponent implements OnInit {
       return;
     }
     const id = this.editingId();
-    if (!id) return;
+    if (!id) {
+      this.toast.error('Échec de modification', 'Identifiant du compte introuvable.');
+      return;
+    }
     this.editSubmitting.set(true);
     const payload = this.editForm.getRawValue();
     if (!this.isAdminPrincipal) {
@@ -210,7 +211,12 @@ export class AdminUsersComponent implements OnInit {
     });
   }
 
-  deleteAdmin(admin: { id: number; niveauAcces: 'ADMIN' | 'GESTIONNAIRE' }) {
+  deleteAdmin(admin: AdminUserSummary) {
+    const adminId = this.getAdminId(admin);
+    if (!adminId) {
+      this.toast.error('Échec de suppression', 'Identifiant du compte introuvable.');
+      return;
+    }
     if (!this.isAdminPrincipal && admin.niveauAcces !== 'GESTIONNAIRE') {
       return;
     }
@@ -218,8 +224,8 @@ export class AdminUsersComponent implements OnInit {
       ? window.confirm('Supprimer ce compte ? Cette action est irréversible.')
       : true;
     if (!confirmDelete) return;
-    this.deleteSubmitting.set(admin.id);
-    this.adminUsers.deleteAdmin(admin.id).subscribe({
+    this.deleteSubmitting.set(adminId);
+    this.adminUsers.deleteAdmin(adminId).subscribe({
       next: () => {
         this.toast.success('Compte supprimé.');
         this.deleteSubmitting.set(null);
@@ -340,7 +346,13 @@ export class AdminUsersComponent implements OnInit {
     this.adminListError.set(null);
     this.adminUsers.listAdmins().subscribe({
       next: (admins) => {
-        this.adminUsersList.set(admins ?? []);
+        const normalized = (admins ?? []).reduce<AdminUserSummary[]>((acc, admin) => {
+          const id = this.getAdminId(admin);
+          if (!id) return acc;
+          acc.push({ ...admin, id });
+          return acc;
+        }, []);
+        this.adminUsersList.set(normalized);
         this.adminListLoading.set(false);
       },
       error: (err) => {
@@ -349,5 +361,9 @@ export class AdminUsersComponent implements OnInit {
         this.adminListLoading.set(false);
       }
     });
+  }
+
+  private getAdminId(admin: AdminUserSummary): number | null {
+    return admin.id ?? admin.idAdministrateur ?? null;
   }
 }
