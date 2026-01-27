@@ -1,9 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AdminUsersService } from '../services/admin-users.service';
+import { AdminUserSummary, AdminUsersService } from '../services/admin-users.service';
 import { AdminClientsService } from '../services/admin-clients.service';
 import { ToastService } from '../shared/toast/toast.service';
+import { AuthService } from '../services/auth.service';
 import {
   VEHICLE_BRAND_OPTIONS,
   VEHICLE_MODEL_OPTIONS,
@@ -18,12 +19,18 @@ import { VEHICLE_ENERGY_OPTIONS } from '../shared/vehicle-energy-options';
   templateUrl: './admin-users.component.html',
   styleUrls: ['./admin-users.component.scss']
 })
-export class AdminUsersComponent {
+export class AdminUsersComponent implements OnInit {
   adminSubmitting = signal(false);
   clientSubmitting = signal(false);
+  adminListLoading = signal(false);
+  adminListError = signal<string | null>(null);
+  editingId = signal<number | null>(null);
+  editSubmitting = signal(false);
+  deleteSubmitting = signal<number | null>(null);
 
   adminForm!: FormGroup;
   clientForm!: FormGroup;
+  editForm!: FormGroup;
   vehicleBrandOptions = signal<{ value: string; label: string }[]>([...VEHICLE_BRAND_OPTIONS]);
   vehicleModelOptions = signal<{ value: string; label: string }[]>([]);
   private vehicleModelOptionsByBrand = signal<Record<string, { value: string; label: string }[]>>(
@@ -32,13 +39,22 @@ export class AdminUsersComponent {
   vehicleEnergyOptions = VEHICLE_ENERGY_OPTIONS;
   isBrandCustom = signal(false);
   isModelCustom = signal(false);
+  readonly isAdminPrincipal: boolean;
+  readonly adminUsersList = signal<AdminUserSummary[]>([]);
+  readonly visibleAdmins = computed(() => {
+    const admins = this.adminUsersList();
+    if (this.isAdminPrincipal) return admins;
+    return admins.filter(admin => admin.niveauAcces === 'GESTIONNAIRE');
+  });
 
   constructor(
     private fb: FormBuilder,
     private adminUsers: AdminUsersService,
     private adminClients: AdminClientsService,
-    private toast: ToastService
+    private toast: ToastService,
+    private auth: AuthService
   ) {
+    this.isAdminPrincipal = this.auth.isAdminPrincipal();
     this.adminForm = this.fb.nonNullable.group({
       email: ['', [Validators.required, Validators.email]],
       username: [''],
@@ -47,6 +63,11 @@ export class AdminUsersComponent {
       prenom: [''],
       niveauAcces: ['ADMIN', Validators.required]
     });
+
+    if (!this.isAdminPrincipal) {
+      this.adminForm.get('niveauAcces')?.setValue('GESTIONNAIRE');
+      this.adminForm.get('niveauAcces')?.disable({ emitEvent: false });
+    }
 
     this.clientForm = this.fb.nonNullable.group({
       nom: ['', Validators.required],
@@ -65,6 +86,18 @@ export class AdminUsersComponent {
       codePostal: ['', Validators.required],
       ville: ['', Validators.required]
     });
+
+    this.editForm = this.fb.nonNullable.group({
+      email: ['', [Validators.required, Validators.email]],
+      username: [''],
+      nom: [''],
+      prenom: [''],
+      niveauAcces: ['GESTIONNAIRE', Validators.required]
+    });
+
+    if (!this.isAdminPrincipal) {
+      this.editForm.get('niveauAcces')?.disable({ emitEvent: false });
+    }
 
     this.clientForm.get('vehiculeMarque')?.valueChanges.subscribe(value => {
       const isCustom = value === '__custom__';
@@ -90,6 +123,10 @@ export class AdminUsersComponent {
     });
   }
 
+  ngOnInit() {
+    this.loadAdmins();
+  }
+
   submitAdmin() {
     if (this.adminForm.invalid) {
       this.adminForm.markAllAsTouched();
@@ -97,16 +134,107 @@ export class AdminUsersComponent {
     }
     this.adminSubmitting.set(true);
     const payload = this.adminForm.getRawValue();
+    if (!this.isAdminPrincipal) {
+      payload.niveauAcces = 'GESTIONNAIRE';
+    }
     this.adminUsers.createAdmin(payload).subscribe({
       next: () => {
         this.toast.success('Compte administrateur créé.');
         this.adminForm.reset({ niveauAcces: 'ADMIN' });
+        if (!this.isAdminPrincipal) {
+          this.adminForm.get('niveauAcces')?.setValue('GESTIONNAIRE');
+        }
+        this.loadAdmins();
         this.adminSubmitting.set(false);
       },
       error: (err) => {
         const msg = err?.error?.message || 'Création impossible.';
         this.toast.error('Échec de création', msg);
         this.adminSubmitting.set(false);
+      }
+    });
+  }
+
+  startEdit(admin: AdminUserSummary) {
+    const adminId = this.getAdminId(admin);
+    if (!adminId) {
+      this.toast.error('Échec de modification', 'Identifiant du compte introuvable.');
+      return;
+    }
+    if (!this.isAdminPrincipal && admin.niveauAcces !== 'GESTIONNAIRE') {
+      return;
+    }
+    this.editingId.set(adminId);
+    this.editForm.reset({
+      email: admin.email ?? '',
+      username: admin.username ?? '',
+      nom: admin.nom ?? '',
+      prenom: admin.prenom ?? '',
+      niveauAcces: admin.niveauAcces
+    });
+    if (!this.isAdminPrincipal) {
+      this.editForm.get('niveauAcces')?.setValue('GESTIONNAIRE');
+    }
+  }
+
+  cancelEdit() {
+    this.editingId.set(null);
+  }
+
+  submitEdit() {
+    if (this.editForm.invalid) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
+    const id = this.editingId();
+    if (!id) {
+      this.toast.error('Échec de modification', 'Identifiant du compte introuvable.');
+      return;
+    }
+    this.editSubmitting.set(true);
+    const payload = this.editForm.getRawValue();
+    if (!this.isAdminPrincipal) {
+      payload.niveauAcces = 'GESTIONNAIRE';
+    }
+    this.adminUsers.updateAdmin(id, payload).subscribe({
+      next: () => {
+        this.toast.success('Compte mis à jour.');
+        this.editSubmitting.set(false);
+        this.editingId.set(null);
+        this.loadAdmins();
+      },
+      error: (err) => {
+        const msg = err?.error?.message || 'Mise à jour impossible.';
+        this.toast.error('Échec de mise à jour', msg);
+        this.editSubmitting.set(false);
+      }
+    });
+  }
+
+  deleteAdmin(admin: AdminUserSummary) {
+    const adminId = this.getAdminId(admin);
+    if (!adminId) {
+      this.toast.error('Échec de suppression', 'Identifiant du compte introuvable.');
+      return;
+    }
+    if (!this.isAdminPrincipal && admin.niveauAcces !== 'GESTIONNAIRE') {
+      return;
+    }
+    const confirmDelete = typeof window !== 'undefined'
+      ? window.confirm('Supprimer ce compte ? Cette action est irréversible.')
+      : true;
+    if (!confirmDelete) return;
+    this.deleteSubmitting.set(adminId);
+    this.adminUsers.deleteAdmin(adminId).subscribe({
+      next: () => {
+        this.toast.success('Compte supprimé.');
+        this.deleteSubmitting.set(null);
+        this.loadAdmins();
+      },
+      error: (err) => {
+        const msg = err?.error?.message || 'Suppression impossible.';
+        this.toast.error('Échec de suppression', msg);
+        this.deleteSubmitting.set(null);
       }
     });
   }
@@ -211,5 +339,31 @@ export class AdminUsersComponent {
 
   private getModelOptions(brand: string) {
     return this.vehicleModelOptionsByBrand()[brand as VehicleBrandValue] ?? [];
+  }
+
+  private loadAdmins() {
+    this.adminListLoading.set(true);
+    this.adminListError.set(null);
+    this.adminUsers.listAdmins().subscribe({
+      next: (admins) => {
+        const normalized = (admins ?? []).reduce<AdminUserSummary[]>((acc, admin) => {
+          const id = this.getAdminId(admin);
+          if (!id) return acc;
+          acc.push({ ...admin, id });
+          return acc;
+        }, []);
+        this.adminUsersList.set(normalized);
+        this.adminListLoading.set(false);
+      },
+      error: (err) => {
+        const msg = err?.error?.message || 'Impossible de charger les comptes.';
+        this.adminListError.set(msg);
+        this.adminListLoading.set(false);
+      }
+    });
+  }
+
+  private getAdminId(admin: AdminUserSummary): number | null {
+    return admin.id ?? admin.idAdministrateur ?? null;
   }
 }

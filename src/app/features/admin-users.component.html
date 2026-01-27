@@ -2,7 +2,11 @@
   <header class="admin-users__header">
     <div>
       <h2>Gestion des utilisateurs</h2>
-      <p>Créez des clients, des gestionnaires ou des administrateurs secondaires.</p>
+      @if (isAdminPrincipal) {
+        <p>Créez et administrez des gestionnaires et des sous-admins.</p>
+      } @else {
+        <p>Créez et administrez les comptes gestionnaires.</p>
+      }
     </div>
   </header>
 
@@ -34,18 +38,113 @@
             <span>Prénom</span>
             <input type="text" formControlName="prenom" />
           </label>
-          <label>
-            <span>Niveau d'accès</span>
-            <select formControlName="niveauAcces">
-              <option value="ADMIN">Administrateur</option>
-              <option value="GESTIONNAIRE">Gestionnaire</option>
-            </select>
-          </label>
+          @if (isAdminPrincipal) {
+            <label>
+              <span>Niveau d'accès</span>
+              <select formControlName="niveauAcces">
+                <option value="ADMIN">Administrateur</option>
+                <option value="GESTIONNAIRE">Gestionnaire</option>
+              </select>
+            </label>
+          } @else {
+            <label>
+              <span>Niveau d'accès</span>
+              <input type="text" value="Gestionnaire" disabled />
+            </label>
+          }
         </div>
         <button class="btn" type="submit" [disabled]="adminSubmitting()">
           @if (adminSubmitting()) { Création… } @else { Créer le compte interne }
         </button>
       </form>
+    </article>
+
+    <article class="card">
+      <header>
+        <p class="card__eyebrow">Comptes internes</p>
+        <h3>Administrer les accès</h3>
+      </header>
+      @if (adminListLoading()) {
+        <p class="admin-users__state">Chargement des comptes…</p>
+      } @else if (adminListError()) {
+        <p class="admin-users__state admin-users__state--error">{{ adminListError() }}</p>
+      } @else if (!visibleAdmins().length) {
+        <p class="admin-users__state">Aucun compte interne disponible.</p>
+      } @else {
+        <ul class="admin-users__list">
+          @for (admin of visibleAdmins(); track admin.id) {
+            <li class="admin-users__item">
+              <div class="admin-users__item-header">
+                <div>
+                  <p class="admin-users__name">
+                    {{ admin.prenom || 'Utilisateur' }} {{ admin.nom || '' }}
+                  </p>
+                  <p class="admin-users__meta">{{ admin.email }}</p>
+                </div>
+                <span class="admin-users__badge">
+                  {{ admin.niveauAcces === 'ADMIN' ? 'Sous-admin' : 'Gestionnaire' }}
+                </span>
+              </div>
+              <div class="admin-users__actions">
+                <button type="button" class="btn btn-outline" (click)="startEdit(admin)">
+                  Éditer
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-ghost"
+                  (click)="deleteAdmin(admin)"
+                  [disabled]="deleteSubmitting() === admin.id"
+                >
+                  @if (deleteSubmitting() === admin.id) { Suppression… } @else { Supprimer }
+                </button>
+              </div>
+
+              @if (editingId() === admin.id) {
+                <form class="admin-users__edit" [formGroup]="editForm" (ngSubmit)="submitEdit()" novalidate>
+                  <div class="form-grid">
+                    <label>
+                      <span>Email</span>
+                      <input type="email" formControlName="email" />
+                    </label>
+                    <label>
+                      <span>Nom d'utilisateur</span>
+                      <input type="text" formControlName="username" />
+                    </label>
+                    <label>
+                      <span>Nom</span>
+                      <input type="text" formControlName="nom" />
+                    </label>
+                    <label>
+                      <span>Prénom</span>
+                      <input type="text" formControlName="prenom" />
+                    </label>
+                    @if (isAdminPrincipal) {
+                      <label>
+                        <span>Niveau d'accès</span>
+                        <select formControlName="niveauAcces">
+                          <option value="ADMIN">Administrateur</option>
+                          <option value="GESTIONNAIRE">Gestionnaire</option>
+                        </select>
+                      </label>
+                    } @else {
+                      <label>
+                        <span>Niveau d'accès</span>
+                        <input type="text" value="Gestionnaire" disabled />
+                      </label>
+                    }
+                  </div>
+                  <div class="admin-users__actions">
+                    <button class="btn" type="submit" [disabled]="editSubmitting()">
+                      @if (editSubmitting()) { Mise à jour… } @else { Enregistrer }
+                    </button>
+                    <button type="button" class="btn btn-outline" (click)="cancelEdit()">Annuler</button>
+                  </div>
+                </form>
+              }
+            </li>
+          }
+        </ul>
+      }
     </article>
 
     <article class="card">
