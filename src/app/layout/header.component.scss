@@ -167,6 +167,16 @@
             transform-origin: center;
             transition: transform 0.2s ease;
           }
+
+          .nav-group__chevron {
+            display: inline-block;
+            width: 0.55rem;
+            height: 0.55rem;
+            border-right: 2px solid variables.$color-primary;
+            border-bottom: 2px solid variables.$color-primary;
+            transform: rotate(45deg);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+          }
         }
 
         &[open] summary,
@@ -182,6 +192,16 @@
         summary:hover::after,
         summary:focus-visible::after {
           transform: scaleX(1);
+        }
+
+        &[open] summary .nav-group__chevron {
+          transform: rotate(-135deg);
+          border-color: variables.$color-secondary;
+        }
+
+        summary:hover .nav-group__chevron,
+        summary:focus-visible .nav-group__chevron {
+          border-color: variables.$color-secondary;
         }
 
         summary:focus-visible {
@@ -275,18 +295,18 @@
         padding: 0.4rem;
       }
 
-      nav {
-        display: flex;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100dvh;
-        background: variables.$color-quaternary;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: clamp(4.5rem, 10vh, 6rem) clamp(1.5rem, 6vw, 3rem) clamp(2.5rem, 8vh, 4rem);
+        nav {
+          display: flex;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100dvh;
+          background: variables.$color-quaternary;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-start;
+          padding: clamp(6rem, 12vh, 7.5rem) clamp(1.5rem, 6vw, 3rem) clamp(2rem, 6vh, 3.5rem);
 
         /* état fermé */
         transform: translateY(-12px);
