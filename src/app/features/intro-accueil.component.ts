@@ -98,7 +98,8 @@ export class IntroAccueilComponent implements OnInit {
 
   private formatExceptionalLabel(hour: GarageHourDto): string {
     if (hour.exceptionalType === 'SINGLE_DAY') {
-      return hour.exceptionalDate ? `Exception ${hour.exceptionalDate}` : 'Exception ponctuelle';
+      const dateLabel = hour.exceptionalDate ? this.formatDayMonth(hour.exceptionalDate) : '';
+      return dateLabel ? `Exception ${dateLabel}` : 'Exception ponctuelle';
     }
 
     if (hour.exceptionalType === 'PERIOD') {
@@ -109,6 +110,12 @@ export class IntroAccueilComponent implements OnInit {
     }
 
     return 'Exception';
+  }
+
+  private formatDayMonth(value: string): string {
+    const [year, month, day] = value.split('-');
+    if (!month || !day) return value;
+    return `${day}/${month}`;
   }
 
   private formatSchedule(hour: GarageHourDto): string {
