@@ -99,7 +99,7 @@ export class IntroAccueilComponent implements OnInit {
 
   private formatExceptionalLabel(hour: GarageHourDto): string {
     if (hour.exceptionalType === 'SINGLE_DAY') {
-      const dateLabel = hour.exceptionalDate ? this.formatDayMonth(hour.exceptionalDate) : '';
+      const dateLabel = hour.exceptionalDate ? this.formatExceptionalDate(hour.exceptionalDate) : '';
       return dateLabel ? `Exception ${dateLabel}` : 'Exception ponctuelle';
     }
 
@@ -113,10 +113,17 @@ export class IntroAccueilComponent implements OnInit {
     return 'Exception';
   }
 
-  private formatDayMonth(value: string): string {
+  private formatExceptionalDate(value: string): string {
     const [year, month, day] = value.split('-');
     if (!month || !day) return value;
-    return `${day}/${month}`;
+    const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+    const formatter = new Intl.DateTimeFormat('fr-FR', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+    });
+    const formatted = formatter.format(date);
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
   }
 
   private formatSchedule(hour: GarageHourDto): string {
