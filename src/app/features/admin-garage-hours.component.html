@@ -7,6 +7,16 @@
     <button class="btn" type="button" (click)="openNew()" [disabled]="!isAdminPrincipal">Nouvel horaire</button>
   </header>
 
+  <div class="admin-hours__tips">
+    <p class="admin-hours__tips-title">Aide à la gestion des horaires</p>
+    <ul>
+      <li>Les horaires annuels définissent l’ouverture par jour de semaine.</li>
+      <li>Les exceptions remplacent temporairement l’horaire annuel (jour unique ou période).</li>
+      <li>Utilisez « Modifier » pour ajuster un créneau existant au lieu d’en créer un nouveau.</li>
+      <li>Le statut « Fermé » supprime automatiquement les heures affichées au public.</li>
+    </ul>
+  </div>
+
   @if (!isAdminPrincipal) {
     <p class="admin-hours__notice">Seul l’administrateur principal peut créer, modifier ou supprimer des horaires.</p>
   }
