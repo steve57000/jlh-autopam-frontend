@@ -187,6 +187,20 @@
         opacity: 0.96;
       }
     }
+
+    .horaires-exceptions__title {
+      margin-top: 0.7rem;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.75;
+    }
+
+    .horaires-exceptions {
+      span:first-child {
+        font-weight: 600;
+      }
+    }
   }
 }
 

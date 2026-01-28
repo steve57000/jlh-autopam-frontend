@@ -23,6 +23,7 @@ import { GarageHourDto } from '../modeles/garage-hours.model';
 })
 export class IntroAccueilComponent implements OnInit {
   annualHours: Array<{ dayLabel: string; schedule: string }> = [];
+  exceptionalHours: Array<{ label: string; schedule: string }> = [];
   loadingHours = false;
   hoursError = '';
 
@@ -57,7 +58,9 @@ export class IntroAccueilComponent implements OnInit {
     this.hoursError = '';
     this.hoursApi.listPublic().subscribe({
       next: list => {
-        this.annualHours = this.buildAnnualHours(list ?? []);
+        const hours = list ?? [];
+        this.annualHours = this.buildAnnualHours(hours);
+        this.exceptionalHours = this.buildExceptionalHours(hours);
         this.loadingHours = false;
       },
       error: err => {
@@ -77,6 +80,35 @@ export class IntroAccueilComponent implements OnInit {
       dayLabel: this.dayLabels[hour.dayOfWeek!] ?? hour.dayOfWeek!,
       schedule: this.formatSchedule(hour)
     }));
+  }
+
+  private buildExceptionalHours(list: GarageHourDto[]): Array<{ label: string; schedule: string }> {
+    const exceptional = list.filter(hour => hour.scope === 'EXCEPTIONAL');
+    const sorted = [...exceptional].sort((a, b) => {
+      const aKey = a.exceptionalStartDate ?? a.exceptionalDate ?? '';
+      const bKey = b.exceptionalStartDate ?? b.exceptionalDate ?? '';
+      return aKey.localeCompare(bKey);
+    });
+
+    return sorted.map(hour => ({
+      label: this.formatExceptionalLabel(hour),
+      schedule: this.formatSchedule(hour)
+    }));
+  }
+
+  private formatExceptionalLabel(hour: GarageHourDto): string {
+    if (hour.exceptionalType === 'SINGLE_DAY') {
+      return hour.exceptionalDate ? `Exception ${hour.exceptionalDate}` : 'Exception ponctuelle';
+    }
+
+    if (hour.exceptionalType === 'PERIOD') {
+      const start = hour.exceptionalStartDate ?? '??';
+      const end = hour.exceptionalEndDate ?? '??';
+      const label = hour.label ? ` (${hour.label})` : '';
+      return `Période ${start} → ${end}${label}`;
+    }
+
+    return 'Exception';
   }
 
   private formatSchedule(hour: GarageHourDto): string {
