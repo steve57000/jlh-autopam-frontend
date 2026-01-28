@@ -70,8 +70,8 @@
 .intro-content {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(820px, 1.2fr) minmax(320px, 1fr);
-  gap: clamp(18px, 3vw, 30px);
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(18px, 3vw, 28px);
   position: relative;
   margin-top: clamp(12px, 3vh, 24px);
   align-items: stretch;
@@ -97,6 +97,13 @@
     object-position: center;
     display: block;
   }
+}
+
+.intro-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(18px, 3vw, 28px);
+  align-items: stretch;
 }
 
 .intro-info {
@@ -195,6 +202,55 @@
 
   .cta-btn {
     width: fit-content;
+  }
+}
+
+.intro-map {
+  background: v.$color-secondary;
+  color: v.$color-quaternary;
+  border-radius: v.$border-radius-high;
+  box-shadow: v.$shadow-small;
+  padding: clamp(16px, 2.6vw, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &.in-view {
+    @include anim.fade-in-up(0.7s, ease-out, forwards, 30px);
+    animation-delay: 0.7s;
+  }
+}
+
+.intro-map__title {
+  font-family: v.$font-title;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.intro-map__frame {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(v.$color-quaternary, 0.08);
+  height: clamp(240px, 30vw, 320px);
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+}
+
+.intro-map__link {
+  color: v.$color-quaternary;
+  font-weight: 600;
+  text-decoration: underline;
+  width: fit-content;
+}
+
+@media (max-width: 980px) {
+  .intro-details {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
