@@ -92,7 +92,7 @@ export class IntroAccueilComponent implements OnInit {
 
     return sorted.map(hour => ({
       label: this.formatExceptionalLabel(hour),
-      schedule: this.formatSchedule(hour),
+      schedule: this.formatExceptionalSchedule(hour),
       description: hour.description ?? undefined
     }));
   }
@@ -100,17 +100,22 @@ export class IntroAccueilComponent implements OnInit {
   private formatExceptionalLabel(hour: GarageHourDto): string {
     if (hour.exceptionalType === 'SINGLE_DAY') {
       const dateLabel = hour.exceptionalDate ? this.formatExceptionalDate(hour.exceptionalDate) : '';
-      return dateLabel ? `Exception ${dateLabel}` : 'Exception ponctuelle';
+      return dateLabel || 'Date exceptionnelle';
     }
 
     if (hour.exceptionalType === 'PERIOD') {
-      const start = hour.exceptionalStartDate ?? '??';
-      const end = hour.exceptionalEndDate ?? '??';
-      const label = hour.label ? ` (${hour.label})` : '';
-      return `Période ${start} → ${end}${label}`;
+      const start = hour.exceptionalStartDate
+        ? this.formatExceptionalDate(hour.exceptionalStartDate)
+        : '??';
+      const end = hour.exceptionalEndDate ? this.formatExceptionalDate(hour.exceptionalEndDate) : '??';
+      return `Du ${start} au ${end}`;
     }
 
     return 'Exception';
+  }
+
+  private formatExceptionalSchedule(hour: GarageHourDto): string {
+    return hour.status === 'CLOSED' ? 'Fermé' : 'Ouvert';
   }
 
   private formatExceptionalDate(value: string): string {
