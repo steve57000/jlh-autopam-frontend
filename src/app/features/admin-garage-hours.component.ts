@@ -92,14 +92,16 @@ export class AdminGarageHoursComponent implements OnInit {
     this.errorMsg = '';
     this.hoursApi.listPublic().subscribe({
       next: list => {
-        this.hours = (list ?? []).sort((a, b) => {
-          if (a.scope === 'ANNUAL' && b.scope === 'ANNUAL') {
-            return this.dayOrder.indexOf(a.dayOfWeek ?? '') - this.dayOrder.indexOf(b.dayOfWeek ?? '');
-          }
-          if (a.scope === 'ANNUAL') return -1;
-          if (b.scope === 'ANNUAL') return 1;
-          return 0;
-        });
+        this.hours = (list ?? [])
+          .map(hour => ({ ...hour, id: this.resolveId(hour) }))
+          .sort((a, b) => {
+            if (a.scope === 'ANNUAL' && b.scope === 'ANNUAL') {
+              return this.dayOrder.indexOf(a.dayOfWeek ?? '') - this.dayOrder.indexOf(b.dayOfWeek ?? '');
+            }
+            if (a.scope === 'ANNUAL') return -1;
+            if (b.scope === 'ANNUAL') return 1;
+            return 0;
+          });
         this.loading = false;
       },
       error: err => {
@@ -225,7 +227,7 @@ export class AdminGarageHoursComponent implements OnInit {
   }
 
   getGarageHourId(hour: GarageHourDto): number | null {
-    return hour.id ?? null;
+    return this.resolveId(hour) ?? null;
   }
 
   formatHourLabel(hour: GarageHourDto): string {
@@ -440,5 +442,9 @@ export class AdminGarageHoursComponent implements OnInit {
     if (!value) return 0;
     const [hours, minutes] = value.split(':').map(Number);
     return (hours || 0) * 60 + (minutes || 0);
+  }
+
+  private resolveId(hour: GarageHourDto): number | undefined {
+    return hour.id ?? hour.idGarageHour ?? hour.id_garage_hour ?? undefined;
   }
 }

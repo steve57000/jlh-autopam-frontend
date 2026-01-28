@@ -5,6 +5,8 @@ export type GarageHourExceptionalType = 'SINGLE_DAY' | 'PERIOD';
 
 export interface GarageHourDto {
   id?: number;
+  idGarageHour?: number;
+  id_garage_hour?: number;
   scope: GarageHourScope;
   status: GarageHourStatus;
   openingType?: GarageHourOpeningType | null;
