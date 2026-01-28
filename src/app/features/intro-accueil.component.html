@@ -38,11 +38,17 @@
                 <p class="horaires-state">Chargement des horaires…</p>
               } @else if (hoursError) {
                 <p class="horaires-state horaires-state--error">{{ hoursError }}</p>
-              } @else if (!annualHours.length) {
+              } @else if (!annualHours.length && !exceptionalHours.length) {
                 <p class="horaires-state">Horaires indisponibles pour le moment.</p>
               } @else {
                 @for (hour of annualHours; track hour.dayLabel) {
                   <div><span>{{ hour.dayLabel }}</span><span>{{ hour.schedule }}</span></div>
+                }
+                @if (exceptionalHours.length) {
+                  <div class="horaires-exceptions__title">Exceptions</div>
+                  @for (hour of exceptionalHours; track hour.label) {
+                    <div class="horaires-exceptions"><span>{{ hour.label }}</span><span>{{ hour.schedule }}</span></div>
+                  }
                 }
               }
             </div>

@@ -166,6 +166,16 @@ export class AdminGarageHoursComponent implements OnInit {
     }
 
     const payload = this.buildPayload();
+    if (!this.editingHour) {
+      const existing = this.findExistingHour(payload);
+      if (existing) {
+        this.toast.error(
+          'Horaire déjà existant',
+          "Un horaire correspondant est déjà enregistré. Utilisez l'option Modifier."
+        );
+        return;
+      }
+    }
     if (this.editingHour) {
       const id = this.getGarageHourId(this.editingHour);
       if (!id) {
@@ -193,7 +203,10 @@ export class AdminGarageHoursComponent implements OnInit {
         this.loadAll();
       },
       error: err => {
-        const msg = err?.error?.message || err.message || 'Échec de la sauvegarde.';
+        const msg =
+          err?.status === 409
+            ? "Un horaire similaire existe déjà. Utilisez l'option Modifier."
+            : err?.error?.message || err.message || 'Échec de la sauvegarde.';
         this.toast.error('Erreur', msg);
       }
     });
@@ -449,6 +462,42 @@ export class AdminGarageHoursComponent implements OnInit {
     }
 
     return payload;
+  }
+
+  private findExistingHour(payload: GarageHourPayload): GarageHourDto | null {
+    if (payload.scope === 'ANNUAL') {
+      return (
+        this.hours.find(
+          hour => hour.scope === 'ANNUAL' && hour.dayOfWeek === payload.dayOfWeek
+        ) ?? null
+      );
+    }
+
+    if (payload.exceptionalType === 'SINGLE_DAY') {
+      return (
+        this.hours.find(
+          hour =>
+            hour.scope === 'EXCEPTIONAL' &&
+            hour.exceptionalType === 'SINGLE_DAY' &&
+            hour.exceptionalDate === payload.exceptionalDate
+        ) ?? null
+      );
+    }
+
+    if (payload.exceptionalType === 'PERIOD') {
+      return (
+        this.hours.find(
+          hour =>
+            hour.scope === 'EXCEPTIONAL' &&
+            hour.exceptionalType === 'PERIOD' &&
+            hour.exceptionalStartDate === payload.exceptionalStartDate &&
+            hour.exceptionalEndDate === payload.exceptionalEndDate &&
+            hour.label === payload.label
+        ) ?? null
+      );
+    }
+
+    return null;
   }
 
   private formatTime(value?: string | null): string {
