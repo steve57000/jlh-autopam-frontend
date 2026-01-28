@@ -408,6 +408,17 @@ export class AdminGarageHoursComponent implements OnInit {
     const payload: GarageHourPayload = {
       scope: value.scope,
       status: value.status,
+      dayOfWeek: null,
+      exceptionalType: null,
+      exceptionalDate: null,
+      exceptionalStartDate: null,
+      exceptionalEndDate: null,
+      label: null,
+      openingType: null,
+      startTime: null,
+      endTime: null,
+      startTime2: null,
+      endTime2: null,
     };
 
     if (value.scope === 'ANNUAL') {
@@ -431,6 +442,9 @@ export class AdminGarageHoursComponent implements OnInit {
       if (value.openingType === 'SPLIT') {
         payload.startTime2 = this.toApiTime(value.startTime2);
         payload.endTime2 = this.toApiTime(value.endTime2);
+      } else {
+        payload.startTime2 = null;
+        payload.endTime2 = null;
       }
     }
 

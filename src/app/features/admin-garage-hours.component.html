@@ -127,11 +127,11 @@
 
             <div class="hours-modal__grid">
               <label class="hours-modal__field">
-                <span>Début (matin)</span>
+                <span>{{ form.value.openingType === 'SPLIT' ? 'Début (matin)' : 'Début' }}</span>
                 <input type="time" formControlName="startTime" />
               </label>
               <label class="hours-modal__field">
-                <span>Fin (matin)</span>
+                <span>{{ form.value.openingType === 'SPLIT' ? 'Fin (matin)' : 'Fin' }}</span>
                 <input type="time" formControlName="endTime" />
               </label>
             </div>
