@@ -34,13 +34,17 @@
             </div>
             <hr>
             <div class="horaires-table">
-              <div><span>Lundi</span><span>08h30-12h00 et 13h30-18h00</span></div>
-              <div><span>Mardi</span><span>08h30-12h00 et 13h30-18h00</span></div>
-              <div><span>Mercredi</span><span>08h30-12h00 et 13h30-18h00</span></div>
-              <div><span>Jeudi</span><span>08h30-12h00 et 13h30-18h00</span></div>
-              <div><span>Vendredi</span><span>08h30-12h00 et 13h30-18h00</span></div>
-              <div><span>Samedi</span><span>Fermé</span></div>
-              <div><span>Dimanche</span><span>Fermé</span></div>
+              @if (loadingHours) {
+                <p class="horaires-state">Chargement des horaires…</p>
+              } @else if (hoursError) {
+                <p class="horaires-state horaires-state--error">{{ hoursError }}</p>
+              } @else if (!annualHours.length) {
+                <p class="horaires-state">Horaires indisponibles pour le moment.</p>
+              } @else {
+                @for (hour of annualHours; track hour.dayLabel) {
+                  <div><span>{{ hour.dayLabel }}</span><span>{{ hour.schedule }}</span></div>
+                }
+              }
             </div>
           </div>
         </div>

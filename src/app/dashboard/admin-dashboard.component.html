@@ -13,6 +13,9 @@
       <a class="btn btn-outline" routerLink="/admin/utilisateurs">
         @if (isAdminPrincipal) { Gérer les administrateurs } @else { Gérer les gestionnaires }
       </a>
+      @if (isAdminPrincipal) {
+        <a class="btn btn-outline" routerLink="/admin/horaires">Gérer les horaires</a>
+      }
     </div>
   </header>
 
