@@ -170,6 +170,16 @@
     gap: 0.2rem;
     font-size: 0.96rem;
 
+    .horaires-state {
+      margin: 0.25rem 0 0;
+      opacity: 0.85;
+    }
+
+    .horaires-state--error {
+      opacity: 1;
+      color: #ffb4b4;
+    }
+
     div {
       display: flex;
       justify-content: space-between;

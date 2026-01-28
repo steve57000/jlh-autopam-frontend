@@ -7,6 +7,7 @@ import { AdminPromotionsComponent } from './features/admin-promotions.component'
 import { AdminClientsComponent } from './features/admin-clients.component';
 import { AdminServiceIconsComponent } from './features/admin-service-icons.component';
 import { AdminUsersComponent } from './features/admin-users.component';
+import { AdminGarageHoursComponent } from './features/admin-garage-hours.component';
 import { AdminGuard } from './guards/admin.guard';
 
 export const adminRoutes: Routes = [
@@ -49,6 +50,11 @@ export const adminRoutes: Routes = [
         path: 'promotions',
         component: AdminPromotionsComponent,
         data: { title: 'Promotions' },
+      },
+      {
+        path: 'horaires',
+        component: AdminGarageHoursComponent,
+        data: { title: 'Horaires du garage' },
       },
     ],
   },
