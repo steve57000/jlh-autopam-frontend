@@ -115,6 +115,16 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
     color: v.$color-secondary;
   }
 
+  &-outline--hours {
+    border-color: rgba(v.$color-tertiary, 0.45);
+    color: v.$color-tertiary;
+    background: rgba(v.$color-tertiary, 0.08);
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 12px 24px rgba(v.$color-tertiary, 0.2);
+    }
+  }
+
   &-ghost {
     background: transparent;
     color: v.$color-secondary;
