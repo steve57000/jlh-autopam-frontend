@@ -16,17 +16,24 @@
     border: 1px solid rgba(vars.$color-quaternary, 0.1);
   }
 
+  @media (min-width: 900px) {
+    .contact-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
   .contact-card--map {
     display: flex;
     flex-direction: column;
     gap: 0.9rem;
+    grid-column: 1 / -1;
   }
 
   .contact-map {
     border-radius: 16px;
     overflow: hidden;
     border: 1px solid rgba(vars.$color-quaternary, 0.08);
-    height: clamp(220px, 30vw, 300px);
+    height: clamp(260px, 32vw, 360px);
 
     iframe {
       width: 100%;
