@@ -62,6 +62,7 @@ export class AdminGarageHoursComponent implements OnInit {
         exceptionalDate: [''],
         exceptionalStartDate: [''],
         exceptionalEndDate: [''],
+        description: [''],
         label: [''],
         startTime: [''],
         endTime: [''],
@@ -123,6 +124,7 @@ export class AdminGarageHoursComponent implements OnInit {
       exceptionalDate: '',
       exceptionalStartDate: '',
       exceptionalEndDate: '',
+      description: '',
       label: '',
       startTime: '',
       endTime: '',
@@ -144,6 +146,7 @@ export class AdminGarageHoursComponent implements OnInit {
       exceptionalDate: hour.exceptionalDate ?? '',
       exceptionalStartDate: hour.exceptionalStartDate ?? '',
       exceptionalEndDate: hour.exceptionalEndDate ?? '',
+      description: hour.description ?? '',
       label: hour.label ?? '',
       startTime: this.toInputTime(hour.startTime),
       endTime: this.toInputTime(hour.endTime),
@@ -311,6 +314,7 @@ export class AdminGarageHoursComponent implements OnInit {
     const exceptionalStartDate = this.form.get('exceptionalStartDate');
     const exceptionalEndDate = this.form.get('exceptionalEndDate');
     const label = this.form.get('label');
+    const description = this.form.get('description');
     const openingTypeCtrl = this.form.get('openingType');
     const startTime = this.form.get('startTime');
     const endTime = this.form.get('endTime');
@@ -324,6 +328,7 @@ export class AdminGarageHoursComponent implements OnInit {
       exceptionalStartDate?.clearValidators();
       exceptionalEndDate?.clearValidators();
       label?.clearValidators();
+      description?.clearValidators();
     } else {
       dayOfWeek?.clearValidators();
       exceptionalTypeCtrl?.setValidators([Validators.required]);
@@ -339,6 +344,7 @@ export class AdminGarageHoursComponent implements OnInit {
         exceptionalEndDate?.setValidators([Validators.required]);
         label?.setValidators([Validators.required]);
       }
+      description?.clearValidators();
     }
 
     if (status === 'OPEN') {
@@ -367,6 +373,7 @@ export class AdminGarageHoursComponent implements OnInit {
     exceptionalStartDate?.updateValueAndValidity({ emitEvent: false });
     exceptionalEndDate?.updateValueAndValidity({ emitEvent: false });
     label?.updateValueAndValidity({ emitEvent: false });
+    description?.updateValueAndValidity({ emitEvent: false });
     openingTypeCtrl?.updateValueAndValidity({ emitEvent: false });
     startTime?.updateValueAndValidity({ emitEvent: false });
     endTime?.updateValueAndValidity({ emitEvent: false });
@@ -426,6 +433,7 @@ export class AdminGarageHoursComponent implements OnInit {
       exceptionalDate: null,
       exceptionalStartDate: null,
       exceptionalEndDate: null,
+      description: null,
       label: null,
       openingType: null,
       startTime: null,
@@ -445,6 +453,7 @@ export class AdminGarageHoursComponent implements OnInit {
         payload.exceptionalEndDate = value.exceptionalEndDate || null;
         payload.label = value.label || null;
       }
+      payload.description = value.description || null;
     }
 
     if (value.status === 'OPEN') {
