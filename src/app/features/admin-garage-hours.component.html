@@ -30,6 +30,9 @@
           </span>
         </div>
         <p class="admin-hours__schedule">{{ formatSchedule(hour) }}</p>
+        @if (hour.scope === 'EXCEPTIONAL' && hour.description) {
+          <p class="admin-hours__description">{{ hour.description }}</p>
+        }
         <div class="admin-hours__actions">
           <button type="button" class="btn btn-outline" (click)="openEdit(hour)" [disabled]="!isAdminPrincipal">Modifier</button>
           <button type="button" class="btn btn-ghost danger" (click)="confirmDelete(hour)" [disabled]="!isAdminPrincipal">Supprimer</button>
