@@ -95,6 +95,10 @@
                 <span>Date</span>
                 <input type="date" formControlName="exceptionalDate" />
               </label>
+              <label class="hours-modal__field">
+                <span>Description (facultatif)</span>
+                <input type="text" formControlName="description" placeholder="Ex: Fête locale" />
+              </label>
             } @else {
               <div class="hours-modal__grid">
                 <label class="hours-modal__field">
@@ -109,6 +113,10 @@
               <label class="hours-modal__field">
                 <span>Libellé</span>
                 <input type="text" formControlName="label" placeholder="Ex: Horaires été" />
+              </label>
+              <label class="hours-modal__field">
+                <span>Description (facultatif)</span>
+                <input type="text" formControlName="description" placeholder="Ex: Fermeture exceptionnelle" />
               </label>
               @if (form.errors?.['periodOrder']) {
                 <p class="hours-modal__error">La date de fin doit être postérieure ou égale à la date de début.</p>

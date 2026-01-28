@@ -47,7 +47,14 @@
                 @if (exceptionalHours.length) {
                   <div class="horaires-exceptions__title">Exceptions</div>
                   @for (hour of exceptionalHours; track hour.label) {
-                    <div class="horaires-exceptions"><span>{{ hour.label }}</span><span>{{ hour.schedule }}</span></div>
+                    <div class="horaires-exceptions">
+                      <div class="horaires-exceptions__main">
+                        <span>{{ hour.label }}</span><span>{{ hour.schedule }}</span>
+                      </div>
+                      @if (hour.description) {
+                        <div class="horaires-exceptions__description">{{ hour.description }}</div>
+                      }
+                    </div>
                   }
                 }
               }

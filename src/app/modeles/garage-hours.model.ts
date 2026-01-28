@@ -19,6 +19,7 @@ export interface GarageHourDto {
   exceptionalDate?: string | null;
   exceptionalStartDate?: string | null;
   exceptionalEndDate?: string | null;
+  description?: string | null;
   label?: string | null;
   startTime?: string | null;
   endTime?: string | null;

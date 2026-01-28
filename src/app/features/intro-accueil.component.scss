@@ -197,6 +197,20 @@
     }
 
     .horaires-exceptions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+
+      &__main {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      &__description {
+        font-size: 0.85rem;
+        opacity: 0.85;
+      }
+
       span:first-child {
         font-weight: 600;
       }
