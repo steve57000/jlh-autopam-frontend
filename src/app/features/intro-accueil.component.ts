@@ -23,7 +23,7 @@ import { GarageHourDto } from '../modeles/garage-hours.model';
 })
 export class IntroAccueilComponent implements OnInit {
   annualHours: Array<{ dayLabel: string; schedule: string }> = [];
-  exceptionalHours: Array<{ label: string; schedule: string }> = [];
+  exceptionalHours: Array<{ label: string; schedule: string; description?: string }> = [];
   loadingHours = false;
   hoursError = '';
 
@@ -82,7 +82,7 @@ export class IntroAccueilComponent implements OnInit {
     }));
   }
 
-  private buildExceptionalHours(list: GarageHourDto[]): Array<{ label: string; schedule: string }> {
+  private buildExceptionalHours(list: GarageHourDto[]): Array<{ label: string; schedule: string; description?: string }> {
     const exceptional = list.filter(hour => hour.scope === 'EXCEPTIONAL');
     const sorted = [...exceptional].sort((a, b) => {
       const aKey = a.exceptionalStartDate ?? a.exceptionalDate ?? '';
@@ -92,7 +92,8 @@ export class IntroAccueilComponent implements OnInit {
 
     return sorted.map(hour => ({
       label: this.formatExceptionalLabel(hour),
-      schedule: this.formatSchedule(hour)
+      schedule: this.formatSchedule(hour),
+      description: hour.description ?? undefined
     }));
   }
 
