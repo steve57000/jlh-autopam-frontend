@@ -166,13 +166,29 @@ export class AdminGarageHoursComponent implements OnInit {
     }
 
     const payload = this.buildPayload();
-    const obs$ = this.editingHour
-      ? this.hoursApi.update(this.getGarageHourId(this.editingHour)!, payload)
-      : this.hoursApi.create(payload);
+    if (this.editingHour) {
+      const id = this.getGarageHourId(this.editingHour);
+      if (!id) {
+        this.toast.error('Erreur', 'Identifiant introuvable pour cet horaire.');
+        return;
+      }
+      this.hoursApi.update(id, payload).subscribe({
+        next: () => {
+          this.toast.success('Horaire mis à jour.');
+          this.closeModal();
+          this.loadAll();
+        },
+        error: err => {
+          const msg = err?.error?.message || err.message || 'Échec de la sauvegarde.';
+          this.toast.error('Erreur', msg);
+        }
+      });
+      return;
+    }
 
-    obs$.subscribe({
+    this.hoursApi.create(payload).subscribe({
       next: () => {
-        this.toast.success(this.editingHour ? 'Horaire mis à jour.' : 'Horaire créé.');
+        this.toast.success('Horaire créé.');
         this.closeModal();
         this.loadAll();
       },
@@ -445,6 +461,25 @@ export class AdminGarageHoursComponent implements OnInit {
   }
 
   private resolveId(hour: GarageHourDto): number | undefined {
-    return hour.id ?? hour.idGarageHour ?? hour.id_garage_hour ?? undefined;
+    const direct =
+      hour.id ??
+      hour.idGarageHour ??
+      hour.idGarageHours ??
+      hour.id_garage_hour ??
+      hour.id_garage_hours ??
+      hour.idHoraire ??
+      hour.id_horaire;
+
+    if (typeof direct === 'number') {
+      return direct;
+    }
+
+    for (const [key, value] of Object.entries(hour)) {
+      if (typeof value === 'number' && key.toLowerCase().startsWith('id')) {
+        return value;
+      }
+    }
+
+    return undefined;
   }
 }
