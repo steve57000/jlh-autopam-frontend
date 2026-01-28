@@ -1,0 +1,187 @@
+<section class="admin-hours">
+  <header class="admin-hours__header">
+    <div>
+      <h2 class="admin-hours__title">Horaires du garage</h2>
+      <p class="admin-hours__lead">Configurez les horaires annuels et les exceptions (jours fériés, périodes spéciales).</p>
+    </div>
+    <button class="btn" type="button" (click)="openNew()" [disabled]="!isAdminPrincipal">Nouvel horaire</button>
+  </header>
+
+  @if (!isAdminPrincipal) {
+    <p class="admin-hours__notice">Seul l’administrateur principal peut créer, modifier ou supprimer des horaires.</p>
+  }
+
+  @if (loading) {
+    <p class="admin-hours__state">Chargement…</p>
+  } @else if (errorMsg) {
+    <p class="admin-hours__state admin-hours__state--error">{{ errorMsg }}</p>
+  }
+
+  <div class="admin-hours__list" role="list">
+    @for (hour of hours; track getGarageHourId(hour) ?? $index) {
+      <article class="admin-hours__card" role="listitem">
+        <div class="admin-hours__card-header">
+          <div>
+            <h3>{{ formatHourLabel(hour) }}</h3>
+            <p class="admin-hours__meta">{{ hour.scope === 'ANNUAL' ? 'Horaire annuel' : 'Exception' }}</p>
+          </div>
+          <span class="admin-hours__badge" [class.is-closed]="hour.status === 'CLOSED'">
+            {{ hour.status === 'CLOSED' ? 'Fermé' : 'Ouvert' }}
+          </span>
+        </div>
+        <p class="admin-hours__schedule">{{ formatSchedule(hour) }}</p>
+        <div class="admin-hours__actions">
+          <button type="button" class="btn btn-outline" (click)="openEdit(hour)" [disabled]="!isAdminPrincipal">Modifier</button>
+          <button type="button" class="btn btn-ghost danger" (click)="confirmDelete(hour)" [disabled]="!isAdminPrincipal">Supprimer</button>
+        </div>
+      </article>
+    }
+  </div>
+
+  @if (!loading && !hours.length) {
+    <p class="admin-hours__state">Aucun horaire enregistré.</p>
+  }
+
+  @if (showModal) {
+    <div class="modal-bg" role="presentation">
+      <div class="hours-modal" role="dialog" aria-modal="true" aria-labelledby="hours-modal-title">
+        <div class="hours-modal__header">
+          <h3 id="hours-modal-title">{{ editingHour ? 'Modifier' : 'Ajouter' }} un horaire</h3>
+          <button type="button" class="hours-modal__close" aria-label="Fermer la fenêtre" (click)="closeModal()">×</button>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <div class="hours-modal__grid">
+            <label class="hours-modal__field">
+              <span>Scope</span>
+              <select formControlName="scope">
+                <option value="ANNUAL">Annuel</option>
+                <option value="EXCEPTIONAL">Exception</option>
+              </select>
+            </label>
+            <label class="hours-modal__field">
+              <span>Statut</span>
+              <select formControlName="status">
+                <option value="OPEN">Ouvert</option>
+                <option value="CLOSED">Fermé</option>
+              </select>
+            </label>
+          </div>
+
+          @if (form.value.scope === 'ANNUAL') {
+            <label class="hours-modal__field">
+              <span>Jour de la semaine</span>
+              <select formControlName="dayOfWeek">
+                <option value="MONDAY">Lundi</option>
+                <option value="TUESDAY">Mardi</option>
+                <option value="WEDNESDAY">Mercredi</option>
+                <option value="THURSDAY">Jeudi</option>
+                <option value="FRIDAY">Vendredi</option>
+                <option value="SATURDAY">Samedi</option>
+                <option value="SUNDAY">Dimanche</option>
+              </select>
+            </label>
+          } @else {
+            <label class="hours-modal__field">
+              <span>Type d’exception</span>
+              <select formControlName="exceptionalType">
+                <option value="SINGLE_DAY">Jour unique</option>
+                <option value="PERIOD">Période</option>
+              </select>
+            </label>
+
+            @if (form.value.exceptionalType === 'SINGLE_DAY') {
+              <label class="hours-modal__field">
+                <span>Date</span>
+                <input type="date" formControlName="exceptionalDate" />
+              </label>
+            } @else {
+              <div class="hours-modal__grid">
+                <label class="hours-modal__field">
+                  <span>Début</span>
+                  <input type="date" formControlName="exceptionalStartDate" />
+                </label>
+                <label class="hours-modal__field">
+                  <span>Fin</span>
+                  <input type="date" formControlName="exceptionalEndDate" />
+                </label>
+              </div>
+              <label class="hours-modal__field">
+                <span>Libellé</span>
+                <input type="text" formControlName="label" placeholder="Ex: Horaires été" />
+              </label>
+              @if (form.errors?.['periodOrder']) {
+                <p class="hours-modal__error">La date de fin doit être postérieure ou égale à la date de début.</p>
+              }
+            }
+          }
+
+          @if (form.value.status === 'OPEN') {
+            <label class="hours-modal__field">
+              <span>Type d’ouverture</span>
+              <select formControlName="openingType">
+                <option value="CONTINUOUS">Continu</option>
+                <option value="SPLIT">Coupure</option>
+              </select>
+            </label>
+
+            <div class="hours-modal__grid">
+              <label class="hours-modal__field">
+                <span>Début (matin)</span>
+                <input type="time" formControlName="startTime" />
+              </label>
+              <label class="hours-modal__field">
+                <span>Fin (matin)</span>
+                <input type="time" formControlName="endTime" />
+              </label>
+            </div>
+
+            @if (form.value.openingType === 'SPLIT') {
+              <div class="hours-modal__grid">
+                <label class="hours-modal__field">
+                  <span>Début (après-midi)</span>
+                  <input type="time" formControlName="startTime2" />
+                </label>
+                <label class="hours-modal__field">
+                  <span>Fin (après-midi)</span>
+                  <input type="time" formControlName="endTime2" />
+                </label>
+              </div>
+            }
+
+            @if (form.errors?.['timeOrder']) {
+              <p class="hours-modal__error">L’heure de fin doit être après l’heure de début.</p>
+            }
+            @if (form.errors?.['timeOrderSplit']) {
+              <p class="hours-modal__error">Les horaires de l’après-midi doivent être cohérents.</p>
+            }
+          }
+
+          @if (form.errors?.['closedHasTimes']) {
+            <p class="hours-modal__error">Aucun horaire ne doit être renseigné si le garage est fermé.</p>
+          }
+
+          <div class="hours-modal__actions">
+            <button class="btn" type="submit" [disabled]="form.invalid || !isAdminPrincipal">
+              {{ editingHour ? 'Mettre à jour' : 'Créer' }}
+            </button>
+            <button type="button" class="btn btn-ghost" (click)="closeModal()">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (showDeleteModal) {
+    <div class="modal-bg" role="presentation">
+      <div class="hours-modal hours-modal--confirm" role="alertdialog" aria-modal="true" aria-labelledby="hours-confirm-title">
+        <h3 id="hours-confirm-title">Supprimer l’horaire</h3>
+        <p>Voulez-vous supprimer cet horaire ?</p>
+        <div class="hours-modal__actions">
+          <button type="button" class="btn btn-ghost danger" (click)="doDelete()" [disabled]="!isAdminPrincipal">Supprimer</button>
+          <button type="button" class="btn btn-outline" (click)="cancelDelete()">Annuler</button>
+        </div>
+      </div>
+    </div>
+  }
+</section>
