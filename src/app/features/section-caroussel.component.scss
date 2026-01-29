@@ -199,10 +199,10 @@
 @media (max-width: 660px) {
   .carousel-section {
     .carousel-card {
-      width: 320px;
-      padding: 16px;
+      width: min(360px, 88vw);
+      padding: 18px;
       &.next {
-        transform: translateX(-40%) scale(0.89);
+        transform: translateX(-32%) scale(0.89);
       }
     }
   }
@@ -211,7 +211,7 @@
 @media (max-width: 420px) {
   .carousel-section {
     .carousel-card {
-      width: 300px;
+      width: min(340px, 92vw);
     }
   }
 }
