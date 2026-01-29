@@ -39,6 +39,19 @@ export class AvisServicesService {
     const sort = params.sort ?? 'creeLe,desc';
 
     return this.getAvisByService(serviceId, { page: 0, size, sort }).pipe(
+      map(response => {
+        if (Array.isArray(response)) {
+          return { content: response, totalPages: 1, number: 0 } as PagedResponse<AvisServiceDto>;
+        }
+        if (!response || typeof response !== 'object') {
+          return { content: [], totalPages: 1, number: 0 } as PagedResponse<AvisServiceDto>;
+        }
+        return {
+          content: response.content ?? [],
+          totalPages: Number.isFinite(response.totalPages) ? response.totalPages : 1,
+          number: Number.isFinite(response.number) ? response.number : 0
+        } as PagedResponse<AvisServiceDto>;
+      }),
       expand(response => {
         const nextPage = response.number + 1;
         if (nextPage >= response.totalPages) {
