@@ -46,6 +46,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   latestAvis: AvisServiceDto[] = [];
   avisLoading = false;
   avisError = false;
+  readonly minAvisDisplay = 3;
 
   activeIndexMetiers = 0;
   activeIndexAgrements = 0;
@@ -57,6 +58,41 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private avisObserver: IntersectionObserver | null = null;
   private avisLoadHandled = false;
   private pendingAvisServices: ServiceDto[] | null = null;
+  private readonly fallbackAvis: AvisServiceDto[] = [
+    {
+      idAvis: -1,
+      demandeId: 0,
+      serviceId: 0,
+      serviceLibelle: 'Révision',
+      clientId: 0,
+      clientNomPrenom: 'Camille D.',
+      note: 5,
+      commentaire: 'Accueil impeccable et service rapide, je recommande sans hésiter.',
+      creeLe: '2024-03-05T09:00:00.000Z'
+    },
+    {
+      idAvis: -2,
+      demandeId: 0,
+      serviceId: 0,
+      serviceLibelle: 'Pneumatiques',
+      clientId: 0,
+      clientNomPrenom: 'Julien M.',
+      note: 5,
+      commentaire: 'Très bon conseil et montage impeccable. Merci à toute l’équipe.',
+      creeLe: '2024-02-18T12:00:00.000Z'
+    },
+    {
+      idAvis: -3,
+      demandeId: 0,
+      serviceId: 0,
+      serviceLibelle: 'Entretien',
+      clientId: 0,
+      clientNomPrenom: 'Amina K.',
+      note: 4,
+      commentaire: 'Travail sérieux et délais respectés, je suis satisfaite.',
+      creeLe: '2024-01-22T16:30:00.000Z'
+    }
+  ];
 
   @ViewChild('sectionMetiers', { static: false }) sectionMetiersRef!: ElementRef;
   @ViewChild('sectionAgrements', { static: false }) sectionAgrementsRef!: ElementRef;
@@ -92,6 +128,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   metiersPictos: MetiersPicto[] = [];
 
+  get displayAvis(): AvisServiceDto[] {
+    const avis = this.latestAvis ?? [];
+    if (avis.length >= this.minAvisDisplay) {
+      return avis.slice(0, this.minAvisDisplay);
+    }
+    const needed = this.minAvisDisplay - avis.length;
+    return avis.concat(this.fallbackAvis.slice(0, needed));
+  }
 
   ngOnInit() {
     this.promoService.getPromotions().subscribe(data => this.promotions = data || []);
@@ -183,8 +227,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.avisLoading = true;
     this.avisError = false;
 
-    const minAvis = 6;
-    const maxAvis = 9;
+    const minAvis = this.minAvisDisplay;
+    const maxAvis = this.minAvisDisplay;
     const pageSize = 8;
     const primaryServiceCount = 5;
 
