@@ -26,6 +26,18 @@ export class SectionCarousselComponent {
     }
   }
 
+  previous() {
+    if (this.cards.length > 0) {
+      this.activeIndex = (this.activeIndex - 1 + this.cards.length) % this.cards.length;
+    }
+  }
+
+  next() {
+    if (this.cards.length > 0) {
+      this.activeIndex = (this.activeIndex + 1) % this.cards.length;
+    }
+  }
+
   // Swipe tactile
   @HostListener('touchstart', ['$event'])
   onTouchStart(event: TouchEvent) {

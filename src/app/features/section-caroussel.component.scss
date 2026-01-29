@@ -50,6 +50,48 @@
     position: relative;
     min-height: 440px;
   }
+  .carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.92);
+    color: v.$color-primary;
+    box-shadow: 0 8px 18px rgba(13, 13, 15, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    line-height: 1;
+    z-index: 4;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+
+    span {
+      transform: translateY(-1px);
+    }
+
+    &:hover {
+      transform: translateY(-50%) scale(1.04);
+      box-shadow: 0 10px 22px rgba(13, 13, 15, 0.26);
+      background: #fff;
+    }
+
+    &:active {
+      transform: translateY(-50%) scale(0.98);
+    }
+
+    &.prev {
+      left: clamp(4px, 4vw, 24px);
+    }
+
+    &.next {
+      right: clamp(4px, 4vw, 24px);
+    }
+  }
   .carousel-card {
     position: absolute;
     left: 50%;
@@ -114,21 +156,33 @@
     gap: 13px;
     margin: 0 auto;
     align-self: center;
+    margin-top: 8px;
     span {
       display: inline-block;
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
-      background: v.$color-secondary;
-      opacity: 0.4;
-      transition: opacity 0.2s, box-shadow 0.22s;
+      background: rgba(v.$color-secondary, 0.6);
+      border: 2px solid rgba(v.$color-secondary, 0.8);
+      opacity: 0.85;
+      transition: opacity 0.2s, box-shadow 0.22s, transform 0.2s;
       cursor: pointer;
       &.active {
         background: v.$color-secondary;
         opacity: 1;
-        box-shadow: 0 0 0 4px rgba(v.$color-secondary, 0.22);
+        transform: scale(1.05);
+        box-shadow: 0 0 0 6px rgba(v.$color-secondary, 0.22);
       }
     }
+  }
+
+  &.gradient .carousel-btn {
+    background: rgba(13, 13, 15, 0.65);
+    color: v.$color-quaternary;
+  }
+
+  &.gradient .carousel-btn:hover {
+    background: rgba(13, 13, 15, 0.78);
   }
 }
 
