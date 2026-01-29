@@ -165,6 +165,7 @@ export class IntroAccueilComponent implements OnInit, AfterViewInit, OnDestroy {
       weekday: 'long',
       day: '2-digit',
       month: 'long',
+      year: 'numeric',
     });
     const formatted = formatter.format(date);
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);
