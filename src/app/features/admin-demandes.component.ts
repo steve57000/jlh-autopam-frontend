@@ -1108,13 +1108,16 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const payload: RendezVousUpsertPayload = {
-      demandeId,
+    const payloadBase = {
       dateDebut: dateDebutIso,
       dateFin: dateFinIso,
       codeStatut: form.codeStatut || 'Confirme',
       commentaire: form.commentaire,
       creneauId: form.creneauId
+    };
+    const createPayload: RendezVousUpsertPayload = {
+      demandeId,
+      ...payloadBase
     };
 
     if (!form.idRdv && draft?.code_type === 'Service' && !draft?.services?.[0]?.id_service) {
@@ -1129,9 +1132,9 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.rdvFeedbackType.set(null);
 
     const request = form.idRdv
-      ? this.rendezVousApi.update(form.idRdv, payload)
+      ? this.rendezVousApi.update(form.idRdv, payloadBase)
       : this.createRendezVousFromDraft(
-        payload,
+        createPayload,
         draft?.code_type,
         draft?.services?.[0]?.id_service ?? null,
         draft?.devis?.id_devis ?? null
