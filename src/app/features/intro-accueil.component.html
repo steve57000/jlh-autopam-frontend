@@ -64,14 +64,16 @@
 
         <div class="intro-map" appInViewport>
           <div class="intro-map__title">Nous trouver</div>
-          <div class="intro-map__frame">
+        <div class="intro-map__frame" #mapContainer>
+          @if (showMap) {
             <iframe
               title="Carte JLH Auto Pam"
               loading="lazy"
               referrerpolicy="no-referrer-when-downgrade"
               src="https://www.openstreetmap.org/export/embed.html?bbox=6.036512%2C48.903114%2C6.045614%2C48.907488&layer=mapnik&marker=48.9053012%2C6.0410627"
             ></iframe>
-          </div>
+          }
+        </div>
           <a
             class="intro-map__link"
             href="https://www.openstreetmap.org/?mlat=48.9053012&mlon=6.0410627#map=18/48.9053012/6.0410627"

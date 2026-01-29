@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, PLATFORM_ID, ViewChild, inject } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { NgOptimizedImage } from '@angular/common';
 import { InViewportDirective } from '../directives/in-viewport.directive';
@@ -21,13 +21,19 @@ import { GarageHourDto } from '../modeles/garage-hours.model';
   templateUrl: './intro-accueil.component.html',
   styleUrls: ['./intro-accueil.component.scss']
 })
-export class IntroAccueilComponent implements OnInit {
+export class IntroAccueilComponent implements OnInit, AfterViewInit, OnDestroy {
   annualHours: Array<{ dayLabel: string; schedule: string }> = [];
   exceptionalHours: Array<{ label: string; schedule: string; description?: string }> = [];
   loadingHours = false;
   hoursError = '';
+  showMap = false;
+
+  private mapObserver?: IntersectionObserver;
+  @ViewChild('mapContainer', { static: false }) mapContainer?: ElementRef<HTMLDivElement>;
 
   private readonly hoursApi = inject(GarageHoursService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   private readonly dayLabels: Record<string, string> = {
     MONDAY: 'Lundi',
@@ -51,6 +57,41 @@ export class IntroAccueilComponent implements OnInit {
 
   ngOnInit() {
     this.loadHours();
+  }
+
+  ngAfterViewInit() {
+    if (!isPlatformBrowser(this.platformId)) {
+      this.showMap = true;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    if (typeof IntersectionObserver === 'undefined') {
+      this.showMap = true;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    if (this.mapContainer?.nativeElement) {
+      this.mapObserver = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            this.showMap = true;
+            this.cdr.markForCheck();
+            this.mapObserver?.disconnect();
+          }
+        },
+        { threshold: 0.1 }
+      );
+      this.mapObserver.observe(this.mapContainer.nativeElement);
+    } else {
+      this.showMap = true;
+      this.cdr.markForCheck();
+    }
+  }
+
+  ngOnDestroy() {
+    this.mapObserver?.disconnect();
   }
 
   private loadHours() {
