@@ -46,7 +46,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   latestAvis: AvisServiceDto[] = [];
   avisLoading = false;
   avisError = false;
-  readonly minAvisDisplay = 6;
+  readonly maxAvisDisplay = 3;
 
   activeIndexMetiers = 0;
   activeIndexAgrements = 0;
@@ -163,11 +163,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get displayAvis(): AvisServiceDto[] {
     const avis = this.latestAvis ?? [];
-    if (avis.length >= this.minAvisDisplay) {
-      return avis;
-    }
-    const needed = this.minAvisDisplay - avis.length;
-    return avis.concat(this.fallbackAvis.slice(0, needed));
+    return avis.slice(0, this.maxAvisDisplay);
   }
 
   ngOnInit() {
@@ -260,8 +256,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.avisLoading = true;
     this.avisError = false;
 
-    const minAvis = this.minAvisDisplay;
-    const maxAvis = 9;
+    const minAvis = this.maxAvisDisplay;
+    const maxAvis = this.maxAvisDisplay;
     const pageSize = 8;
     const primaryServiceCount = 5;
 
