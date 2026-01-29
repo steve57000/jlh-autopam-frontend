@@ -105,8 +105,8 @@
     color: #fff;
     border: none;
     border-radius: 50%;
-    width: clamp(40px, 6vw, 52px);
-    height: clamp(40px, 6vw, 52px);
+    width: clamp(44px, 6vw, 52px);
+    height: clamp(44px, 6vw, 52px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -138,19 +138,43 @@
     gap: 0.6rem;
     margin-top: 1.3rem;
     .dot {
-      width: 10px;
-      height: 10px;
-      background: variables.$color-secondary;
+      width: 44px;
+      height: 44px;
+      border: none;
       border-radius: 50%;
-      opacity: 0.5;
+      background: transparent;
       cursor: pointer;
-      transition: opacity 0.18s, box-shadow 0.18s;
+      position: relative;
+      transition: box-shadow 0.18s;
+
+      &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        width: 10px;
+        height: 10px;
+        background: variables.$color-secondary;
+        border-radius: 50%;
+        opacity: 0.7;
+        transition: opacity 0.18s, box-shadow 0.18s, background 0.18s;
+      }
+
+      &:focus-visible {
+        outline: 2px solid variables.$color-tertiary;
+        outline-offset: 2px;
+      }
+
       &.active {
-        background: variables.$color-tertiary;
-        opacity: 1;
+        &::after {
+          background: variables.$color-tertiary;
+          opacity: 1;
+        }
       }
       &:hover {
-        opacity: 0.8;
+        &::after {
+          opacity: 0.9;
+        }
         box-shadow: 0 0 0 2px variables.$color-tertiary;
       }
     }
