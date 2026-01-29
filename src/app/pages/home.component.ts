@@ -58,6 +58,74 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private avisObserver: IntersectionObserver | null = null;
   private avisLoadHandled = false;
   private pendingAvisServices: ServiceDto[] | null = null;
+  private readonly fallbackAvis: AvisServiceDto[] = [
+    {
+      idAvis: -1,
+      demandeId: 0,
+      serviceId: 0,
+      serviceLibelle: 'Révision',
+      clientId: 0,
+      clientNomPrenom: 'Camille D.',
+      note: 5,
+      commentaire: 'Accueil impeccable et service rapide, je recommande sans hésiter.',
+      creeLe: '2024-03-05T09:00:00.000Z'
+    },
+    {
+      idAvis: -2,
+      demandeId: 0,
+      serviceId: 0,
+      serviceLibelle: 'Pneumatiques',
+      clientId: 0,
+      clientNomPrenom: 'Julien M.',
+      note: 5,
+      commentaire: 'Très bon conseil et montage impeccable. Merci à toute l’équipe.',
+      creeLe: '2024-02-18T12:00:00.000Z'
+    },
+    {
+      idAvis: -3,
+      demandeId: 0,
+      serviceId: 0,
+      serviceLibelle: 'Entretien',
+      clientId: 0,
+      clientNomPrenom: 'Amina K.',
+      note: 4,
+      commentaire: 'Travail sérieux et délais respectés, je suis satisfaite.',
+      creeLe: '2024-01-22T16:30:00.000Z'
+    },
+    {
+      idAvis: -4,
+      demandeId: 0,
+      serviceId: 0,
+      serviceLibelle: 'Freinage',
+      clientId: 0,
+      clientNomPrenom: 'Thomas R.',
+      note: 5,
+      commentaire: 'Diagnostic clair et intervention efficace.',
+      creeLe: '2024-01-15T10:15:00.000Z'
+    },
+    {
+      idAvis: -5,
+      demandeId: 0,
+      serviceId: 0,
+      serviceLibelle: 'Climatisation',
+      clientId: 0,
+      clientNomPrenom: 'Laura P.',
+      note: 4,
+      commentaire: 'Bonne prise en charge et explications détaillées.',
+      creeLe: '2023-12-10T14:10:00.000Z'
+    },
+    {
+      idAvis: -6,
+      demandeId: 0,
+      serviceId: 0,
+      serviceLibelle: 'Diagnostic',
+      clientId: 0,
+      clientNomPrenom: 'Marc L.',
+      note: 5,
+      commentaire: 'Équipe disponible, rien à redire sur la prestation.',
+      creeLe: '2023-11-28T08:45:00.000Z'
+    }
+  ];
 
   @ViewChild('sectionMetiers', { static: false }) sectionMetiersRef!: ElementRef;
   @ViewChild('sectionAgrements', { static: false }) sectionAgrementsRef!: ElementRef;
