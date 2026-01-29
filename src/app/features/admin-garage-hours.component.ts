@@ -428,18 +428,6 @@ export class AdminGarageHoursComponent implements OnInit {
     const payload: GarageHourPayload = {
       scope: value.scope,
       status: value.status,
-      dayOfWeek: null,
-      exceptionalType: null,
-      exceptionalDate: null,
-      exceptionalStartDate: null,
-      exceptionalEndDate: null,
-      description: null,
-      label: null,
-      openingType: null,
-      startTime: null,
-      endTime: null,
-      startTime2: null,
-      endTime2: null,
     };
 
     if (value.scope === 'ANNUAL') {
@@ -447,13 +435,13 @@ export class AdminGarageHoursComponent implements OnInit {
     } else {
       payload.exceptionalType = value.exceptionalType;
       if (value.exceptionalType === 'SINGLE_DAY') {
-        payload.exceptionalDate = value.exceptionalDate || null;
+        payload.exceptionalDate = value.exceptionalDate || undefined;
       } else {
-        payload.exceptionalStartDate = value.exceptionalStartDate || null;
-        payload.exceptionalEndDate = value.exceptionalEndDate || null;
-        payload.label = value.label || null;
+        payload.exceptionalStartDate = value.exceptionalStartDate || undefined;
+        payload.exceptionalEndDate = value.exceptionalEndDate || undefined;
+        payload.label = value.label || undefined;
       }
-      payload.description = value.description || null;
+      payload.description = value.description || undefined;
     }
 
     if (value.status === 'OPEN') {
@@ -464,9 +452,6 @@ export class AdminGarageHoursComponent implements OnInit {
       if (value.openingType === 'SPLIT') {
         payload.startTime2 = this.toApiTime(value.startTime2);
         payload.endTime2 = this.toApiTime(value.endTime2);
-      } else {
-        payload.startTime2 = null;
-        payload.endTime2 = null;
       }
     }
 
