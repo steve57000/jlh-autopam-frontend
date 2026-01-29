@@ -95,7 +95,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       next: services => {
         const fromServices = this.buildMetiersFromServices(services || []);
         this.metiersPictos = fromServices.length > 0 ? fromServices : this.getDefaultMetiersPictos();
-        this.loadHomeAvis(services || []);
+        this.deferLoadHomeAvis(services || []);
       },
       error: () => {
         this.metiersPictos = this.getDefaultMetiersPictos();
@@ -107,6 +107,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     if (!isPlatformBrowser(this.platformId)) return; // <-- Empêche le code côté serveur
+    if (!this.canAutoRotateAgrements()) return;
 
     // Observer agréments
     this.agrementsObserver = new IntersectionObserver(
@@ -161,7 +162,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private loadHomeAvis(services: ServiceDto[]) {
-    const targets = services.filter(svc => typeof svc.idService === 'number');
+    const targets = services
+      .filter(svc => svc.idService !== null && svc.idService !== undefined && !Number.isNaN(Number(svc.idService)))
+      .slice(0, 3);
     if (!targets.length) {
       this.latestAvis = [];
       return;
@@ -172,8 +175,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     forkJoin(
       targets.map(svc =>
-        this.avisService.getAllAvisByService(svc.idService as number, {
-          size: 50,
+        this.avisService.getAllAvisByService(Number(svc.idService), {
+          size: 10,
           sort: 'creeLe,desc'
         }).pipe(
           catchError(() => of([] as AvisServiceDto[]))
@@ -198,6 +201,33 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.avisError = true;
       }
     });
+  }
+
+  private canAutoRotateAgrements(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    if (window.matchMedia('(max-width: 768px)').matches) return false;
+    return true;
+  }
+
+  private deferLoadHomeAvis(services: ServiceDto[]) {
+    if (!isPlatformBrowser(this.platformId)) {
+      this.loadHomeAvis(services);
+      return;
+    }
+
+    let handled = false;
+    const schedule = () => {
+      if (handled) return;
+      handled = true;
+      this.loadHomeAvis(services);
+    };
+
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(schedule, { timeout: 3000 });
+    }
+
+    setTimeout(schedule, 1500);
   }
   clearMetiersSlide() {
     if (this.metiersInterval) {
