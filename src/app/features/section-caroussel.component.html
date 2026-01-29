@@ -6,6 +6,14 @@
         <p class="carousel-subtitle">{{ subtitle }}</p>
       }
       <div class="carousel">
+        @if (cards.length > 1) {
+          <button class="carousel-btn prev" type="button" aria-label="Voir l'agrément précédent" (click)="previous()">
+            <span aria-hidden="true">‹</span>
+          </button>
+          <button class="carousel-btn next" type="button" aria-label="Voir l'agrément suivant" (click)="next()">
+            <span aria-hidden="true">›</span>
+          </button>
+        }
         @for (card of cards; track card.title; let i = $index) {
           <div class="carousel-card"
                [class.active]="i === activeIndex"
