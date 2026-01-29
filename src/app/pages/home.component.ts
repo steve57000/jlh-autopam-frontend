@@ -17,7 +17,7 @@ import {MetiersPictosComponent} from '../features/metiers-pictos.component';
 
 import { BrandsComponent } from '../shared/brands/brands.component';
 import { RatingStarsComponent } from '../shared/rating-stars/rating-stars.component';
-import { catchError, of } from 'rxjs';
+import { catchError, forkJoin, map, of } from 'rxjs';
 
 type MetiersPicto = {
   img: string;
@@ -54,9 +54,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private agrementsInterval: any = null;
   private metiersObserver: IntersectionObserver | null = null;
   private agrementsObserver: IntersectionObserver | null = null;
+  private avisObserver: IntersectionObserver | null = null;
+  private avisLoadHandled = false;
+  private pendingAvisServices: ServiceDto[] | null = null;
 
   @ViewChild('sectionMetiers', { static: false }) sectionMetiersRef!: ElementRef;
   @ViewChild('sectionAgrements', { static: false }) sectionAgrementsRef!: ElementRef;
+  @ViewChild('sectionAvis', { static: false }) sectionAvisRef!: ElementRef;
 
   constructor(
     private promoService: PromotionService,
@@ -123,6 +127,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.sectionAgrementsRef?.nativeElement) {
       this.agrementsObserver.observe(this.sectionAgrementsRef.nativeElement);
     }
+
+    if (this.pendingAvisServices) {
+      this.setupAvisObserver(this.pendingAvisServices);
+    }
   }
 
   ngOnDestroy() {
@@ -130,6 +138,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.clearAgrementsSlide();
     if (this.metiersObserver) this.metiersObserver.disconnect();
     if (this.agrementsObserver) this.agrementsObserver.disconnect();
+    if (this.avisObserver) this.avisObserver.disconnect();
   }
 
   private buildMetiersFromServices(services: ServiceDto[]): MetiersPicto[] {
@@ -164,54 +173,51 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadHomeAvis(services: ServiceDto[]) {
     const candidates = services
       .filter(svc => svc.idService !== null && svc.idService !== undefined && !Number.isNaN(Number(svc.idService)))
-      .slice(0, 12);
+      .slice(0, 4);
     if (!candidates.length) {
       this.latestAvis = [];
+      this.avisLoading = false;
       return;
     }
 
     this.avisLoading = true;
     this.avisError = false;
 
-    const collected: AvisServiceDto[] = [];
-
-    const finalize = () => {
-      this.latestAvis = collected
-        .slice()
-        .sort((a, b) => {
-          const tsA = a?.creeLe ? new Date(a.creeLe).getTime() : 0;
-          const tsB = b?.creeLe ? new Date(b.creeLe).getTime() : 0;
-          return tsB - tsA;
-        })
-        .slice(0, 6);
-      this.avisLoading = false;
-    };
-
-    const fetchNext = (index: number) => {
-      if (index >= candidates.length || collected.length >= 6) {
-        finalize();
-        return;
-      }
-
-      const candidate = candidates[index];
-      this.avisService.getAllAvisByService(Number(candidate.idService), {
-        size: 10,
+    let hadError = false;
+    const requests = candidates.map(candidate =>
+      this.avisService.getAvisByService(Number(candidate.idService), {
+        page: 0,
+        size: 6,
         sort: 'creeLe,desc'
       }).pipe(
-        catchError(() => of([] as AvisServiceDto[]))
-      ).subscribe({
-        next: avis => {
-          collected.push(...(avis ?? []));
-          fetchNext(index + 1);
-        },
-        error: () => {
-          this.avisError = true;
-          fetchNext(index + 1);
-        }
-      });
-    };
+        map(response => (Array.isArray(response) ? response : response.content ?? [])),
+        catchError(() => {
+          hadError = true;
+          return of([] as AvisServiceDto[]);
+        })
+      )
+    );
 
-    fetchNext(0);
+    forkJoin(requests).subscribe({
+      next: avisGroups => {
+        const collected = avisGroups.flat();
+        this.latestAvis = collected
+          .slice()
+          .sort((a, b) => {
+            const tsA = a?.creeLe ? new Date(a.creeLe).getTime() : 0;
+            const tsB = b?.creeLe ? new Date(b.creeLe).getTime() : 0;
+            return tsB - tsA;
+          })
+          .slice(0, 6);
+        this.avisLoading = false;
+        this.avisError = hadError;
+      },
+      error: () => {
+        this.latestAvis = [];
+        this.avisLoading = false;
+        this.avisError = true;
+      }
+    });
   }
 
   private canAutoRotateAgrements(): boolean {
@@ -227,18 +233,44 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    let handled = false;
+    this.pendingAvisServices = services;
+    this.setupAvisObserver(services);
+  }
+
+  private setupAvisObserver(services: ServiceDto[]) {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (this.avisLoadHandled) return;
+
     const schedule = () => {
-      if (handled) return;
-      handled = true;
+      if (this.avisLoadHandled) return;
+      this.avisLoadHandled = true;
       this.loadHomeAvis(services);
     };
 
-    if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(schedule, { timeout: 3000 });
+    if (this.avisObserver) {
+      this.avisObserver.disconnect();
+      this.avisObserver = null;
     }
 
-    setTimeout(schedule, 1500);
+    if (this.sectionAvisRef?.nativeElement) {
+      this.avisObserver = new IntersectionObserver(
+        entries => {
+          if (entries[0]?.isIntersecting) {
+            schedule();
+            this.avisObserver?.disconnect();
+            this.avisObserver = null;
+          }
+        },
+        { rootMargin: '200px 0px', threshold: 0.2 }
+      );
+      this.avisObserver.observe(this.sectionAvisRef.nativeElement);
+    }
+
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(schedule, { timeout: 5000 });
+    }
+
+    setTimeout(schedule, 4000);
   }
   clearMetiersSlide() {
     if (this.metiersInterval) {
