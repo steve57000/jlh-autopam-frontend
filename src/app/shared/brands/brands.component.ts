@@ -11,7 +11,15 @@ import {
   trigger, transition, style, animate, query, stagger,
 } from '@angular/animations';
 
-type Brand = { name: string; src: string; alt?: string };
+type Brand = {
+  name: string;
+  src: string;
+  alt?: string;
+  srcset?: string;
+  sizes?: string;
+  width?: number;
+  height?: number;
+};
 
 @Component({
   selector: 'app-brands',
@@ -44,7 +52,14 @@ export class BrandsComponent implements AfterViewInit {
     { name: 'Kleber', src: 'assets/brands/kleber.svg' },
     { name: 'Moog', src: 'assets/brands/moog.svg' },
     { name: 'Filtres Purflux', src: 'assets/brands/purflux.svg' },
-    { name: 'Total Lubrifiants', src: 'assets/brands/total.png' },
+    {
+      name: 'Total Lubrifiants',
+      src: 'assets/brands/total-220.webp',
+      srcset: 'assets/brands/total-220.webp 220w, assets/brands/total-300.webp 300w',
+      sizes: '(max-width: 768px) 180px, 214px',
+      width: 220,
+      height: 123,
+    },
     { name: 'Yacco', src: 'assets/brands/yacco.svg' },
     { name: 'LUK', src: 'assets/brands/luk.svg' },
     { name: 'febi bilstein', src: 'assets/brands/febi-bilstein.svg' },
