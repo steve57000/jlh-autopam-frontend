@@ -173,7 +173,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadHomeAvis(services: ServiceDto[]) {
     const candidates = services
       .filter(svc => svc.idService !== null && svc.idService !== undefined && !Number.isNaN(Number(svc.idService)))
-      .slice(0, 6);
+      .slice(0, 8);
     if (!candidates.length) {
       this.latestAvis = [];
       this.avisLoading = false;
@@ -183,10 +183,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.avisLoading = true;
     this.avisError = false;
 
-    const minAvis = 3;
-    const maxAvis = 6;
-    const pageSize = 6;
-    const primaryServiceCount = 4;
+    const minAvis = 6;
+    const maxAvis = 9;
+    const pageSize = 8;
+    const primaryServiceCount = 5;
 
     let hadError = false;
     const fetchAvisForServices = (servicesToFetch: ServiceDto[]) => forkJoin(
@@ -206,7 +206,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     ).pipe(map(avisGroups => avisGroups.flat()));
 
     const primaryServices = candidates.slice(0, primaryServiceCount);
-    const fallbackServices = candidates.slice(primaryServiceCount, primaryServiceCount + 1);
+    const fallbackServices = candidates.slice(primaryServiceCount, primaryServiceCount + 2);
 
     fetchAvisForServices(primaryServices).pipe(
       switchMap(primaryAvis => {
