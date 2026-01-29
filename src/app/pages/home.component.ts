@@ -46,7 +46,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   latestAvis: AvisServiceDto[] = [];
   avisLoading = false;
   avisError = false;
-  readonly maxAvisDisplay = 3;
+  readonly minAvisDisplay = 3;
 
   activeIndexMetiers = 0;
   activeIndexAgrements = 0;
@@ -91,39 +91,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       note: 4,
       commentaire: 'Travail sérieux et délais respectés, je suis satisfaite.',
       creeLe: '2024-01-22T16:30:00.000Z'
-    },
-    {
-      idAvis: -4,
-      demandeId: 0,
-      serviceId: 0,
-      serviceLibelle: 'Freinage',
-      clientId: 0,
-      clientNomPrenom: 'Thomas R.',
-      note: 5,
-      commentaire: 'Diagnostic clair et intervention efficace.',
-      creeLe: '2024-01-15T10:15:00.000Z'
-    },
-    {
-      idAvis: -5,
-      demandeId: 0,
-      serviceId: 0,
-      serviceLibelle: 'Climatisation',
-      clientId: 0,
-      clientNomPrenom: 'Laura P.',
-      note: 4,
-      commentaire: 'Bonne prise en charge et explications détaillées.',
-      creeLe: '2023-12-10T14:10:00.000Z'
-    },
-    {
-      idAvis: -6,
-      demandeId: 0,
-      serviceId: 0,
-      serviceLibelle: 'Diagnostic',
-      clientId: 0,
-      clientNomPrenom: 'Marc L.',
-      note: 5,
-      commentaire: 'Équipe disponible, rien à redire sur la prestation.',
-      creeLe: '2023-11-28T08:45:00.000Z'
     }
   ];
 
@@ -163,7 +130,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get displayAvis(): AvisServiceDto[] {
     const avis = this.latestAvis ?? [];
-    return avis.slice(0, this.maxAvisDisplay);
+    if (avis.length >= this.minAvisDisplay) {
+      return avis.slice(0, this.minAvisDisplay);
+    }
+    const needed = this.minAvisDisplay - avis.length;
+    return avis.concat(this.fallbackAvis.slice(0, needed));
   }
 
   ngOnInit() {
@@ -256,8 +227,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.avisLoading = true;
     this.avisError = false;
 
-    const minAvis = this.maxAvisDisplay;
-    const maxAvis = this.maxAvisDisplay;
+    const minAvis = this.minAvisDisplay;
+    const maxAvis = this.minAvisDisplay;
     const pageSize = 8;
     const primaryServiceCount = 5;
 
