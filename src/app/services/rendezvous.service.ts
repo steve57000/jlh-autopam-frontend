@@ -14,6 +14,8 @@ export interface RendezVousUpsertPayload {
   creneauId?: number | null;
 }
 
+export type RendezVousUpdatePayload = Omit<RendezVousUpsertPayload, 'demandeId'>;
+
 @Injectable({ providedIn: 'root' })
 export class RendezVousService {
   private http = inject(HttpClient);
@@ -43,7 +45,7 @@ export class RendezVousService {
     );
   }
 
-  update(id: number, payload: RendezVousUpsertPayload) {
+  update(id: number, payload: RendezVousUpdatePayload) {
     return this.http.put<RendezVousSummary>(`${this.base}/${id}`, payload, this.skipToastOptions());
   }
 
