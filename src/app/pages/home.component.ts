@@ -216,13 +216,18 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const schedule = () => this.loadHomeAvis(services);
+    let handled = false;
+    const schedule = () => {
+      if (handled) return;
+      handled = true;
+      this.loadHomeAvis(services);
+    };
 
     if ('requestIdleCallback' in window) {
       window.requestIdleCallback(schedule, { timeout: 3000 });
-    } else {
-      setTimeout(schedule, 0);
     }
+
+    setTimeout(schedule, 1500);
   }
   clearMetiersSlide() {
     if (this.metiersInterval) {
