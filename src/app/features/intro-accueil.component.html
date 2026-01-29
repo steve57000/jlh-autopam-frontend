@@ -1,16 +1,16 @@
-<div class="intro-bg" appInViewport>
+<div class="intro-bg">
   <div class="intro-wrapper container-max">
-    <h1 class="main-title" appInViewport>
+    <h1 class="main-title">
       <span class="txt-color-primary">JLH AUTO PAM</span><br>
       Pneumatiques, entretien & réparation automobile<br>
       <span>Votre garage à PONT-A-MOUSSON</span>
     </h1>
-    <p class="main-subtitle" appInViewport>
+    <p class="main-subtitle">
       Expertise locale, accueil chaleureux et solutions rapides pour garder votre véhicule en sécurité.
     </p>
 
     <div class="intro-content">
-      <div class="intro-banner" appInViewport>
+      <div class="intro-banner">
         <img
           ngSrc="assets/img/garage-jlh-autopam.webp"
           alt="Garage JLH Auto Pam"
@@ -25,7 +25,7 @@
       </div>
 
       <div class="intro-details">
-        <div class="intro-info" appInViewport>
+        <div class="intro-info">
           <div class="intro-bloc intro-bloc-right">
             <div class="horaires-title">HORAIRES ET ADRESSE</div>
             <div class="horaires-info">
@@ -62,18 +62,18 @@
           </div>
         </div>
 
-        <div class="intro-map" appInViewport>
+        <div class="intro-map">
           <div class="intro-map__title">Nous trouver</div>
-        <div class="intro-map__frame" #mapContainer>
-          @if (showMap) {
-            <iframe
-              title="Carte JLH Auto Pam"
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=6.036512%2C48.903114%2C6.045614%2C48.907488&layer=mapnik&marker=48.9053012%2C6.0410627"
-            ></iframe>
-          }
-        </div>
+          <div class="intro-map__frame" #mapContainer>
+            @if (showMap) {
+              <iframe
+                title="Carte JLH Auto Pam"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=6.036512%2C48.903114%2C6.045614%2C48.907488&layer=mapnik&marker=48.9053012%2C6.0410627"
+              ></iframe>
+            }
+          </div>
           <a
             class="intro-map__link"
             href="https://www.openstreetmap.org/?mlat=48.9053012&mlon=6.0410627#map=18/48.9053012/6.0410627"

@@ -107,6 +107,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     if (!isPlatformBrowser(this.platformId)) return; // <-- Empêche le code côté serveur
+    if (!this.canAutoRotateAgrements()) return;
 
     // Observer agréments
     this.agrementsObserver = new IntersectionObserver(
@@ -200,6 +201,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.avisError = true;
       }
     });
+  }
+
+  private canAutoRotateAgrements(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    if (window.matchMedia('(max-width: 768px)').matches) return false;
+    return true;
   }
 
   private deferLoadHomeAvis(services: ServiceDto[]) {

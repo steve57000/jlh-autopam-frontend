@@ -2,7 +2,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, PLATFORM_ID, ViewChild, inject } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { NgOptimizedImage } from '@angular/common';
-import { InViewportDirective } from '../directives/in-viewport.directive';
 import { RouterLink } from '@angular/router';
 import { GarageHoursService } from '../services/garage-hours.service';
 import { GarageHourDto } from '../modeles/garage-hours.model';
@@ -14,7 +13,6 @@ import { GarageHourDto } from '../modeles/garage-hours.model';
     CommonModule,
     MatIconModule,
     NgOptimizedImage,
-    InViewportDirective,
     RouterLink,
     // ← on importe la directive
   ],
