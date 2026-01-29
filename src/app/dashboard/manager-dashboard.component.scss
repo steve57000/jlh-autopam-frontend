@@ -80,6 +80,8 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
 .btn {
   border-radius: v.$border-radius-high;
   border: 1px solid rgba(v.$color-secondary, 0.4);
+  min-height: 44px;
+  min-width: 44px;
   padding: 0.6rem 1.3rem;
   font-weight: 600;
   background: linear-gradient(120deg, v.$color-secondary, v.$color-sixt);
@@ -103,6 +105,7 @@ $card-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
   }
 
   &-small {
+    min-height: 44px;
     padding: 0.45rem 1rem;
   }
 }

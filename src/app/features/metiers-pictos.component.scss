@@ -183,6 +183,11 @@
     line-height: 1;
     cursor: pointer;
     color: v.$color-primary;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     transition: color .2s ease;
 
     &:hover,

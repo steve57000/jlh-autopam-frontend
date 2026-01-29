@@ -206,7 +206,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     ).pipe(map(avisGroups => avisGroups.flat()));
 
     const primaryServices = candidates.slice(0, primaryServiceCount);
-    const fallbackServices = candidates.slice(primaryServiceCount);
+    const fallbackServices = candidates.slice(primaryServiceCount, primaryServiceCount + 1);
 
     fetchAvisForServices(primaryServices).pipe(
       switchMap(primaryAvis => {

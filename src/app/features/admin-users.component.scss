@@ -84,6 +84,8 @@
   align-self: flex-start;
   border-radius: 999px;
   border: 1px solid rgba(v.$color-secondary, 0.4);
+  min-height: 44px;
+  min-width: 44px;
   padding: 0.6rem 1.4rem;
   font-weight: 600;
   background: linear-gradient(120deg, v.$color-secondary, v.$color-sixt);
