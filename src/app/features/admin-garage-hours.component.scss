@@ -136,6 +136,8 @@
   justify-content: center;
   padding: 1.5rem;
   z-index: 999;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .hours-modal {
@@ -149,6 +151,9 @@
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 
   &__header {
     display: flex;
