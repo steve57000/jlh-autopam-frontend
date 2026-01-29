@@ -69,17 +69,19 @@ export class BrandsComponent implements AfterViewInit, OnDestroy {
   canScrollLeft = false;
   canScrollRight = false;
   private scrollStep = 0;
+  private maxScrollLeft = 0;
+  private containerWidth = 0;
   private pendingArrowUpdate = false;
   private resizeObserver?: ResizeObserver;
   private readonly onScroll = () => this.scheduleArrowUpdate();
 
   ngAfterViewInit() {
-    this.computeScrollStep();
+    this.computeScrollMetrics();
     this.updateArrows();
     // Sur mobile, animations déjà gérées par trigger ; ici on suit le scroll
     this.rail.nativeElement.addEventListener('scroll', this.onScroll, { passive: true });
     this.resizeObserver = new ResizeObserver(() => {
-      this.computeScrollStep();
+      this.computeScrollMetrics();
       this.scheduleArrowUpdate();
     });
     this.resizeObserver.observe(this.rail.nativeElement);
@@ -94,7 +96,7 @@ export class BrandsComponent implements AfterViewInit, OnDestroy {
 
   @HostListener('window:resize')
   onResize() {
-    this.computeScrollStep();
+    this.computeScrollMetrics();
     this.scheduleArrowUpdate();
   }
 
@@ -107,33 +109,34 @@ export class BrandsComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  private computeScrollStep() {
+  private computeScrollMetrics() {
     const el = this.rail?.nativeElement;
     if (!el) return;
+    this.containerWidth = el.clientWidth;
+    this.maxScrollLeft = Math.max(el.scrollWidth - this.containerWidth, 0);
     const item = el.querySelector<HTMLElement>('.brand-item');
     if (item) {
       const styles = getComputedStyle(item);
       const marginRight = parseFloat(styles.marginRight || '0');
       this.scrollStep = item.clientWidth + marginRight;
     } else {
-      this.scrollStep = el.clientWidth * 0.8;
+      this.scrollStep = this.containerWidth * 0.8;
     }
   }
 
   private updateArrows() {
     const el = this.rail?.nativeElement;
     if (!el) return;
-    const maxScrollLeft = el.scrollWidth - el.clientWidth;
     this.canScrollLeft = el.scrollLeft > 0;
-    this.canScrollRight = el.scrollLeft < (maxScrollLeft - 1);
+    this.canScrollRight = el.scrollLeft < (this.maxScrollLeft - 1);
   }
 
   scroll(direction: 'left' | 'right') {
     const el = this.rail.nativeElement;
     if (!this.scrollStep) {
-      this.computeScrollStep();
+      this.computeScrollMetrics();
     }
-    const step = this.scrollStep || el.clientWidth * 0.8;
+    const step = this.scrollStep || this.containerWidth * 0.8;
     const delta = direction === 'left' ? -step : step;
     el.scrollBy({ left: delta, behavior: 'smooth' });
     // Mise à jour optimiste
