@@ -95,7 +95,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       next: services => {
         const fromServices = this.buildMetiersFromServices(services || []);
         this.metiersPictos = fromServices.length > 0 ? fromServices : this.getDefaultMetiersPictos();
-        this.loadHomeAvis(services || []);
+        this.deferLoadHomeAvis(services || []);
       },
       error: () => {
         this.metiersPictos = this.getDefaultMetiersPictos();
@@ -161,7 +161,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private loadHomeAvis(services: ServiceDto[]) {
-    const targets = services.filter(svc => typeof svc.idService === 'number');
+    const targets = services
+      .filter(svc => typeof svc.idService === 'number')
+      .slice(0, 3);
     if (!targets.length) {
       this.latestAvis = [];
       return;
@@ -173,7 +175,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     forkJoin(
       targets.map(svc =>
         this.avisService.getAllAvisByService(svc.idService as number, {
-          size: 50,
+          size: 10,
           sort: 'creeLe,desc'
         }).pipe(
           catchError(() => of([] as AvisServiceDto[]))
@@ -198,6 +200,21 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         this.avisError = true;
       }
     });
+  }
+
+  private deferLoadHomeAvis(services: ServiceDto[]) {
+    if (!isPlatformBrowser(this.platformId)) {
+      this.loadHomeAvis(services);
+      return;
+    }
+
+    const schedule = () => this.loadHomeAvis(services);
+
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(schedule, { timeout: 3000 });
+    } else {
+      setTimeout(schedule, 0);
+    }
   }
   clearMetiersSlide() {
     if (this.metiersInterval) {
