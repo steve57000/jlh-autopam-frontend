@@ -47,11 +47,14 @@
     @if (promotions.length > 1) {
       <div class="slider-dots">
         @for (promo of promotions; track promo.idPromotion; let i = $index) {
-          <span
+          <button
+            type="button"
             class="dot"
             [class.active]="i === currentIndex"
+            [attr.aria-current]="i === currentIndex ? 'true' : null"
+            [attr.aria-label]="'Voir la promotion ' + (i + 1)"
             (click)="goTo(i)">
-          </span>
+          </button>
         }
       </div>
     }
