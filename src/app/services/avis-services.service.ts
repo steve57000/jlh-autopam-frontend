@@ -41,16 +41,32 @@ export class AvisServicesService {
     return this.getAvisByService(serviceId, { page: 0, size, sort }).pipe(
       map(response => {
         if (Array.isArray(response)) {
-          return { content: response, totalPages: 1, number: 0 } as PagedResponse<AvisServiceDto>;
+          return {
+            content: response,
+            totalPages: 1,
+            number: 0,
+            totalElements: response.length,
+            size: response.length
+          };
         }
         if (!response || typeof response !== 'object') {
-          return { content: [], totalPages: 1, number: 0 } as PagedResponse<AvisServiceDto>;
+          return {
+            content: [],
+            totalPages: 1,
+            number: 0,
+            totalElements: 0,
+            size
+          };
         }
         return {
           content: response.content ?? [],
           totalPages: Number.isFinite(response.totalPages) ? response.totalPages : 1,
-          number: Number.isFinite(response.number) ? response.number : 0
-        } as PagedResponse<AvisServiceDto>;
+          number: Number.isFinite(response.number) ? response.number : 0,
+          totalElements: Number.isFinite(response.totalElements)
+            ? response.totalElements
+            : response.content?.length ?? 0,
+          size: Number.isFinite(response.size) ? response.size : size
+        };
       }),
       expand(response => {
         const nextPage = response.number + 1;
