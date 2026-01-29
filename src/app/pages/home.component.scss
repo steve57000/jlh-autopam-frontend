@@ -17,6 +17,7 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: clamp(2rem, 4vw, 3rem);
+  color: v.$color-primary;
 }
 
 .home-avis__header {
@@ -61,7 +62,8 @@
 }
 
 .avis-card {
-  background: rgba(v.$color-primary, 0.04);
+  background: #fff;
+  border: 1px solid rgba(v.$color-primary, 0.12);
   border-radius: v.$border-radius-high;
   padding: 1.5rem;
   display: flex;
