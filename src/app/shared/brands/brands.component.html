@@ -25,9 +25,11 @@
         >
           <img
             [ngSrc]="brand.src"
+            [ngSrcset]="brand.srcset ?? ''"
             [alt]="brand.alt || brand.name"
-            [width]="300"
-            [height]="104"
+            [attr.sizes]="brand.sizes || null"
+            [width]="brand.width ?? 300"
+            [height]="brand.height ?? 168"
             loading="lazy"
             decoding="async"
           />
