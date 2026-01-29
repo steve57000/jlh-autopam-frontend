@@ -22,4 +22,6 @@ export class RatingStarsComponent {
     const filled = Math.round(this.rating);
     return Array.from({ length: this.max }, (_, index) => index < filled);
   }
+
+  protected readonly toString = toString;
 }
