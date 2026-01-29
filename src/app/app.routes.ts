@@ -1,21 +1,4 @@
 import { Routes } from '@angular/router';
-import { MainLayoutComponent } from './layout/main-layout.component';
-import { HomeComponent } from './pages/home.component';
-import { ServicesComponent } from './pages/services.component';
-import { AboutComponent } from './pages/about.component';
-import { TeamComponent } from './pages/team.component';
-import { HistoryComponent } from './pages/history.component';
-import { ValuesComponent } from './pages/values.component';
-import { ContactComponent } from './pages/contact.component';
-import { LegalComponent } from './pages/legal.component';
-import { PrivacyComponent } from './pages/privacy.component';
-import { CgvComponent } from './pages/cgv.component';
-import { ClientDashboardComponent } from './dashboard/client-dashboard.component';
-import { LoginComponent } from './auth/login.component';
-import { RegisterComponent } from './auth/register.component';
-import { ResetPasswordComponent } from './auth/reset-password.component/reset-password.component';
-import { AccountComponent } from './account/account.component/account.component';
-
 import { AuthGuard } from './guards/auth.guard';
 import { ClientOnlyGuard } from './guards/client-only.guard';
 import { HydrationReadyGuard } from './guards/hydration-ready.guard';
@@ -25,41 +8,65 @@ import { ManagerMatchGuard } from './guards/manager-match.guard';
 export const routes: Routes = [
   {
     path: '',
-    component: MainLayoutComponent,
+    loadComponent: () =>
+      import('./layout/main-layout.component').then(m => m.MainLayoutComponent),
     children: [
-      { path: '', component: HomeComponent },
+      { path: '', loadComponent: () => import('./pages/home.component').then(m => m.HomeComponent) },
 
       // ✅ Page Services : publique (affichage pour tous)
       //    Les actions (ajout/validation) restent visibles/actives uniquement si rôle CLIENT.
-      { path: 'services', component: ServicesComponent },
-      { path: 'services/entretien', component: ServicesComponent, data: { tab: 'entretien' } },
-      { path: 'services/mecanique', component: ServicesComponent, data: { tab: 'mecanique' } },
-      { path: 'services/pneumatiques', component: ServicesComponent, data: { tab: 'pneumatiques' } },
-      { path: 'services/diagnostic', component: ServicesComponent, data: { tab: 'diagnostic' } },
+      { path: 'services', loadComponent: () => import('./pages/services.component').then(m => m.ServicesComponent) },
+      {
+        path: 'services/entretien',
+        loadComponent: () => import('./pages/services.component').then(m => m.ServicesComponent),
+        data: { tab: 'entretien' },
+      },
+      {
+        path: 'services/mecanique',
+        loadComponent: () => import('./pages/services.component').then(m => m.ServicesComponent),
+        data: { tab: 'mecanique' },
+      },
+      {
+        path: 'services/pneumatiques',
+        loadComponent: () => import('./pages/services.component').then(m => m.ServicesComponent),
+        data: { tab: 'pneumatiques' },
+      },
+      {
+        path: 'services/diagnostic',
+        loadComponent: () => import('./pages/services.component').then(m => m.ServicesComponent),
+        data: { tab: 'diagnostic' },
+      },
 
-      { path: 'about', component: AboutComponent },
-      { path: 'team', component: TeamComponent },
-      { path: 'history', component: HistoryComponent },
-      { path: 'values', component: ValuesComponent },
-      { path: 'contact', component: ContactComponent },
+      { path: 'about', loadComponent: () => import('./pages/about.component').then(m => m.AboutComponent) },
+      { path: 'team', loadComponent: () => import('./pages/team.component').then(m => m.TeamComponent) },
+      { path: 'history', loadComponent: () => import('./pages/history.component').then(m => m.HistoryComponent) },
+      { path: 'values', loadComponent: () => import('./pages/values.component').then(m => m.ValuesComponent) },
+      { path: 'contact', loadComponent: () => import('./pages/contact.component').then(m => m.ContactComponent) },
 
-      { path: 'legal', component: LegalComponent },
-      { path: 'privacy', component: PrivacyComponent },
-      { path: 'cgv', component: CgvComponent },
+      { path: 'legal', loadComponent: () => import('./pages/legal.component').then(m => m.LegalComponent) },
+      { path: 'privacy', loadComponent: () => import('./pages/privacy.component').then(m => m.PrivacyComponent) },
+      { path: 'cgv', loadComponent: () => import('./pages/cgv.component').then(m => m.CgvComponent) },
 
-      { path: 'login', component: LoginComponent },
-      { path: 'register', component: RegisterComponent },
-      { path: 'reset-password', component: ResetPasswordComponent },
+      { path: 'login', loadComponent: () => import('./auth/login.component').then(m => m.LoginComponent) },
+      { path: 'register', loadComponent: () => import('./auth/register.component').then(m => m.RegisterComponent) },
+      {
+        path: 'reset-password',
+        loadComponent: () =>
+          import('./auth/reset-password.component/reset-password.component').then(
+            m => m.ResetPasswordComponent,
+          ),
+      },
 
       // ✅ Espace protégé
       {
         path: 'account',
-        component: AccountComponent,
+        loadComponent: () => import('./account/account.component/account.component').then(m => m.AccountComponent),
         canActivate: [HydrationReadyGuard, AuthGuard], // client ou admin connecté
       },
       {
         path: 'dashboard',
-        component: ClientDashboardComponent,
+        loadComponent: () =>
+          import('./dashboard/client-dashboard.component').then(m => m.ClientDashboardComponent),
         canActivate: [HydrationReadyGuard, AuthGuard, ClientOnlyGuard], // uniquement clients
       },
     ],
