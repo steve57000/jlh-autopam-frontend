@@ -25,7 +25,7 @@
         >
           <img
             [ngSrc]="brand.src"
-            [ngSrcset]="brand.srcset ?? ''"
+            [attr.srcset]="brand.srcset ?? null"
             [alt]="brand.alt || brand.name"
             [attr.sizes]="brand.sizes || null"
             [width]="brand.width ?? 300"
