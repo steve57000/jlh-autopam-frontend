@@ -66,7 +66,7 @@ main {
 h1, h2, h3 { font-family: v.$font-title; }
 h4, h5, h6 { font-family: v.$font-subtitle; }
 
-h2 { font-size: 2.1rem; margin-bottom: 48px; }
+h2 { font-size: 2.1rem; margin-bottom: 48px; line-height: normal }
 
 a {
   color: v.$color-secondary;
