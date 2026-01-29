@@ -9,8 +9,6 @@
       type="button"
       (click)="toggleMenu()"
       [attr.aria-expanded]="isMobileMenu ? (menuOpen ? 'true' : 'false') : null"
-      [attr.aria-hidden]="isMobileMenu ? null : 'true'"
-      [attr.tabindex]="isMobileMenu ? '0' : '-1'"
       [attr.aria-controls]="'primary-navigation'"
       aria-label="Ouvrir / fermer le menu"
     >

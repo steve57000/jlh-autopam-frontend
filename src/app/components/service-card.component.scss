@@ -209,15 +209,15 @@
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(vars.$color-primary, 0.6);
+  color: rgba(vars.$color-primary, 0.8);
 }
 
 .service-dialog__close {
   border: none;
   background: rgba(vars.$color-primary, 0.08);
   color: vars.$color-primary;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
   font-size: 1.25rem;
   line-height: 1;
