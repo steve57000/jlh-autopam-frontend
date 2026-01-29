@@ -173,7 +173,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadHomeAvis(services: ServiceDto[]) {
     const candidates = services
       .filter(svc => svc.idService !== null && svc.idService !== undefined && !Number.isNaN(Number(svc.idService)))
-      .slice(0, 4);
+      .slice(0, 6);
     if (!candidates.length) {
       this.latestAvis = [];
       this.avisLoading = false;
@@ -185,8 +185,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const minAvis = 3;
     const maxAvis = 6;
-    const pageSize = 3;
-    const primaryServiceCount = 3;
+    const pageSize = 6;
+    const primaryServiceCount = 4;
 
     let hadError = false;
     const fetchAvisForServices = (servicesToFetch: ServiceDto[]) => forkJoin(
