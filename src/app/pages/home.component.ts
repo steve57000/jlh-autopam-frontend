@@ -17,7 +17,7 @@ import {MetiersPictosComponent} from '../features/metiers-pictos.component';
 
 import { BrandsComponent } from '../shared/brands/brands.component';
 import { RatingStarsComponent } from '../shared/rating-stars/rating-stars.component';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, of } from 'rxjs';
 
 type MetiersPicto = {
   img: string;
@@ -162,10 +162,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private loadHomeAvis(services: ServiceDto[]) {
-    const targets = services
+    const candidates = services
       .filter(svc => svc.idService !== null && svc.idService !== undefined && !Number.isNaN(Number(svc.idService)))
-      .slice(0, 3);
-    if (!targets.length) {
+      .slice(0, 12);
+    if (!candidates.length) {
       this.latestAvis = [];
       return;
     }
@@ -173,34 +173,45 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.avisLoading = true;
     this.avisError = false;
 
-    forkJoin(
-      targets.map(svc =>
-        this.avisService.getAllAvisByService(Number(svc.idService), {
-          size: 10,
-          sort: 'creeLe,desc'
-        }).pipe(
-          catchError(() => of([] as AvisServiceDto[]))
-        )
-      )
-    ).subscribe({
-      next: responses => {
-        const merged = responses.flat();
-        this.latestAvis = merged
-          .slice()
-          .sort((a, b) => {
-            const tsA = a?.creeLe ? new Date(a.creeLe).getTime() : 0;
-            const tsB = b?.creeLe ? new Date(b.creeLe).getTime() : 0;
-            return tsB - tsA;
-          })
-          .slice(0, 6);
-        this.avisLoading = false;
-      },
-      error: () => {
-        this.latestAvis = [];
-        this.avisLoading = false;
-        this.avisError = true;
+    const collected: AvisServiceDto[] = [];
+
+    const finalize = () => {
+      this.latestAvis = collected
+        .slice()
+        .sort((a, b) => {
+          const tsA = a?.creeLe ? new Date(a.creeLe).getTime() : 0;
+          const tsB = b?.creeLe ? new Date(b.creeLe).getTime() : 0;
+          return tsB - tsA;
+        })
+        .slice(0, 6);
+      this.avisLoading = false;
+    };
+
+    const fetchNext = (index: number) => {
+      if (index >= candidates.length || collected.length >= 6) {
+        finalize();
+        return;
       }
-    });
+
+      const candidate = candidates[index];
+      this.avisService.getAllAvisByService(Number(candidate.idService), {
+        size: 10,
+        sort: 'creeLe,desc'
+      }).pipe(
+        catchError(() => of([] as AvisServiceDto[]))
+      ).subscribe({
+        next: avis => {
+          collected.push(...(avis ?? []));
+          fetchNext(index + 1);
+        },
+        error: () => {
+          this.avisError = true;
+          fetchNext(index + 1);
+        }
+      });
+    };
+
+    fetchNext(0);
   }
 
   private canAutoRotateAgrements(): boolean {
