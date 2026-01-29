@@ -163,7 +163,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private loadHomeAvis(services: ServiceDto[]) {
     const targets = services
-      .filter(svc => typeof svc.idService === 'number')
+      .filter(svc => svc.idService !== null && svc.idService !== undefined && !Number.isNaN(Number(svc.idService)))
       .slice(0, 3);
     if (!targets.length) {
       this.latestAvis = [];
@@ -175,7 +175,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     forkJoin(
       targets.map(svc =>
-        this.avisService.getAllAvisByService(svc.idService as number, {
+        this.avisService.getAllAvisByService(Number(svc.idService), {
           size: 10,
           sort: 'creeLe,desc'
         }).pipe(
