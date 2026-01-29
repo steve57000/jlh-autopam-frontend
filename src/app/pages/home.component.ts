@@ -17,7 +17,7 @@ import {MetiersPictosComponent} from '../features/metiers-pictos.component';
 
 import { BrandsComponent } from '../shared/brands/brands.component';
 import { RatingStarsComponent } from '../shared/rating-stars/rating-stars.component';
-import { catchError, forkJoin, map, of } from 'rxjs';
+import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 
 type MetiersPicto = {
   img: string;
@@ -183,24 +183,42 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.avisLoading = true;
     this.avisError = false;
 
-    let hadError = false;
-    const requests = candidates.map(candidate =>
-      this.avisService.getAvisByService(Number(candidate.idService), {
-        page: 0,
-        size: 6,
-        sort: 'creeLe,desc'
-      }).pipe(
-        map(response => (Array.isArray(response) ? response : response.content ?? [])),
-        catchError(() => {
-          hadError = true;
-          return of([] as AvisServiceDto[]);
-        })
-      )
-    );
+    const minAvis = 3;
+    const maxAvis = 6;
+    const pageSize = 3;
+    const primaryServiceCount = 3;
 
-    forkJoin(requests).subscribe({
-      next: avisGroups => {
-        const collected = avisGroups.flat();
+    let hadError = false;
+    const fetchAvisForServices = (servicesToFetch: ServiceDto[]) => forkJoin(
+      servicesToFetch.map(candidate =>
+        this.avisService.getAvisByService(Number(candidate.idService), {
+          page: 0,
+          size: pageSize,
+          sort: 'creeLe,desc'
+        }).pipe(
+          map(response => (Array.isArray(response) ? response : response.content ?? [])),
+          catchError(() => {
+            hadError = true;
+            return of([] as AvisServiceDto[]);
+          })
+        )
+      )
+    ).pipe(map(avisGroups => avisGroups.flat()));
+
+    const primaryServices = candidates.slice(0, primaryServiceCount);
+    const fallbackServices = candidates.slice(primaryServiceCount, primaryServiceCount + 1);
+
+    fetchAvisForServices(primaryServices).pipe(
+      switchMap(primaryAvis => {
+        if (primaryAvis.length >= minAvis || !fallbackServices.length) {
+          return of(primaryAvis);
+        }
+        return fetchAvisForServices(fallbackServices).pipe(
+          map(extraAvis => primaryAvis.concat(extraAvis))
+        );
+      })
+    ).subscribe({
+      next: collected => {
         this.latestAvis = collected
           .slice()
           .sort((a, b) => {
@@ -208,7 +226,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
             const tsB = b?.creeLe ? new Date(b.creeLe).getTime() : 0;
             return tsB - tsA;
           })
-          .slice(0, 6);
+          .slice(0, maxAvis);
         this.avisLoading = false;
         this.avisError = hadError;
       },
