@@ -83,7 +83,7 @@
   box-shadow: v.$shadow-small;
   overflow: hidden;
   position: relative;
-  height: clamp(220px, 34vw, 460px);
+  height: clamp(260px, 34vw, 460px);
 
   &.in-view {
     @include anim.pop-up(0.9s, ease-out, both);
