@@ -123,6 +123,13 @@ export class AdminCalendarComponent implements OnInit {
     });
   }
 
+  onActiveDateChange(date: Date | Event) {
+    if (date instanceof Date) {
+      this.activeDate.set(date);
+      this.refreshForDate(date);
+    }
+  }
+
   setSlotMinutes(value: string) {
     const parsed = Number(value);
     this.slotMinutes.set(Number.isFinite(parsed) && parsed > 0 ? parsed : 30);
@@ -359,7 +366,7 @@ export class AdminCalendarComponent implements OnInit {
   }
 
   private getRangeSlots() {
-    return this.rangeSlots();
+    return this.rangeSlots().filter(slot => slot.codeStatut !== 'Indisponible');
   }
 
   private getRangeRendezVous() {
