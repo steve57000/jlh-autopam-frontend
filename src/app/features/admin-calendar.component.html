@@ -1,0 +1,206 @@
+<section class="calendar-page">
+  <header class="calendar-page__header">
+    <div>
+      <p class="calendar-page__eyebrow">Calendrier</p>
+      <h2 class="calendar-page__title">Agenda & disponibilités</h2>
+      <p class="calendar-page__hint">
+        Visualisez les créneaux libres, les rendez-vous planifiés et gérez rapidement les demandes associées.
+      </p>
+    </div>
+    <div class="calendar-page__actions">
+      <button type="button" class="btn" (click)="refresh()" [disabled]="loading()">Actualiser</button>
+    </div>
+  </header>
+
+  <section class="calendar-page__filters">
+    <label>
+      <span>Durée des créneaux</span>
+      <select [value]="slotMinutes()" (change)="setSlotMinutes(($any($event.target)).value)">
+        <option value="30">30 min</option>
+        <option value="45">45 min</option>
+        <option value="60">60 min</option>
+      </select>
+    </label>
+    <button type="button" class="btn btn-outline" (click)="refresh()">Actualiser la vue</button>
+  </section>
+
+  @if (loading()) {
+    <div class="calendar-page__state" aria-live="polite">Chargement du calendrier…</div>
+  } @else if (error()) {
+    <div class="calendar-page__state calendar-page__state--error">{{ error() }}</div>
+  } @else {
+    <div class="calendar-layout">
+      <section class="calendar-panel calendar-panel--compact">
+        <mat-calendar
+          [selected]="selectedDate()"
+          (selectedChange)="onDateSelected($event)"
+          (activeDateChange)="onActiveDateChange($event)"
+          [dateClass]="dayHighlight"
+          [startAt]="activeDate()"
+        ></mat-calendar>
+        <div class="calendar-legend">
+          <span class="legend-item legend-item--free">Libre</span>
+          <span class="legend-item legend-item--reserved">Réservé</span>
+          <span class="legend-item legend-item--blocked">Indisponible</span>
+        </div>
+        <p class="muted">Cliquez sur une date puis une seconde pour définir une période.</p>
+      </section>
+
+      <section class="calendar-panel">
+        <header>
+          <h3>Détails {{ rangeLabel() }}</h3>
+          <p class="muted">Cliquez sur un rendez-vous pour ouvrir la fiche.</p>
+        </header>
+        @if (!rangeDays().length) {
+          <p class="calendar-page__state">Aucun créneau ou rendez-vous sur la période.</p>
+        } @else {
+          @for (group of rangeDays(); track group.date) {
+            <div class="calendar-day">
+              <h4>{{ group.date | date:'EEEE d MMMM' }}</h4>
+              <h5>Disponibilités</h5>
+              @if (!group.slots.length) {
+                <p class="calendar-page__state">Aucun créneau.</p>
+              } @else {
+                <ul>
+                  @for (slot of group.slots; track slot.dateDebut) {
+                    <li>
+                      <span>{{ slot.dateDebut | date:'HH:mm' }} – {{ slot.dateFin | date:'HH:mm' }}</span>
+                      <span class="badge" [class]="availabilityBadgeClass(slot.codeStatut)">
+                        {{ slot.libelleStatut || slot.codeStatut }}
+                      </span>
+                    </li>
+                  }
+                </ul>
+              }
+              <h5>Rendez-vous</h5>
+              @if (!group.rendezVous.length) {
+                <p class="calendar-page__state">Aucun rendez-vous.</p>
+              } @else {
+                <ul>
+                  @for (item of group.rendezVous; track item.rendezVous.idRdv) {
+                    <li>
+                      <button type="button" class="calendar-link" (click)="selectRdv(item)">
+                        <div>
+                          <strong>{{ item.rendezVous.dateDebut | date:'HH:mm' }}</strong>
+                          – {{ item.rendezVous.dateFin | date:'HH:mm' }}
+                        </div>
+                        <div>
+                          <span>{{ item.clientLabel }}</span>
+                          <span class="badge" [class]="statusBadgeClass(item.rendezVous.codeStatut)">
+                            {{ item.rendezVous.libelleStatut || item.rendezVous.codeStatut }}
+                          </span>
+                        </div>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          }
+        }
+      </section>
+
+      <aside class="calendar-detail">
+        @if (selectedRdv(); as selected) {
+          <header>
+            <h3>Rendez-vous #{{ selected.demandeId }}</h3>
+            <button type="button" class="btn btn-ghost btn-small" (click)="closeRdvDetails()">Fermer</button>
+          </header>
+          <p class="muted">Type : {{ selected.demandeType }} • {{ selected.clientLabel }}</p>
+          <div class="detail-grid">
+            <label>
+              <span>Début</span>
+              <input
+                type="datetime-local"
+                [value]="rdvDraft()?.dateDebut"
+                (change)="updateDraftField('dateDebut', ($any($event.target)).value)"
+              />
+            </label>
+            <label>
+              <span>Fin</span>
+              <input
+                type="datetime-local"
+                [value]="rdvDraft()?.dateFin"
+                (change)="updateDraftField('dateFin', ($any($event.target)).value)"
+              />
+            </label>
+          </div>
+          <label class="detail-comment">
+            <span>Note interne</span>
+            <textarea
+              rows="3"
+              [value]="rdvDraft()?.commentaire"
+              (input)="updateDraftField('commentaire', ($any($event.target)).value)"
+            ></textarea>
+          </label>
+          <div class="detail-actions">
+            <button type="button" class="btn" (click)="saveNote()" [disabled]="rdvSaving()">Enregistrer la note</button>
+            <button type="button" class="btn btn-outline" (click)="openDemandeModal()">Voir la demande</button>
+          </div>
+          <div class="detail-actions detail-actions--secondary">
+            <button type="button" class="btn btn-outline" (click)="updateStatus('Reporte')" [disabled]="rdvSaving()">
+              Reporter
+            </button>
+            <button type="button" class="btn btn-ghost" (click)="updateStatus('Annule')" [disabled]="rdvSaving()">
+              Annuler
+            </button>
+          </div>
+          @if (rdvFeedback()) {
+            <p class="feedback" [class.feedback--error]="rdvFeedback() !== 'Rendez-vous mis à jour.'">
+              {{ rdvFeedback() }}
+            </p>
+          }
+        } @else {
+          <div class="calendar-empty">
+            <h3>Détails</h3>
+            <p class="muted">Sélectionnez un rendez-vous pour consulter ses informations.</p>
+          </div>
+        }
+      </aside>
+    </div>
+  }
+</section>
+
+@if (showDemandeModal()) {
+  <div class="calendar-modal">
+    <div class="calendar-modal__content" role="dialog" aria-modal="true">
+      <header>
+        <h3>Demande de rendez-vous</h3>
+        <button type="button" class="btn btn-ghost btn-small" (click)="closeDemandeModal()">Fermer</button>
+      </header>
+      @if (selectedDemande(); as demande) {
+        <div class="calendar-modal__body">
+          <p><strong>Demande #{{ demande.id_demande }}</strong> — {{ demande.type_libelle || demande.code_type }}</p>
+          <p class="muted">
+            Statut : {{ demande.statut_libelle || demande.code_statut }}
+          </p>
+          <p>
+            Client : {{ demande.client?.prenom }} {{ demande.client?.nom }}
+            @if (demande.client?.telephone) {
+              • {{ demande.client?.telephone }}
+            }
+          </p>
+          @if (demande.rendezVous) {
+            <p>
+              Rendez-vous : {{ demande.rendezVous.dateDebut | date:'dd/MM HH:mm' }}
+              – {{ demande.rendezVous.dateFin | date:'HH:mm' }}
+            </p>
+            @if (demande.rendezVous.commentaire) {
+              <p class="muted">Note : {{ demande.rendezVous.commentaire }}</p>
+            }
+          }
+        </div>
+        <div class="calendar-modal__actions">
+          <button type="button" class="btn btn-outline" (click)="updateStatus('Reporte')" [disabled]="rdvSaving()">
+            Reporter le rendez-vous
+          </button>
+          <button type="button" class="btn btn-ghost" (click)="updateStatus('Annule')" [disabled]="rdvSaving()">
+            Annuler le rendez-vous
+          </button>
+        </div>
+      } @else {
+        <p class="calendar-page__state">Aucune demande trouvée.</p>
+      }
+    </div>
+  </div>
+}
