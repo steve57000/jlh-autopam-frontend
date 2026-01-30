@@ -448,8 +448,8 @@ export class AdminCalendarComponent implements OnInit {
       ranges.forEach((range, index) => {
         let payload: CalendarRendezVousItem | undefined;
         if (this.normalizeStatus(slot.codeStatut) === 'Reserve') {
-          payload = this.findRendezVousForRange(day.rendezVous, range.start, range.end)
-            ?? this.findRendezVousForRange(this.rangeRendezVous(), range.start, range.end);
+          payload = this.findRendezVousForSlot(slot, day.rendezVous, range.start, range.end)
+            ?? this.findRendezVousForSlot(slot, this.rangeRendezVous(), range.start, range.end);
         }
         entries.push({
           id: `slot-${slot.dateDebut}-${slot.codeStatut}-${index}`,
@@ -542,6 +542,21 @@ export class AdminCalendarComponent implements OnInit {
       const rdvEnd = this.getMinutes(item.rendezVous.dateFin);
       return end > rdvStart && start < rdvEnd;
     });
+  }
+
+  private findRendezVousForSlot(
+    slot: CreneauCalendarEntryDto,
+    items: CalendarRendezVousItem[],
+    start: number,
+    end: number
+  ) {
+    if (slot.idCreneau != null) {
+      const match = items.find(item => item.rendezVous.creneau?.idCreneau === slot.idCreneau);
+      if (match) {
+        return match;
+      }
+    }
+    return this.findRendezVousForRange(items, start, end);
   }
 
   private extractRendezVous(demandes: DemandeWithServices[], start: string, end: string) {
