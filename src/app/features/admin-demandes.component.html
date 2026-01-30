@@ -326,12 +326,7 @@
             @for (service of draft.services; let i = $index; track getServiceKey(service)) {
               <tr>
                 <td>
-                  <input
-                    type="text"
-                    [ngModel]="service.libelle"
-                    (ngModelChange)="updateServiceField(i, 'libelle', $event)"
-                    [disabled]="isLockedForEdit()"
-                  />
+                  <span class="readonly">{{ service.libelle }}</span>
                 </td>
                 <td>
                   <input

@@ -15,6 +15,7 @@ import {
 } from '../modeles/rendezvous-proposition.model';
 import { AuthService } from '../services/auth.service';
 import { VEHICLE_ENERGY_OPTIONS } from '../shared/vehicle-energy-options';
+import { forkJoin } from 'rxjs';
 
 type TypeFilterValue = 'Tous' | DemandeWithServices['code_type'] | string;
 type StatutFilterValue = 'Tous' | DemandeWithServices['code_statut'] | string;
@@ -577,13 +578,11 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     });
   }
 
-  updateServiceField(index: number, field: 'quantite'|'prix_unitaire'|'libelle', value: string | number | null) {
+  updateServiceField(index: number, field: 'quantite'|'prix_unitaire', value: string | number | null) {
     this.updateDraft(d => {
       const svc = d.services[index];
       if (!svc) return;
-      if (field === 'libelle') {
-        svc.libelle = String(value ?? '');
-      } else if (field === 'quantite') {
+      if (field === 'quantite') {
         const num = Number(value);
         let qty = Number.isFinite(num) && num > 0 ? Math.round(num) : 1;
         if (svc.quantite_max && qty > svc.quantite_max) {
@@ -727,47 +726,97 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   saveChanges() {
     const id = this.selectedId();
     const draft = this.draft();
+    const original = this.original();
     if (id == null || !draft || this.saving()) return;
 
     this.saving.set(true);
     this.feedback.set(null);
     this.feedbackType.set(null);
 
+    if (!original) {
+      this.saving.set(false);
+      this.toast.error('Impossible de comparer les modifications.');
+      return;
+    }
+
     const client = this.buildClientPayload(draft.client);
 
-    const payload: Parameters<DemandesServiceService['updateDemande']>[1] = {
-      codeType: draft.code_type,
-      codeStatut: draft.code_statut,
-      immatriculation: draft.client?.immatriculation ?? null,
-      vehiculeMarque: client?.vehiculeMarque ?? null,
-      vehiculeModele: client?.vehiculeModele ?? null,
-      vehiculeEnergie: client?.vehiculeEnergie ?? null,
-      telephone: this.trimOrEmpty(client?.telephone),
-      adresseLigne1: this.trimOrEmpty(client?.adresseLigne1),
-      adresseLigne2: this.trimOrEmpty(client?.adresseLigne2),
-      adresseCodePostal: this.trimOrEmpty(client?.adresseCodePostal),
-      adresseVille: this.trimOrEmpty(client?.adresseVille),
-      services: draft.services.map(s => ({
-        libelle: s.libelle,
-        idService: s.id_service,
-        quantite: s.quantite,
-        prixUnitaire: s.prix_unitaire ?? null
-      })),
-      ...(client ? { client } : {})
-    };
+    const originalClient = this.buildClientPayload(original.client);
+    const clientChanged = JSON.stringify(client ?? {}) !== JSON.stringify(originalClient ?? {});
+    const immatriculationChanged =
+      (draft.client?.immatriculation ?? null) !== (original.client?.immatriculation ?? null);
+    const typeChanged = draft.code_type !== original.code_type;
+    const statutChanged = draft.code_statut !== original.code_statut;
+    const unsupportedStatut =
+      statutChanged && !['En_attente', 'Annulee'].includes(draft.code_statut);
+    if (unsupportedStatut) {
+      this.toast.info('Changement de statut non pris en charge via l’API.');
+      this.updateDraft(d => { d.code_statut = original.code_statut; });
+    }
 
-    this.api.updateDemande(id, payload).subscribe({
-      next: updated => {
-        const merged = this.mergeDraftWithResponse(draft, updated);
-        this.demandes.update(list =>
-          list.map(item => this.getDemandeId(item) === id ? merged : item)
-        );
-        this.original.set(this.clone(merged));
-        this.draft.set(this.clone(merged));
-        this.saving.set(false);
-        this.feedback.set('Demande mise à jour avec succès.');
-        this.feedbackType.set('success');
-        this.toast.success('Demande mise à jour avec succès.');
+    const serviceDiff = this.computeServiceChanges(original.services, draft.services);
+
+    const ops = [
+      typeChanged ? this.api.updateType(id, draft.code_type) : null,
+      immatriculationChanged ? this.api.updateImmatriculation(id, draft.client?.immatriculation ?? null) : null,
+      clientChanged && client ? this.api.updateClient(id, client) : null,
+      ...(statutChanged && !unsupportedStatut && draft.code_statut === 'En_attente'
+        ? [this.api.submitDemande(id)]
+        : []),
+      ...(statutChanged && !unsupportedStatut && draft.code_statut === 'Annulee'
+        ? [this.api.archiveDemande(id)]
+        : []),
+      ...serviceDiff.toAdd.map(service => this.api.addUnique({
+        demandeId: id,
+        serviceId: service.id_service,
+        quantite: service.quantite,
+        prixUnitaire: service.prix_unitaire ?? null
+      })),
+      ...serviceDiff.toUpdate.map(service => this.api.updateServiceLine({
+        demandeId: id,
+        serviceId: service.id_service,
+        quantite: service.quantite,
+        prixUnitaire: service.prix_unitaire ?? null
+      })),
+      ...serviceDiff.toRemove.map(service => this.api.deleteLine(id, service.id_service))
+    ].filter(Boolean);
+
+    if (!ops.length) {
+      this.saving.set(false);
+      this.feedback.set('Aucune modification détectée.');
+      this.feedbackType.set('success');
+      this.toast.info('Aucune modification détectée.');
+      return;
+    }
+
+    forkJoin(ops).subscribe({
+      next: () => {
+        this.api.getById(id, { silentError: true }).subscribe({
+          next: updated => {
+            if (!updated) {
+              this.saving.set(false);
+              this.feedback.set('Mise à jour terminée.');
+              this.feedbackType.set('success');
+              return;
+            }
+            const merged = this.mergeDraftWithResponse(draft, updated);
+            this.demandes.update(list =>
+              list.map(item => this.getDemandeId(item) === id ? merged : item)
+            );
+            this.original.set(this.clone(merged));
+            this.draft.set(this.clone(merged));
+            this.saving.set(false);
+            this.feedback.set('Demande mise à jour avec succès.');
+            this.feedbackType.set('success');
+            this.toast.success('Demande mise à jour avec succès.');
+          },
+          error: () => {
+            this.saving.set(false);
+            this.feedback.set('Demande mise à jour avec succès.');
+            this.feedbackType.set('success');
+            this.toast.success('Demande mise à jour avec succès.');
+          }
+        });
       },
       error: () => {
         this.saving.set(false);
@@ -957,6 +1006,36 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
         quantite_max: Number.isFinite(maxQty) ? Math.max(1, Math.round(<number>maxQty)) : undefined
       } satisfies ServiceItem;
     });
+  }
+
+  private computeServiceChanges(
+    original: ServiceItem[],
+    draft: ServiceItem[]
+  ): { toAdd: ServiceItem[]; toUpdate: ServiceItem[]; toRemove: ServiceItem[] } {
+    const originalMap = new Map<number, ServiceItem>();
+    original.forEach(service => {
+      originalMap.set(service.id_service, service);
+    });
+
+    const draftMap = new Map<number, ServiceItem>();
+    draft.forEach(service => {
+      draftMap.set(service.id_service, service);
+    });
+
+    const toAdd = draft.filter(service => !originalMap.has(service.id_service));
+    const toRemove = original.filter(service => !draftMap.has(service.id_service));
+    const toUpdate = draft.filter(service => {
+      const base = originalMap.get(service.id_service);
+      if (!base) {
+        return false;
+      }
+      const quantityChanged = service.quantite !== base.quantite;
+      const priceChanged =
+        Number(service.prix_unitaire ?? 0) !== Number(base.prix_unitaire ?? 0);
+      return quantityChanged || priceChanged;
+    });
+
+    return { toAdd, toUpdate, toRemove };
   }
 
   private trimClientStrings(

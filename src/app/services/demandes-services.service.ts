@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { Observable, forkJoin, of, throwError } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 // ⚠️ On réutilise LES TYPES EXISTANTS du modèle
@@ -166,33 +166,65 @@ export class DemandesServiceService {
     },
     options?: { silentError?: boolean }
   ) {
-    const body: Record<string, unknown> = {};
-
-    if (payload.codeType) body['codeType'] = payload.codeType;
-    if (payload.codeStatut) body['codeStatut'] = payload.codeStatut;
-    if ('immatriculation' in payload) body['immatriculation'] = payload.immatriculation;
-    if ('vehiculeMarque' in payload) body['vehiculeMarque'] = payload.vehiculeMarque;
-    if ('vehiculeModele' in payload) body['vehiculeModele'] = payload.vehiculeModele;
-    if ('vehiculeEnergie' in payload) body['vehiculeEnergie'] = payload.vehiculeEnergie;
-    if ('telephone' in payload) body['telephone'] = payload.telephone;
-    if ('adresseLigne1' in payload) body['adresseLigne1'] = payload.adresseLigne1;
-    if ('adresseLigne2' in payload) body['adresseLigne2'] = payload.adresseLigne2;
-    if ('adresseCodePostal' in payload) body['adresseCodePostal'] = payload.adresseCodePostal;
-    if ('adresseVille' in payload) body['adresseVille'] = payload.adresseVille;
-    if (payload.services) body['services'] = payload.services;
-    if (payload.client) body['client'] = payload.client;
-
     const headers = options?.silentError
       ? new HttpHeaders({ 'X-Skip-Error-Toast': '1' })
       : undefined;
-
     const httpOptions = headers ? { headers } : undefined;
 
-    return this.http
-      .put<any>(`${this.apiBase}/demandes/${id}`, body, httpOptions)
-      .pipe(
-        map((response: any) => this.normalizeDemande(response) ?? (response as DemandeWithServices))
+    const ops: Observable<unknown>[] = [];
+
+    if (payload.codeType) {
+      ops.push(this.updateType(id, payload.codeType, httpOptions));
+    }
+
+    if (payload.codeStatut === 'En_attente') {
+      ops.push(this.submitDemande(id, httpOptions));
+    }
+    if (payload.codeStatut === 'Annulee') {
+      ops.push(this.archiveDemande(id, httpOptions));
+    }
+
+    if ('immatriculation' in payload) {
+      ops.push(this.updateImmatriculation(id, payload.immatriculation ?? null, httpOptions));
+    }
+
+    const clientPayload = payload.client ?? {
+      telephone: payload.telephone,
+      vehiculeMarque: payload.vehiculeMarque,
+      vehiculeModele: payload.vehiculeModele,
+      vehiculeEnergie: payload.vehiculeEnergie,
+      adresseLigne1: payload.adresseLigne1,
+      adresseLigne2: payload.adresseLigne2,
+      adresseCodePostal: payload.adresseCodePostal,
+      adresseVille: payload.adresseVille
+    };
+
+    const hasClientPayload = clientPayload && Object.values(clientPayload).some(value => value !== undefined);
+    if (hasClientPayload) {
+      ops.push(this.updateClient(id, clientPayload, httpOptions));
+    }
+
+    if (payload.services?.length) {
+      payload.services.forEach(service => {
+        ops.push(this.updateServiceLine({
+          demandeId: id,
+          serviceId: service.idService,
+          quantite: service.quantite,
+          prixUnitaire: service.prixUnitaire ?? null
+        }, httpOptions));
+      });
+    }
+
+    if (!ops.length) {
+      return this.getById(id, options).pipe(
+        map(response => response ?? ({ id_demande: id } as DemandeWithServices))
       );
+    }
+
+    return forkJoin(ops).pipe(
+      switchMap(() => this.getById(id, options)),
+      map((response: any) => this.normalizeDemande(response) ?? (response as DemandeWithServices))
+    );
   }
 
   delete(id: number) {
@@ -264,7 +296,9 @@ export class DemandesServiceService {
     const payload = {
       demandeId: req.demandeId,
       serviceId: req.serviceId,
-      quantite: req.quantite ?? 1
+      quantite: req.quantite ?? 1,
+      prixUnitaire: req.prixUnitaire ?? undefined,
+      rendezVousId: req.rendezVousId ?? undefined
     };
     return this.http.post<DemandeServiceResponse>(`${this.apiBase}/demandes-services`, payload).pipe(
       catchError((err: HttpErrorResponse) => throwError(() => err))
@@ -274,6 +308,86 @@ export class DemandesServiceService {
   /** Supprimer une ligne du brouillon. */
   deleteLine(demandeId: number, serviceId: number) {
     return this.http.delete<void>(`${this.apiBase}/demandes-services/${demandeId}/${serviceId}`);
+  }
+
+  updateServiceLine(
+    req: DemandeServiceRequest,
+    options?: { headers?: HttpHeaders }
+  ): Observable<DemandeServiceResponse> {
+    const payload = {
+      demandeId: req.demandeId,
+      serviceId: req.serviceId,
+      quantite: req.quantite ?? 1,
+      prixUnitaire: req.prixUnitaire ?? null,
+      rendezVousId: req.rendezVousId ?? null
+    };
+    return this.http.put<DemandeServiceResponse>(
+      `${this.apiBase}/demandes-services/${req.demandeId}/${req.serviceId}`,
+      payload,
+      options
+    );
+  }
+
+  updateType(
+    demandeId: number,
+    codeType: DemandeWithServices['code_type'],
+    options?: { headers?: HttpHeaders }
+  ) {
+    return this.http.patch<void>(
+      `${this.apiBase}/demandes/${demandeId}/type`,
+      { codeType },
+      options
+    );
+  }
+
+  updateImmatriculation(
+    demandeId: number,
+    immatriculation: string | null,
+    options?: { headers?: HttpHeaders }
+  ) {
+    return this.http.patch<void>(
+      `${this.apiBase}/demandes/${demandeId}/immatriculation`,
+      { immatriculation },
+      options
+    );
+  }
+
+  updateClient(
+    demandeId: number,
+    payload: {
+      telephone?: string | null;
+      immatriculation?: string | null;
+      vehiculeMarque?: string | null;
+      vehiculeModele?: string | null;
+      vehiculeEnergie?: string | null;
+      adresseLigne1?: string | null;
+      adresseLigne2?: string | null;
+      adresseCodePostal?: string | null;
+      adresseVille?: string | null;
+    },
+    options?: { headers?: HttpHeaders }
+  ) {
+    return this.http.patch<void>(
+      `${this.apiBase}/demandes/${demandeId}/client`,
+      payload,
+      options
+    );
+  }
+
+  submitDemande(demandeId: number, options?: { headers?: HttpHeaders }) {
+    return this.http.patch<void>(
+      `${this.apiBase}/demandes/${demandeId}/submit`,
+      {},
+      options
+    );
+  }
+
+  archiveDemande(demandeId: number, options?: { headers?: HttpHeaders }) {
+    return this.http.patch<void>(
+      `${this.apiBase}/demandes/${demandeId}/archive`,
+      {},
+      options
+    );
   }
 
   private toNumber(value: any, fallback: number | null = null) {

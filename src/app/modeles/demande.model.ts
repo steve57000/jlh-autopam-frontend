@@ -61,6 +61,8 @@ export interface ClientSummaryDto {
   vehiculeEnergie?: string | null;
   adresseLigne1?: string | null;
   adresseLigne2?: string | null;
+  adresseCodePostal?: string | null;
+  adresseVille?: string | null;
   codePostal?: string | null;
   ville?: string | null;
 }
