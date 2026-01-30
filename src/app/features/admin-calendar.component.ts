@@ -448,8 +448,8 @@ export class AdminCalendarComponent implements OnInit {
       ranges.forEach((range, index) => {
         let payload: CalendarRendezVousItem | undefined;
         if (this.normalizeStatus(slot.codeStatut) === 'Reserve') {
-          payload = this.findRendezVousForRange(day.rendezVous, range.start, range.end)
-            ?? this.findRendezVousForRange(this.rangeRendezVous(), range.start, range.end);
+          payload = this.findRendezVousForSlot(slot, day.rendezVous, range.start, range.end)
+            ?? this.findRendezVousForSlot(slot, this.rangeRendezVous(), range.start, range.end);
         }
         entries.push({
           id: `slot-${slot.dateDebut}-${slot.codeStatut}-${index}`,
@@ -516,13 +516,24 @@ export class AdminCalendarComponent implements OnInit {
   }
 
   normalizeStatus(code?: string | null) {
-    const value = (code ?? '').toString();
-    if (value === 'Libre' || value.toLowerCase() === 'libre') return 'Libre';
-    if (value === 'Reserve' || value.toLowerCase() === 'reserve' || value.toLowerCase() === 'réservé') {
-      return 'Reserve';
-    }
-    if (value === 'Indisponible' || value.toLowerCase() === 'indisponible') return 'Indisponible';
+    const value = this.normalizeStatusKey(code);
+    if (value === 'libre') return 'Libre';
+    if (value === 'indisponible') return 'Indisponible';
+    if (this.isReservedStatus(value)) return 'Reserve';
     return 'Indisponible';
+  }
+
+  private isReservedStatus(value: string) {
+    return ['reserve', 'confirme', 'confirmee', 'reporte', 'annule'].includes(value);
+  }
+
+  private normalizeStatusKey(code?: string | null) {
+    return (code ?? '')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
   }
 
   private findRendezVousForRange(items: CalendarRendezVousItem[], start: number, end: number) {
@@ -533,17 +544,38 @@ export class AdminCalendarComponent implements OnInit {
     });
   }
 
+  private findRendezVousForSlot(
+    slot: CreneauCalendarEntryDto,
+    items: CalendarRendezVousItem[],
+    start: number,
+    end: number
+  ) {
+    if (slot.idCreneau != null) {
+      const match = items.find(item => item.rendezVous.creneau?.idCreneau === slot.idCreneau);
+      if (match) {
+        return match;
+      }
+    }
+    return this.findRendezVousForRange(items, start, end);
+  }
+
   private extractRendezVous(demandes: DemandeWithServices[], start: string, end: string) {
     const startDate = new Date(start);
     const endDate = new Date(end);
     return (demandes ?? [])
-      .filter(demande => demande.rendezVous?.dateDebut && demande.rendezVous?.dateFin)
-      .map(demande => ({
-        demandeId: demande.id_demande,
-        demandeType: demande.code_type,
-        clientLabel: [demande.client?.prenom, demande.client?.nom].filter(Boolean).join(' ') || 'Client',
-        rendezVous: demande.rendezVous as RendezVousSummary
-      }))
+      .map(demande => {
+        const rendezVous = demande.rendezVous ?? demande.timeline?.find(entry => entry.rendezVous)?.rendezVous ?? null;
+        if (!rendezVous?.dateDebut || !rendezVous?.dateFin) {
+          return null;
+        }
+        return {
+          demandeId: demande.id_demande,
+          demandeType: demande.code_type,
+          clientLabel: [demande.client?.prenom, demande.client?.nom].filter(Boolean).join(' ') || 'Client',
+          rendezVous
+        } satisfies CalendarRendezVousItem;
+      })
+      .filter((item): item is CalendarRendezVousItem => Boolean(item))
       .filter(item => {
         const date = new Date(item.rendezVous.dateDebut);
         return date >= startDate && date <= endDate;
