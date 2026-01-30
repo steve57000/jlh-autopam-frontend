@@ -107,7 +107,7 @@ export class AdminCalendarComponent implements OnInit {
       })
       .map(day => ({
         ...day,
-        slots: day.slots.filter(slot => type === 'Tous' || slot.codeStatut === type)
+        slots: day.slots.filter(slot => type === 'Tous' || this.normalizeStatus(slot.codeStatut) === type)
       }))
       .filter(day => day.slots.length || day.rendezVous.length);
   });
@@ -340,7 +340,7 @@ export class AdminCalendarComponent implements OnInit {
   }
 
   availabilityBadgeClass(code: string) {
-    switch (code) {
+    switch (this.normalizeStatus(code)) {
       case 'Libre':
         return 'badge--available';
       case 'Reserve':
@@ -438,7 +438,7 @@ export class AdminCalendarComponent implements OnInit {
   }
 
   private getRangeSlots() {
-    return this.rangeSlots().filter(slot => slot.codeStatut !== 'Indisponible');
+    return this.rangeSlots().filter(slot => this.normalizeStatus(slot.codeStatut) !== 'Indisponible');
   }
 
   private getRangeRendezVous() {
@@ -448,13 +448,23 @@ export class AdminCalendarComponent implements OnInit {
   private dayStatus(date: Date) {
     const slots = this.calendarSlots().filter(slot => this.isSameDay(new Date(slot.dateDebut), date));
     if (!slots.length) return null;
-    const hasLibre = slots.some(slot => slot.codeStatut === 'Libre');
-    const hasReserve = slots.some(slot => slot.codeStatut === 'Reserve');
-    const allIndispo = slots.every(slot => slot.codeStatut === 'Indisponible');
+    const normalizedStatuses = slots.map(slot => this.normalizeStatus(slot.codeStatut));
+    const hasLibre = normalizedStatuses.some(status => status === 'Libre');
+    const hasReserve = normalizedStatuses.some(status => status === 'Reserve');
+    const allIndispo = normalizedStatuses.every(status => status === 'Indisponible');
     if (allIndispo) return 'Indisponible';
     if (hasReserve) return 'Reserve';
     if (hasLibre) return 'Libre';
     return null;
+  }
+
+  private normalizeStatus(status?: string | null) {
+    if (!status) return null;
+    const cleaned = status.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    if (cleaned.startsWith('libre')) return 'Libre';
+    if (cleaned.startsWith('reserv')) return 'Reserve';
+    if (cleaned.startsWith('indispo')) return 'Indisponible';
+    return status;
   }
 
   private formatDateLabel(date: Date) {
