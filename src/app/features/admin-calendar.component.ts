@@ -2,15 +2,12 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { MatDatepickerModule, MatCalendarCellClassFunction } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { DemandesServiceService } from '../services/demandes-services.service';
 import { CreneauxCalendarService, CreneauCalendarEntryDto } from '../services/creneaux-calendar.service';
 import { RendezVousService } from '../services/rendezvous.service';
 import type { DemandeWithServices, RendezVousSummary } from '../modeles/demande.model';
-
-interface CalendarGroup<T> {
-  date: string;
-  items: T[];
-}
 
 interface CalendarRendezVousItem {
   demandeId: number;
@@ -23,7 +20,7 @@ interface CalendarRendezVousItem {
   selector: 'app-admin-calendar',
   templateUrl: './admin-calendar.component.html',
   styleUrls: ['./admin-calendar.component.scss'],
-  imports: [CommonModule, DatePipe, FormsModule, RouterModule],
+  imports: [CommonModule, DatePipe, FormsModule, RouterModule, MatDatepickerModule, MatNativeDateModule],
   standalone: true
 })
 export class AdminCalendarComponent implements OnInit {
@@ -35,8 +32,7 @@ export class AdminCalendarComponent implements OnInit {
   loading = signal(false);
   error = signal<string | null>(null);
   slotMinutes = signal(30);
-  startDate = signal(this.formatDateOnly(new Date()));
-  endDate = signal(this.formatDateOnly(this.addDays(new Date(), 14)));
+  selectedDate = signal(new Date());
 
   calendarSlots = signal<CreneauCalendarEntryDto[]>([]);
   rendezVousItems = signal<CalendarRendezVousItem[]>([]);
@@ -46,18 +42,22 @@ export class AdminCalendarComponent implements OnInit {
   rdvSaving = signal(false);
   rdvFeedback = signal<string | null>(null);
 
-  slotsByDate = computed(() => this.groupByDate(this.calendarSlots(), slot => slot.dateDebut));
-  rendezVousByDate = computed(() => this.groupByDate(this.rendezVousItems(), item => item.rendezVous.dateDebut));
+  dailySlots = computed(() => this.filterByDay(this.calendarSlots(), slot => slot.dateDebut));
+  dailyRendezVous = computed(() => this.filterByDay(this.rendezVousItems(), item => item.rendezVous.dateDebut));
 
   ngOnInit() {
-    this.refresh();
+    this.refreshForDate(this.selectedDate());
   }
 
   refresh() {
+    this.refreshForDate(this.selectedDate());
+  }
+
+  refreshForDate(date: Date) {
     this.loading.set(true);
     this.error.set(null);
-    const start = this.toIsoStart(this.startDate());
-    const end = this.toIsoEnd(this.endDate());
+    const start = this.toIsoStart(this.startOfMonth(date));
+    const end = this.toIsoEnd(this.endOfMonth(date));
     this.calendarApi.getCalendar({ start, end, slotMinutes: this.slotMinutes() }).subscribe({
       next: slots => this.calendarSlots.set(slots ?? []),
       error: () => this.calendarSlots.set([])
@@ -78,6 +78,13 @@ export class AdminCalendarComponent implements OnInit {
   setSlotMinutes(value: string) {
     const parsed = Number(value);
     this.slotMinutes.set(Number.isFinite(parsed) && parsed > 0 ? parsed : 30);
+    this.refresh();
+  }
+
+  onDateSelected(date: Date | null) {
+    if (!date) return;
+    this.selectedDate.set(date);
+    this.refreshForDate(date);
   }
 
   selectRdv(item: CalendarRendezVousItem) {
@@ -208,19 +215,23 @@ export class AdminCalendarComponent implements OnInit {
       .sort((a, b) => new Date(a.rendezVous.dateDebut).getTime() - new Date(b.rendezVous.dateDebut).getTime());
   }
 
-  private groupByDate<T>(items: T[], dateSelector: (item: T) => string): CalendarGroup<T>[] {
-    const map = new Map<string, T[]>();
-    items.forEach(item => {
-      const key = this.formatDateOnly(new Date(dateSelector(item)));
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(item);
-    });
-    return Array.from(map.entries()).map(([date, groupedItems]) => ({ date, items: groupedItems }));
+  private filterByDay<T>(items: T[], dateSelector: (item: T) => string): T[] {
+    const target = this.selectedDate();
+    return items.filter(item => this.isSameDay(new Date(dateSelector(item)), target));
   }
 
-  private formatDateOnly(date: Date) {
-    const pad = (value: number) => value.toString().padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  dayHighlight: MatCalendarCellClassFunction<Date> = (date, view) => {
+    if (view !== 'month') return '';
+    const hasRdv = this.rendezVousItems().some(item =>
+      this.isSameDay(new Date(item.rendezVous.dateDebut), date)
+    );
+    const hasFree = this.calendarSlots().some(slot =>
+      slot.codeStatut === 'Libre' && this.isSameDay(new Date(slot.dateDebut), date)
+    );
+    if (hasRdv && hasFree) return 'calendar-day--mixed';
+    if (hasRdv) return 'calendar-day--rdv';
+    if (hasFree) return 'calendar-day--free';
+    return '';
   }
 
   private formatDateTimeLocal(value: string) {
@@ -236,19 +247,29 @@ export class AdminCalendarComponent implements OnInit {
     return Number.isNaN(date.getTime()) ? null : date.toISOString();
   }
 
-  private toIsoStart(date: string) {
-    const base = new Date(`${date}T00:00:00`);
+  private toIsoStart(date: Date) {
+    const base = new Date(date);
+    base.setHours(0, 0, 0, 0);
     return base.toISOString();
   }
 
-  private toIsoEnd(date: string) {
-    const base = new Date(`${date}T23:59:59`);
+  private toIsoEnd(date: Date) {
+    const base = new Date(date);
+    base.setHours(23, 59, 59, 999);
     return base.toISOString();
   }
 
-  private addDays(date: Date, days: number) {
-    const next = new Date(date);
-    next.setDate(next.getDate() + days);
-    return next;
+  private startOfMonth(date: Date) {
+    return new Date(date.getFullYear(), date.getMonth(), 1);
+  }
+
+  private endOfMonth(date: Date) {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  }
+
+  private isSameDay(a: Date, b: Date) {
+    return a.getFullYear() === b.getFullYear()
+      && a.getMonth() === b.getMonth()
+      && a.getDate() === b.getDate();
   }
 }

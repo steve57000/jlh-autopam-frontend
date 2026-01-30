@@ -14,14 +14,6 @@
 
   <section class="calendar-page__filters">
     <label>
-      <span>Début</span>
-      <input type="date" [value]="startDate()" (change)="startDate.set(($any($event.target)).value)" />
-    </label>
-    <label>
-      <span>Fin</span>
-      <input type="date" [value]="endDate()" (change)="endDate.set(($any($event.target)).value)" />
-    </label>
-    <label>
       <span>Durée des créneaux</span>
       <select [value]="slotMinutes()" (change)="setSlotMinutes(($any($event.target)).value)">
         <option value="30">30 min</option>
@@ -29,7 +21,7 @@
         <option value="60">60 min</option>
       </select>
     </label>
-    <button type="button" class="btn btn-outline" (click)="refresh()">Appliquer</button>
+    <button type="button" class="btn btn-outline" (click)="refresh()">Actualiser la vue</button>
   </section>
 
   @if (loading()) {
@@ -38,64 +30,66 @@
     <div class="calendar-page__state calendar-page__state--error">{{ error() }}</div>
   } @else {
     <div class="calendar-layout">
-      <section class="calendar-panel">
-        <header>
-          <h3>Disponibilités</h3>
-          <p class="muted">Créneaux calculés par l’API (libre, réservé ou indisponible).</p>
-        </header>
-        @if (!slotsByDate().length) {
-          <p class="calendar-page__state">Aucun créneau disponible sur cette période.</p>
-        } @else {
-          @for (group of slotsByDate(); track group.date) {
-            <article class="calendar-day">
-              <h4>{{ group.date | date:'EEEE d MMMM' }}</h4>
-              <ul>
-                @for (slot of group.items; track slot.dateDebut) {
-                  <li>
-                    <span>{{ slot.dateDebut | date:'HH:mm' }} – {{ slot.dateFin | date:'HH:mm' }}</span>
-                    <span class="badge" [class]="availabilityBadgeClass(slot.codeStatut)">
-                      {{ slot.libelleStatut || slot.codeStatut }}
-                    </span>
-                  </li>
-                }
-              </ul>
-            </article>
-          }
-        }
+      <section class="calendar-panel calendar-panel--compact">
+        <mat-calendar
+          [selected]="selectedDate()"
+          (selectedChange)="onDateSelected($event)"
+          [dateClass]="dayHighlight"
+        ></mat-calendar>
+        <div class="calendar-legend">
+          <span class="legend-item legend-item--free">Libre</span>
+          <span class="legend-item legend-item--rdv">Rendez-vous</span>
+          <span class="legend-item legend-item--mixed">Mixte</span>
+        </div>
       </section>
 
       <section class="calendar-panel">
         <header>
-          <h3>Rendez-vous planifiés</h3>
-          <p class="muted">Cliquez pour consulter, annoter ou ajuster un rendez-vous.</p>
+          <h3>Détails du {{ selectedDate() | date:'EEEE d MMMM' }}</h3>
+          <p class="muted">Cliquez sur un rendez-vous pour ouvrir la fiche.</p>
         </header>
-        @if (!rendezVousByDate().length) {
-          <p class="calendar-page__state">Aucun rendez-vous sur cette période.</p>
-        } @else {
-          @for (group of rendezVousByDate(); track group.date) {
-            <article class="calendar-day">
-              <h4>{{ group.date | date:'EEEE d MMMM' }}</h4>
-              <ul>
-                @for (item of group.items; track item.rendezVous.idRdv) {
-                  <li>
-                    <button type="button" class="calendar-link" (click)="selectRdv(item)">
-                      <div>
-                        <strong>{{ item.rendezVous.dateDebut | date:'HH:mm' }}</strong>
-                        – {{ item.rendezVous.dateFin | date:'HH:mm' }}
-                      </div>
-                      <div>
-                        <span>{{ item.clientLabel }}</span>
-                        <span class="badge" [class]="statusBadgeClass(item.rendezVous.codeStatut)">
-                          {{ item.rendezVous.libelleStatut || item.rendezVous.codeStatut }}
-                        </span>
-                      </div>
-                    </button>
-                  </li>
-                }
-              </ul>
-            </article>
+        <div class="calendar-day">
+          <h4>Disponibilités</h4>
+          @if (!dailySlots().length) {
+            <p class="calendar-page__state">Aucun créneau calculé.</p>
+          } @else {
+            <ul>
+              @for (slot of dailySlots(); track slot.dateDebut) {
+                <li>
+                  <span>{{ slot.dateDebut | date:'HH:mm' }} – {{ slot.dateFin | date:'HH:mm' }}</span>
+                  <span class="badge" [class]="availabilityBadgeClass(slot.codeStatut)">
+                    {{ slot.libelleStatut || slot.codeStatut }}
+                  </span>
+                </li>
+              }
+            </ul>
           }
-        }
+        </div>
+        <div class="calendar-day">
+          <h4>Rendez-vous</h4>
+          @if (!dailyRendezVous().length) {
+            <p class="calendar-page__state">Aucun rendez-vous.</p>
+          } @else {
+            <ul>
+              @for (item of dailyRendezVous(); track item.rendezVous.idRdv) {
+                <li>
+                  <button type="button" class="calendar-link" (click)="selectRdv(item)">
+                    <div>
+                      <strong>{{ item.rendezVous.dateDebut | date:'HH:mm' }}</strong>
+                      – {{ item.rendezVous.dateFin | date:'HH:mm' }}
+                    </div>
+                    <div>
+                      <span>{{ item.clientLabel }}</span>
+                      <span class="badge" [class]="statusBadgeClass(item.rendezVous.codeStatut)">
+                        {{ item.rendezVous.libelleStatut || item.rendezVous.codeStatut }}
+                      </span>
+                    </div>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
       </section>
 
       <aside class="calendar-detail">
