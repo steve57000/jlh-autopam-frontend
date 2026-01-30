@@ -295,7 +295,7 @@ export class AdminCalendarComponent implements OnInit {
 
   onEntryClick(entry: SchedulerEntry) {
     if (Date.now() < this.suppressClickUntil) return;
-    if (entry.type !== 'rdv' || !entry.payload) return;
+    if (!entry.payload) return;
     this.selectRdv(entry.payload);
     this.openDetailsModal();
   }
@@ -446,13 +446,17 @@ export class AdminCalendarComponent implements OnInit {
     day.slots.forEach(slot => {
       const ranges = this.clampToIntervals(this.getMinutes(slot.dateDebut), this.getMinutes(slot.dateFin), intervals);
       ranges.forEach((range, index) => {
+        const payload = slot.codeStatut === 'Reserve'
+          ? this.findRendezVousForRange(day.rendezVous, range.start, range.end)
+          : undefined;
         entries.push({
           id: `slot-${slot.dateDebut}-${slot.codeStatut}-${index}`,
           label: slot.libelleStatut || slot.codeStatut,
           startMinutes: range.start,
           endMinutes: range.end,
           type: 'slot',
-          status: slot.codeStatut
+          status: slot.codeStatut,
+          payload
         });
       });
     });
@@ -505,6 +509,10 @@ export class AdminCalendarComponent implements OnInit {
     }
   }
 
+  canModifySelectedRdv() {
+    return this.selectedRdv()?.rendezVous.codeStatut !== 'Annule';
+  }
+
   private normalizeStatus(code?: string | null) {
     const value = (code ?? '').toString();
     if (value === 'Libre' || value.toLowerCase() === 'libre') return 'Libre';
@@ -513,6 +521,14 @@ export class AdminCalendarComponent implements OnInit {
     }
     if (value === 'Indisponible' || value.toLowerCase() === 'indisponible') return 'Indisponible';
     return 'Indisponible';
+  }
+
+  private findRendezVousForRange(items: CalendarRendezVousItem[], start: number, end: number) {
+    return items.find(item => {
+      const rdvStart = this.getMinutes(item.rendezVous.dateDebut);
+      const rdvEnd = this.getMinutes(item.rendezVous.dateFin);
+      return end > rdvStart && start < rdvEnd;
+    });
   }
 
   private extractRendezVous(demandes: DemandeWithServices[], start: string, end: string) {
