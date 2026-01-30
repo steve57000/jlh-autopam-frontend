@@ -563,13 +563,19 @@ export class AdminCalendarComponent implements OnInit {
     const startDate = new Date(start);
     const endDate = new Date(end);
     return (demandes ?? [])
-      .filter(demande => demande.rendezVous?.dateDebut && demande.rendezVous?.dateFin)
-      .map(demande => ({
-        demandeId: demande.id_demande,
-        demandeType: demande.code_type,
-        clientLabel: [demande.client?.prenom, demande.client?.nom].filter(Boolean).join(' ') || 'Client',
-        rendezVous: demande.rendezVous as RendezVousSummary
-      }))
+      .map(demande => {
+        const rendezVous = demande.rendezVous ?? demande.timeline?.find(entry => entry.rendezVous)?.rendezVous ?? null;
+        if (!rendezVous?.dateDebut || !rendezVous?.dateFin) {
+          return null;
+        }
+        return {
+          demandeId: demande.id_demande,
+          demandeType: demande.code_type,
+          clientLabel: [demande.client?.prenom, demande.client?.nom].filter(Boolean).join(' ') || 'Client',
+          rendezVous
+        } satisfies CalendarRendezVousItem;
+      })
+      .filter((item): item is CalendarRendezVousItem => Boolean(item))
       .filter(item => {
         const date = new Date(item.rendezVous.dateDebut);
         return date >= startDate && date <= endDate;
