@@ -1,0 +1,29 @@
+@use '../../styles/variables' as v;
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem 0.75rem;
+}
+
+.calendar-header__label {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.calendar-header__btn {
+  border: none;
+  background: rgba(64, 64, 64, 0.08);
+  color: v.$color-primary;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.calendar-header__btn:hover {
+  background: rgba(64, 64, 64, 0.16);
+}

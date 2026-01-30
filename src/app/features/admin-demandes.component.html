@@ -529,6 +529,76 @@
               <p class="empty">Aucun créneau proposé pour le moment.</p>
             }
 
+            <div class="calendar-availability">
+              <div class="calendar-availability__header">
+                <div>
+                  <h5>Disponibilités du garage</h5>
+                  <p class="muted">Sélectionnez un créneau libre pour l'ajouter à la proposition.</p>
+                </div>
+                <button type="button" class="btn btn-outline btn-small" (click)="refreshCalendar()">
+                  Actualiser
+                </button>
+              </div>
+              <div class="calendar-availability__filters">
+                <label>
+                  <span>Du</span>
+                  <input
+                    type="date"
+                    [value]="calendarStart()"
+                    (change)="updateCalendarRange('start', ($any($event.target)).value)"
+                  />
+                </label>
+                <label>
+                  <span>Au</span>
+                  <input
+                    type="date"
+                    [value]="calendarEnd()"
+                    (change)="updateCalendarRange('end', ($any($event.target)).value)"
+                  />
+                </label>
+                <label>
+                  <span>Durée</span>
+                  <select
+                    [value]="calendarSlotMinutes()"
+                    (change)="updateCalendarSlotMinutes(($any($event.target)).value)"
+                  >
+                    <option value="30">30 min</option>
+                    <option value="45">45 min</option>
+                    <option value="60">60 min</option>
+                  </select>
+                </label>
+              </div>
+              @if (calendarLoading()) {
+                <p class="muted">Chargement des disponibilités…</p>
+              } @else if (calendarError()) {
+                <p class="feedback feedback--error">{{ calendarError() }}</p>
+              } @else if (!calendarSlots().length) {
+                <p class="muted">Aucun créneau calculé pour la période.</p>
+              } @else {
+                <ul class="calendar-availability__list">
+                  @for (slot of calendarSlots(); track slot.dateDebut) {
+                    <li>
+                      <div>
+                        <strong>{{ slot.dateDebut | date:'dd/MM HH:mm' }}</strong>
+                        → {{ slot.dateFin | date:'HH:mm' }}
+                        <span class="badge badge--availability" [class]="slot.codeStatut">
+                          {{ slot.libelleStatut || slot.codeStatut }}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        class="btn btn-ghost btn-small"
+                        [disabled]="slot.codeStatut !== 'Libre'"
+                        (click)="applyCalendarSlot(slot)"
+                      >
+                        Proposer
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+
             <div class="proposal-form">
               @for (slot of rdvProposalDraft(); let i = $index; track i) {
                 <div class="proposal-form__row">
