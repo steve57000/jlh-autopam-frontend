@@ -155,6 +155,46 @@ export class AdminCalendarComponent implements OnInit {
     const bounds = this.schedulerBounds();
     return (bounds.end - bounds.start) * this.minuteHeight;
   });
+  schedulerBounds = computed(() => {
+    const days = this.filteredRangeDays();
+    const defaultStart = 8 * 60;
+    const defaultEnd = 18 * 60;
+    let min = Number.POSITIVE_INFINITY;
+    let max = Number.NEGATIVE_INFINITY;
+    days.forEach(day => {
+      day.slots.forEach(slot => {
+        min = Math.min(min, this.getMinutes(slot.dateDebut));
+        max = Math.max(max, this.getMinutes(slot.dateFin));
+      });
+      day.rendezVous.forEach(item => {
+        min = Math.min(min, this.getMinutes(item.rendezVous.dateDebut));
+        max = Math.max(max, this.getMinutes(item.rendezVous.dateFin));
+      });
+    });
+    if (!Number.isFinite(min) || !Number.isFinite(max)) {
+      return { start: defaultStart, end: defaultEnd };
+    }
+    const paddedStart = Math.max(0, min - 60);
+    const paddedEnd = Math.min(24 * 60, max + 60);
+    const span = paddedEnd - paddedStart;
+    if (span < 240) {
+      return { start: paddedStart, end: Math.min(24 * 60, paddedStart + 240) };
+    }
+    return { start: paddedStart, end: paddedEnd };
+  });
+  schedulerTimes = computed(() => {
+    const bounds = this.schedulerBounds();
+    const step = this.slotMinutes();
+    const times: number[] = [];
+    for (let minutes = bounds.start; minutes <= bounds.end; minutes += step) {
+      times.push(minutes);
+    }
+    return times;
+  });
+  schedulerBodyHeight = computed(() => {
+    const bounds = this.schedulerBounds();
+    return (bounds.end - bounds.start) * this.minuteHeight;
+  });
 
   ngOnInit() {
     const today = new Date();
