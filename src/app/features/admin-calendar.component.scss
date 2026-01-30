@@ -194,6 +194,18 @@
   gap: 0.5rem;
 }
 
+.scheduler-scroll {
+  overflow: auto;
+  cursor: grab;
+  border-radius: 0.85rem;
+  touch-action: none;
+}
+
+.scheduler-scroll.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
 .scheduler-grid {
   --minute-height: 1.2px;
   --time-step: 30;
@@ -260,6 +272,17 @@
   color: rgba(v.$color-primary, 0.65);
 }
 
+.scheduler-day__closed {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  width: fit-content;
+}
+
 .scheduler-day__body {
   position: relative;
   background-image: linear-gradient(to bottom, rgba(148, 163, 184, 0.2) 1px, transparent 1px);
@@ -277,6 +300,7 @@
   font-size: 0.75rem;
   border: 1px solid transparent;
   text-align: left;
+  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.08);
 }
 
 .scheduler-entry__time {
@@ -314,10 +338,13 @@
   border: 1px solid rgba(59, 130, 246, 0.4);
   color: #1e293b;
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .scheduler-entry--rdv:hover {
   background: rgba(59, 130, 246, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 16px rgba(15, 23, 42, 0.12);
 }
 
 .detail-grid {

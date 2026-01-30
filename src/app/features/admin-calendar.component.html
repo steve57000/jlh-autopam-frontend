@@ -75,60 +75,75 @@
           <p class="calendar-page__state">Aucun créneau ou rendez-vous sur la période.</p>
         } @else {
           <div
-            class="scheduler-grid"
-            [style.--minute-height.px]="minuteHeight"
-            [style.--time-step]="slotMinutes()"
+            #schedulerScroll
+            class="scheduler-scroll"
+            [class.is-dragging]="isDragging()"
+            (pointerdown)="onSchedulerPointerDown($event)"
+            (pointermove)="onSchedulerPointerMove($event)"
+            (pointerup)="onSchedulerPointerUp($event)"
+            (pointerleave)="onSchedulerPointerUp($event)"
+            (pointercancel)="onSchedulerPointerUp($event)"
           >
-            <div class="scheduler-grid__times">
-              <div class="scheduler-grid__time scheduler-grid__time--header"></div>
-              @for (time of schedulerTimes(); track time) {
-                <div class="scheduler-grid__time">{{ formatTimeLabel(time) }}</div>
-              }
-            </div>
-            <div class="scheduler-grid__days">
-              @for (day of filteredRangeDays(); track day.date) {
-                <div class="scheduler-day">
-                  <div class="scheduler-day__header">
-                    <span>{{ day.date | date:'EEE d MMM' }}</span>
-                    <span class="scheduler-day__count">{{ day.slots.length }} créneaux · {{ day.rendezVous.length }} RDV</span>
-                  </div>
-                  <div class="scheduler-day__body" [style.height.px]="schedulerBodyHeight()">
-                    @for (entry of buildDayEntries(day); track entry.id) {
-                      @if (entry.type === 'rdv') {
-                        <button
-                          type="button"
-                          class="scheduler-entry scheduler-entry--rdv"
-                          [style.top.px]="entryTop(entry)"
-                          [style.height.px]="entryHeight(entry)"
-                          (click)="selectRdv(entry.payload!); openDetailsModal()"
-                        >
-                          <span class="scheduler-entry__time">
-                            {{ formatTimeLabel(entry.startMinutes) }} – {{ formatTimeLabel(entry.endMinutes) }}
-                          </span>
-                          <span class="scheduler-entry__label">{{ entry.label }}</span>
-                          <span class="badge" [class]="statusBadgeClass(entry.status)">
-                            {{ entry.status }}
-                          </span>
-                        </button>
+            <div
+              class="scheduler-grid"
+              [style.--minute-height.px]="minuteHeight"
+              [style.--time-step]="slotMinutes()"
+            >
+              <div class="scheduler-grid__times">
+                <div class="scheduler-grid__time scheduler-grid__time--header"></div>
+                @for (time of schedulerTimes(); track time) {
+                  <div class="scheduler-grid__time">{{ formatTimeLabel(time) }}</div>
+                }
+              </div>
+              <div class="scheduler-grid__days">
+                @for (day of filteredRangeDays(); track day.date) {
+                  <div class="scheduler-day">
+                    <div class="scheduler-day__header">
+                      <span>{{ day.date | date:'EEE d MMM' }}</span>
+                      @if (isDayClosed(day)) {
+                        <span class="scheduler-day__closed">Fermé</span>
                       } @else {
-                        <div
-                          class="scheduler-entry scheduler-entry--slot"
-                          [class.scheduler-entry--free]="entry.status === 'Libre'"
-                          [class.scheduler-entry--reserved]="entry.status === 'Reserve'"
-                          [class.scheduler-entry--blocked]="entry.status === 'Indisponible'"
-                          [style.top.px]="entryTop(entry)"
-                          [style.height.px]="entryHeight(entry)"
-                        >
-                          <span class="scheduler-entry__time">
-                            {{ formatTimeLabel(entry.startMinutes) }} – {{ formatTimeLabel(entry.endMinutes) }}
-                          </span>
-                          <span class="scheduler-entry__label">{{ slotEntryStatusLabel(entry.status) }}</span>
-                        </div>
+                        <span class="scheduler-day__count">{{ day.slots.length }} créneaux · {{ day.rendezVous.length }} RDV</span>
                       }
-                    }
+                    </div>
+                    <div class="scheduler-day__body" [style.height.px]="schedulerBodyHeight()">
+                      @for (entry of buildDayEntries(day); track entry.id) {
+                        @if (entry.type === 'rdv') {
+                          <button
+                            type="button"
+                            class="scheduler-entry scheduler-entry--rdv"
+                            [style.top.px]="entryTop(entry)"
+                            [style.height.px]="entryHeight(entry)"
+                            (click)="onEntryClick(entry)"
+                          >
+                            <span class="scheduler-entry__time">
+                              {{ formatTimeLabel(entry.startMinutes) }} – {{ formatTimeLabel(entry.endMinutes) }}
+                            </span>
+                            <span class="scheduler-entry__label">{{ entry.label }}</span>
+                            <span class="badge" [class]="statusBadgeClass(entry.status)">
+                              {{ entry.status }}
+                            </span>
+                          </button>
+                        } @else {
+                          <div
+                            class="scheduler-entry scheduler-entry--slot"
+                            [class.scheduler-entry--free]="entry.status === 'Libre'"
+                            [class.scheduler-entry--reserved]="entry.status === 'Reserve'"
+                            [class.scheduler-entry--blocked]="entry.status === 'Indisponible'"
+                            [style.top.px]="entryTop(entry)"
+                            [style.height.px]="entryHeight(entry)"
+                          >
+                            <span class="scheduler-entry__time">
+                              {{ formatTimeLabel(entry.startMinutes) }} – {{ formatTimeLabel(entry.endMinutes) }}
+                            </span>
+                            <span class="scheduler-entry__label">{{ slotEntryStatusLabel(entry.status) }}</span>
+                          </div>
+                        }
+                      }
+                    </div>
                   </div>
-                </div>
-              }
+                }
+              </div>
             </div>
           </div>
         }
