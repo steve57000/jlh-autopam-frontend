@@ -40,6 +40,12 @@ interface RendezVousFormState {
   commentaire: string | null;
 }
 
+interface RdvStatusOption {
+  value: string;
+  label: string;
+  disabled?: boolean;
+}
+
 @Component({
   selector: 'admin-demandes',
   templateUrl: './admin-demandes.component.html',
@@ -1130,6 +1136,15 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.rdvForm.set(template);
   }
 
+  rdvStatusOptionsFor(rdv: RendezVousFormState): RdvStatusOption[] {
+    const options = this.rdvStatusOptions();
+    const existing = this.draft()?.rendezVous;
+    if (!existing?.idRdv || existing.codeStatut !== 'Confirme') {
+      return options;
+    }
+    return options.map(opt => opt.value === 'Confirme' ? { ...opt, disabled: true } : opt);
+  }
+
   setRdvField(field: keyof RendezVousFormState, value: string) {
     const current = this.rdvForm();
     if (!current) return;
@@ -1173,6 +1188,14 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     const existingRdv = draft?.rendezVous ?? null;
     const existingStart = existingRdv?.dateDebut ? this.parseDateInput(this.formatDateInput(existingRdv.dateDebut)) : null;
     const existingEnd = existingRdv?.dateFin ? this.parseDateInput(this.formatDateInput(existingRdv.dateFin)) : null;
+
+    if (existingRdv?.idRdv && existingRdv.codeStatut === 'Confirme' && form.codeStatut === 'Confirme') {
+      const msg = 'Un rendez-vous déjà confirmé doit être annulé ou reporté pour être modifié.';
+      this.rdvFeedback.set(msg);
+      this.rdvFeedbackType.set('error');
+      this.toast.error('Erreur', msg);
+      return;
+    }
 
     if (
       form.codeStatut === 'Reporte' &&
