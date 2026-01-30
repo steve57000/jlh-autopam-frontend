@@ -125,19 +125,34 @@
                             </span>
                           </button>
                         } @else {
-                          <div
-                            class="scheduler-entry scheduler-entry--slot"
-                            [class.scheduler-entry--free]="entry.status === 'Libre'"
-                            [class.scheduler-entry--reserved]="entry.status === 'Reserve'"
-                            [class.scheduler-entry--blocked]="entry.status === 'Indisponible'"
-                            [style.top.px]="entryTop(entry)"
-                            [style.height.px]="entryHeight(entry)"
-                          >
-                            <span class="scheduler-entry__time">
-                              {{ formatTimeLabel(entry.startMinutes) }} – {{ formatTimeLabel(entry.endMinutes) }}
-                            </span>
-                            <span class="scheduler-entry__label">{{ slotEntryStatusLabel(entry.status) }}</span>
-                          </div>
+                          @if (normalizeStatus(entry.status) === 'Reserve' && entry.payload) {
+                            <button
+                              type="button"
+                              class="scheduler-entry scheduler-entry--slot scheduler-entry--reserved"
+                              [style.top.px]="entryTop(entry)"
+                              [style.height.px]="entryHeight(entry)"
+                              (click)="onEntryClick(entry)"
+                            >
+                              <span class="scheduler-entry__time">
+                                {{ formatTimeLabel(entry.startMinutes) }} – {{ formatTimeLabel(entry.endMinutes) }}
+                              </span>
+                              <span class="scheduler-entry__label">{{ slotEntryStatusLabel(entry.status) }}</span>
+                            </button>
+                          } @else {
+                            <div
+                              class="scheduler-entry scheduler-entry--slot"
+                              [class.scheduler-entry--free]="entry.status === 'Libre'"
+                              [class.scheduler-entry--reserved]="normalizeStatus(entry.status) === 'Reserve'"
+                              [class.scheduler-entry--blocked]="entry.status === 'Indisponible'"
+                              [style.top.px]="entryTop(entry)"
+                              [style.height.px]="entryHeight(entry)"
+                            >
+                              <span class="scheduler-entry__time">
+                                {{ formatTimeLabel(entry.startMinutes) }} – {{ formatTimeLabel(entry.endMinutes) }}
+                              </span>
+                              <span class="scheduler-entry__label">{{ slotEntryStatusLabel(entry.status) }}</span>
+                            </div>
+                          }
                         }
                       }
                     </div>
@@ -192,13 +207,26 @@
           <button type="button" class="btn btn-outline" (click)="openDemandeModal()">Voir la demande</button>
         </div>
         <div class="detail-actions detail-actions--secondary">
-          <button type="button" class="btn btn-outline" (click)="updateStatus('Reporte')" [disabled]="rdvSaving()">
+          <button
+            type="button"
+            class="btn btn-outline"
+            (click)="updateStatus('Reporte')"
+            [disabled]="rdvSaving() || !canModifySelectedRdv()"
+          >
             Reporter
           </button>
-          <button type="button" class="btn btn-ghost" (click)="updateStatus('Annule')" [disabled]="rdvSaving()">
+          <button
+            type="button"
+            class="btn btn-ghost"
+            (click)="updateStatus('Annule')"
+            [disabled]="rdvSaving() || !canModifySelectedRdv()"
+          >
             Annuler
           </button>
         </div>
+        @if (!canModifySelectedRdv()) {
+          <p class="muted">Ce rendez-vous est déjà annulé.</p>
+        }
         @if (rdvFeedback()) {
           <p class="feedback" [class.feedback--error]="rdvFeedback() !== 'Rendez-vous mis à jour.'">
             {{ rdvFeedback() }}
@@ -241,13 +269,26 @@
           }
         </div>
         <div class="calendar-modal__actions">
-          <button type="button" class="btn btn-outline" (click)="updateStatus('Reporte')" [disabled]="rdvSaving()">
+          <button
+            type="button"
+            class="btn btn-outline"
+            (click)="updateStatus('Reporte')"
+            [disabled]="rdvSaving() || !canModifySelectedRdv()"
+          >
             Reporter le rendez-vous
           </button>
-          <button type="button" class="btn btn-ghost" (click)="updateStatus('Annule')" [disabled]="rdvSaving()">
+          <button
+            type="button"
+            class="btn btn-ghost"
+            (click)="updateStatus('Annule')"
+            [disabled]="rdvSaving() || !canModifySelectedRdv()"
+          >
             Annuler le rendez-vous
           </button>
         </div>
+        @if (!canModifySelectedRdv()) {
+          <p class="muted">Ce rendez-vous est déjà annulé.</p>
+        }
       } @else {
         <p class="calendar-page__state">Aucune demande trouvée.</p>
       }

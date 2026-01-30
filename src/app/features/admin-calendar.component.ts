@@ -155,46 +155,6 @@ export class AdminCalendarComponent implements OnInit {
     const bounds = this.schedulerBounds();
     return (bounds.end - bounds.start) * this.minuteHeight;
   });
-  schedulerBounds = computed(() => {
-    const days = this.filteredRangeDays();
-    const defaultStart = 8 * 60;
-    const defaultEnd = 18 * 60;
-    let min = Number.POSITIVE_INFINITY;
-    let max = Number.NEGATIVE_INFINITY;
-    days.forEach(day => {
-      day.slots.forEach(slot => {
-        min = Math.min(min, this.getMinutes(slot.dateDebut));
-        max = Math.max(max, this.getMinutes(slot.dateFin));
-      });
-      day.rendezVous.forEach(item => {
-        min = Math.min(min, this.getMinutes(item.rendezVous.dateDebut));
-        max = Math.max(max, this.getMinutes(item.rendezVous.dateFin));
-      });
-    });
-    if (!Number.isFinite(min) || !Number.isFinite(max)) {
-      return { start: defaultStart, end: defaultEnd };
-    }
-    const paddedStart = Math.max(0, min - 60);
-    const paddedEnd = Math.min(24 * 60, max + 60);
-    const span = paddedEnd - paddedStart;
-    if (span < 240) {
-      return { start: paddedStart, end: Math.min(24 * 60, paddedStart + 240) };
-    }
-    return { start: paddedStart, end: paddedEnd };
-  });
-  schedulerTimes = computed(() => {
-    const bounds = this.schedulerBounds();
-    const step = this.slotMinutes();
-    const times: number[] = [];
-    for (let minutes = bounds.start; minutes <= bounds.end; minutes += step) {
-      times.push(minutes);
-    }
-    return times;
-  });
-  schedulerBodyHeight = computed(() => {
-    const bounds = this.schedulerBounds();
-    return (bounds.end - bounds.start) * this.minuteHeight;
-  });
 
   ngOnInit() {
     const today = new Date();
@@ -335,7 +295,7 @@ export class AdminCalendarComponent implements OnInit {
 
   onEntryClick(entry: SchedulerEntry) {
     if (Date.now() < this.suppressClickUntil) return;
-    if (entry.type !== 'rdv' || !entry.payload) return;
+    if (!entry.payload) return;
     this.selectRdv(entry.payload);
     this.openDetailsModal();
   }
@@ -486,13 +446,19 @@ export class AdminCalendarComponent implements OnInit {
     day.slots.forEach(slot => {
       const ranges = this.clampToIntervals(this.getMinutes(slot.dateDebut), this.getMinutes(slot.dateFin), intervals);
       ranges.forEach((range, index) => {
+        let payload: CalendarRendezVousItem | undefined;
+        if (this.normalizeStatus(slot.codeStatut) === 'Reserve') {
+          payload = this.findRendezVousForRange(day.rendezVous, range.start, range.end)
+            ?? this.findRendezVousForRange(this.rangeRendezVous(), range.start, range.end);
+        }
         entries.push({
           id: `slot-${slot.dateDebut}-${slot.codeStatut}-${index}`,
           label: slot.libelleStatut || slot.codeStatut,
           startMinutes: range.start,
           endMinutes: range.end,
           type: 'slot',
-          status: slot.codeStatut
+          status: slot.codeStatut,
+          payload
         });
       });
     });
@@ -543,6 +509,28 @@ export class AdminCalendarComponent implements OnInit {
       default:
         return code;
     }
+  }
+
+  canModifySelectedRdv() {
+    return this.selectedRdv()?.rendezVous.codeStatut !== 'Annule';
+  }
+
+  normalizeStatus(code?: string | null) {
+    const value = (code ?? '').toString();
+    if (value === 'Libre' || value.toLowerCase() === 'libre') return 'Libre';
+    if (value === 'Reserve' || value.toLowerCase() === 'reserve' || value.toLowerCase() === 'réservé') {
+      return 'Reserve';
+    }
+    if (value === 'Indisponible' || value.toLowerCase() === 'indisponible') return 'Indisponible';
+    return 'Indisponible';
+  }
+
+  private findRendezVousForRange(items: CalendarRendezVousItem[], start: number, end: number) {
+    return items.find(item => {
+      const rdvStart = this.getMinutes(item.rendezVous.dateDebut);
+      const rdvEnd = this.getMinutes(item.rendezVous.dateFin);
+      return end > rdvStart && start < rdvEnd;
+    });
   }
 
   private extractRendezVous(demandes: DemandeWithServices[], start: string, end: string) {
