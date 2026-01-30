@@ -114,7 +114,7 @@ export class AdminCalendarComponent implements OnInit {
       })
       .map(day => ({
         ...day,
-        slots: day.slots.filter(slot => type === 'Tous' || slot.codeStatut === type)
+        slots: day.slots.filter(slot => type === 'Tous' || this.normalizeStatus(slot.codeStatut) === type)
       }))
       .filter(day => this.hasVisibleEntries(day));
   });
@@ -620,7 +620,7 @@ export class AdminCalendarComponent implements OnInit {
   }
 
   private getRangeSlots() {
-    return this.rangeSlots().filter(slot => slot.codeStatut !== 'Indisponible');
+    return this.rangeSlots().filter(slot => this.normalizeStatus(slot.codeStatut) !== 'Indisponible');
   }
 
   private getRangeRendezVous() {

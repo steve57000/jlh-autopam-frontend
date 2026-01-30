@@ -38,17 +38,23 @@ export class AdminCalendarHeaderComponent {
     const monthIndex = Number(value);
     if (!Number.isFinite(monthIndex)) return;
     const next = this.dateAdapter.createDate(this.activeYear, monthIndex, 1);
-    this.calendar.activeDate = next;
-    this.headerService.setActiveDate(this.calendar.activeDate);
+    this.updateActiveDate(next);
   }
 
   previousClicked() {
-    this.calendar.activeDate = this.dateAdapter.addCalendarMonths(this.calendar.activeDate, -1);
-    this.headerService.setActiveDate(this.calendar.activeDate);
+    const next = this.dateAdapter.addCalendarMonths(this.calendar.activeDate, -1);
+    this.updateActiveDate(next);
   }
 
   nextClicked() {
-    this.calendar.activeDate = this.dateAdapter.addCalendarMonths(this.calendar.activeDate, 1);
+    const next = this.dateAdapter.addCalendarMonths(this.calendar.activeDate, 1);
+    this.updateActiveDate(next);
+  }
+
+  private updateActiveDate(date: Date) {
+    this.calendar.activeDate = date;
+    this.calendar._goToDateInView(date, 'month');
+    this.calendar.stateChanges.next();
     this.headerService.setActiveDate(this.calendar.activeDate);
   }
 }
