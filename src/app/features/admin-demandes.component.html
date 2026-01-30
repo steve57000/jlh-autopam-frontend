@@ -620,12 +620,18 @@
                   (change)="setRdvField('codeStatut', ($any($event.target)).value)"
                   [disabled]="isLockedForEdit()"
                 >
-                  @for (opt of rdvStatusOptions(); track opt.value) {
-                    <option [value]="opt.value">{{ opt.label }}</option>
+                  @for (opt of rdvStatusOptionsFor(rdv); track opt.value) {
+                    <option [value]="opt.value" [disabled]="opt.disabled">{{ opt.label }}</option>
                   }
                 </select>
               </label>
             </div>
+            @if (draft.rendezVous?.codeStatut === 'Confirme') {
+              <p class="muted">
+                Le rendez-vous est déjà confirmé : sélectionnez <strong>Annulé</strong> ou <strong>Reporté</strong>
+                pour effectuer une modification.
+              </p>
+            }
             <label class="detail-comment">
               <span>Commentaire client</span>
               <textarea
