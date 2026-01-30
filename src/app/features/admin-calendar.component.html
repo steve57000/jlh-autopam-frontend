@@ -33,7 +33,7 @@
       />
     </label>
     <label>
-      <span>Filtre dates (du)</span>
+      <span>Période (du)</span>
       <input type="date" [value]="dateFilterStart() ?? ''" (change)="setDateFilter('start', ($any($event.target)).value)" />
     </label>
     <label>
@@ -58,76 +58,96 @@
     <div class="calendar-page__state calendar-page__state--error">{{ error() }}</div>
   } @else {
     <div class="calendar-layout">
-      <section class="calendar-panel calendar-panel--compact">
-        <mat-calendar
-          [selected]="selectedDate()"
-          (selectedChange)="onDateSelected($event)"
-          [dateClass]="dayHighlight"
-          [startAt]="activeDate()"
-          [headerComponent]="calendarHeader"
-        ></mat-calendar>
-        <div class="calendar-legend">
-          <span class="legend-item legend-item--free">Libre</span>
-          <span class="legend-item legend-item--reserved">Réservé</span>
-          <span class="legend-item legend-item--blocked">Indisponible</span>
-        </div>
-        <p class="muted">Cliquez sur une date puis une seconde pour définir une période.</p>
-      </section>
-
-      <section class="calendar-panel">
-        <header>
-          <h3>Détails {{ rangeLabel() }}</h3>
-          <p class="muted">Cliquez sur un rendez-vous pour ouvrir la fiche.</p>
+      <section class="calendar-panel calendar-panel--scheduler">
+        <header class="scheduler__header">
+          <div>
+            <h3>Planificateur {{ rangeLabel() }}</h3>
+            <p class="muted">Visualisez les créneaux et rendez-vous sur une grille horaire inspirée du scheduler.</p>
+          </div>
+          <div class="scheduler__legend">
+            <span class="legend-item legend-item--free">Disponible</span>
+            <span class="legend-item legend-item--reserved">Réservé</span>
+            <span class="legend-item legend-item--blocked">Indisponible</span>
+            <span class="legend-item legend-item--rdv">Rendez-vous</span>
+          </div>
         </header>
         @if (!filteredRangeDays().length) {
           <p class="calendar-page__state">Aucun créneau ou rendez-vous sur la période.</p>
         } @else {
-          @for (group of filteredRangeDays(); track group.date) {
-            <div class="calendar-day">
-              <h4>{{ group.date | date:'EEEE d MMMM' }}</h4>
-              <h5>Disponibilités</h5>
-              @if (!group.slots.length) {
-                <p class="calendar-page__state">Aucun créneau.</p>
-              } @else {
-                <ul>
-                  @for (slot of group.slots; track slot.dateDebut) {
-                    <li>
-                      <span>{{ slot.dateDebut | date:'HH:mm' }} – {{ slot.dateFin | date:'HH:mm' }}</span>
-                      <span class="badge" [class]="availabilityBadgeClass(slot.codeStatut)">
-                        {{ slot.libelleStatut || slot.codeStatut }}
-                      </span>
-                    </li>
-                  }
-                </ul>
-              }
-              <h5>Rendez-vous</h5>
-              @if (!group.rendezVous.length) {
-                <p class="calendar-page__state">Aucun rendez-vous.</p>
-              } @else {
-                <ul>
-                  @for (item of group.rendezVous; track item.rendezVous.idRdv) {
-                    <li>
-                      <button type="button" class="calendar-link" (click)="selectRdv(item); openDetailsModal()">
-                        <div>
-                          <strong>{{ item.rendezVous.dateDebut | date:'HH:mm' }}</strong>
-                          – {{ item.rendezVous.dateFin | date:'HH:mm' }}
-                        </div>
-                        <div>
-                          <span>{{ item.clientLabel }}</span>
-                          <span class="badge" [class]="statusBadgeClass(item.rendezVous.codeStatut)">
-                            {{ item.rendezVous.libelleStatut || item.rendezVous.codeStatut }}
-                          </span>
-                        </div>
-                      </button>
-                    </li>
-                  }
-                </ul>
-              }
+          <div
+            #schedulerScroll
+            class="scheduler-scroll"
+            [class.is-dragging]="isDragging()"
+            (pointerdown)="onSchedulerPointerDown($event)"
+            (pointermove)="onSchedulerPointerMove($event)"
+            (pointerup)="onSchedulerPointerUp($event)"
+            (pointerleave)="onSchedulerPointerUp($event)"
+            (pointercancel)="onSchedulerPointerUp($event)"
+          >
+            <div
+              class="scheduler-grid"
+              [style.--minute-height.px]="minuteHeight"
+              [style.--time-step]="slotMinutes()"
+            >
+              <div class="scheduler-grid__times">
+                <div class="scheduler-grid__time scheduler-grid__time--header"></div>
+                @for (time of schedulerTimes(); track time) {
+                  <div class="scheduler-grid__time">{{ formatTimeLabel(time) }}</div>
+                }
+              </div>
+              <div class="scheduler-grid__days">
+                @for (day of filteredRangeDays(); track day.date) {
+                  <div class="scheduler-day">
+                    <div class="scheduler-day__header">
+                      <span>{{ day.date | date:'EEE d MMM' }}</span>
+                      @if (isDayClosed(day)) {
+                        <span class="scheduler-day__closed">Fermé</span>
+                      } @else {
+                        <span class="scheduler-day__count">{{ day.slots.length }} créneaux · {{ day.rendezVous.length }} RDV</span>
+                      }
+                    </div>
+                    <div class="scheduler-day__body" [style.height.px]="schedulerBodyHeight()">
+                      @for (entry of buildDayEntries(day); track entry.id) {
+                        @if (entry.type === 'rdv') {
+                          <button
+                            type="button"
+                            class="scheduler-entry scheduler-entry--rdv"
+                            [style.top.px]="entryTop(entry)"
+                            [style.height.px]="entryHeight(entry)"
+                            (click)="onEntryClick(entry)"
+                          >
+                            <span class="scheduler-entry__time">
+                              {{ formatTimeLabel(entry.startMinutes) }} – {{ formatTimeLabel(entry.endMinutes) }}
+                            </span>
+                            <span class="scheduler-entry__label">{{ entry.label }}</span>
+                            <span class="badge" [class]="statusBadgeClass(entry.status)">
+                              {{ entry.status }}
+                            </span>
+                          </button>
+                        } @else {
+                          <div
+                            class="scheduler-entry scheduler-entry--slot"
+                            [class.scheduler-entry--free]="entry.status === 'Libre'"
+                            [class.scheduler-entry--reserved]="entry.status === 'Reserve'"
+                            [class.scheduler-entry--blocked]="entry.status === 'Indisponible'"
+                            [style.top.px]="entryTop(entry)"
+                            [style.height.px]="entryHeight(entry)"
+                          >
+                            <span class="scheduler-entry__time">
+                              {{ formatTimeLabel(entry.startMinutes) }} – {{ formatTimeLabel(entry.endMinutes) }}
+                            </span>
+                            <span class="scheduler-entry__label">{{ slotEntryStatusLabel(entry.status) }}</span>
+                          </div>
+                        }
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
             </div>
-          }
+          </div>
         }
       </section>
-
     </div>
   }
 </section>
