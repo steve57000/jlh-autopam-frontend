@@ -1,17 +1,13 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { MatDatepickerModule, MatCalendarCellClassFunction } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
 import { DemandesServiceService } from '../services/demandes-services.service';
 import { CreneauxCalendarService, CreneauCalendarEntryDto } from '../services/creneaux-calendar.service';
 import { RendezVousService } from '../services/rendezvous.service';
 import type { DemandeWithServices, RendezVousSummary } from '../modeles/demande.model';
-import { AdminCalendarHeaderComponent } from './admin-calendar-header.component';
-import { CalendarHeaderService } from './calendar-header.service';
-import { filter } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { GarageHoursService } from '../services/garage-hours.service';
+import { GarageHourDto } from '../modeles/garage-hours.model';
 
 interface CalendarRendezVousItem {
   demandeId: number;
@@ -25,40 +21,45 @@ interface CalendarGroup<T> {
   items: T[];
 }
 
+interface SchedulerEntry {
+  id: string;
+  label: string;
+  startMinutes: number;
+  endMinutes: number;
+  type: 'slot' | 'rdv';
+  status: string;
+  payload?: CalendarRendezVousItem;
+}
+
 @Component({
   selector: 'app-admin-calendar',
   templateUrl: './admin-calendar.component.html',
   styleUrls: ['./admin-calendar.component.scss'],
-  imports: [CommonModule, DatePipe, FormsModule, RouterModule, MatDatepickerModule, MatNativeDateModule],
-  standalone: true,
-  providers: [CalendarHeaderService]
+  imports: [CommonModule, DatePipe, FormsModule, RouterModule],
+  standalone: true
 })
 export class AdminCalendarComponent implements OnInit {
   private readonly demandesApi = inject(DemandesServiceService);
   private readonly calendarApi = inject(CreneauxCalendarService);
   private readonly rendezVousApi = inject(RendezVousService);
   private readonly router = inject(Router);
-  private readonly headerService = inject(CalendarHeaderService);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly hoursApi = inject(GarageHoursService);
 
   loading = signal(false);
   error = signal<string | null>(null);
   slotMinutes = signal(30);
   customSlotMinutes = signal<number | null>(null);
-  selectedDate = signal(new Date());
   rangeStart = signal<Date | null>(null);
   rangeEnd = signal<Date | null>(null);
   activeDate = signal(new Date());
-  calendarHeader = AdminCalendarHeaderComponent;
   typeFilter = signal<'Tous' | 'Libre' | 'Reserve' | 'Indisponible'>('Tous');
   dateFilterStart = signal<string | null>(null);
   dateFilterEnd = signal<string | null>(null);
 
-  calendarSlots = signal<CreneauCalendarEntryDto[]>([]);
   rangeSlots = signal<CreneauCalendarEntryDto[]>([]);
-  rendezVousItems = signal<CalendarRendezVousItem[]>([]);
   rangeRendezVous = signal<CalendarRendezVousItem[]>([]);
   demandes = signal<DemandeWithServices[]>([]);
+  garageHours = signal<GarageHourDto[]>([]);
 
   selectedRdv = signal<CalendarRendezVousItem | null>(null);
   rdvDraft = signal<{ dateDebut: string; dateFin: string; commentaire: string; codeStatut: string } | null>(null);
@@ -66,8 +67,14 @@ export class AdminCalendarComponent implements OnInit {
   rdvFeedback = signal<string | null>(null);
   showDemandeModal = signal(false);
   showDetailsModal = signal(false);
+  isDragging = signal(false);
 
   readonly slotOptions = [30, 45, 60, 90, 120, 180];
+  readonly minuteHeight = 1.2;
+  private dragState: { startX: number; startY: number; scrollLeft: number; scrollTop: number } | null = null;
+  private suppressClickUntil = 0;
+
+  private readonly dayMap = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'] as const;
 
   rangeLabel = computed(() => {
     const start = this.rangeStart();
@@ -109,22 +116,96 @@ export class AdminCalendarComponent implements OnInit {
         ...day,
         slots: day.slots.filter(slot => type === 'Tous' || this.normalizeStatus(slot.codeStatut) === type)
       }))
-      .filter(day => day.slots.length || day.rendezVous.length);
+      .filter(day => this.hasVisibleEntries(day));
+  });
+  schedulerBounds = computed(() => {
+    const defaultStart = 8 * 60;
+    const defaultEnd = 18 * 60;
+    const days = this.filteredRangeDays();
+    let min = Number.POSITIVE_INFINITY;
+    let max = Number.NEGATIVE_INFINITY;
+    days.forEach(day => {
+      const intervals = this.getDayIntervals(new Date(day.date + 'T00:00:00'));
+      intervals.forEach(interval => {
+        min = Math.min(min, interval.start);
+        max = Math.max(max, interval.end);
+      });
+    });
+    if (!Number.isFinite(min) || !Number.isFinite(max)) {
+      return { start: defaultStart, end: defaultEnd };
+    }
+    const paddedStart = Math.max(0, min - 60);
+    const paddedEnd = Math.min(24 * 60, max + 60);
+    const span = paddedEnd - paddedStart;
+    if (span < 240) {
+      return { start: paddedStart, end: Math.min(24 * 60, paddedStart + 240) };
+    }
+    return { start: paddedStart, end: paddedEnd };
+  });
+  schedulerTimes = computed(() => {
+    const bounds = this.schedulerBounds();
+    const step = this.slotMinutes();
+    const times: number[] = [];
+    for (let minutes = bounds.start; minutes <= bounds.end; minutes += step) {
+      times.push(minutes);
+    }
+    return times;
+  });
+  schedulerBodyHeight = computed(() => {
+    const bounds = this.schedulerBounds();
+    return (bounds.end - bounds.start) * this.minuteHeight;
+  });
+  schedulerBounds = computed(() => {
+    const days = this.filteredRangeDays();
+    const defaultStart = 8 * 60;
+    const defaultEnd = 18 * 60;
+    let min = Number.POSITIVE_INFINITY;
+    let max = Number.NEGATIVE_INFINITY;
+    days.forEach(day => {
+      day.slots.forEach(slot => {
+        min = Math.min(min, this.getMinutes(slot.dateDebut));
+        max = Math.max(max, this.getMinutes(slot.dateFin));
+      });
+      day.rendezVous.forEach(item => {
+        min = Math.min(min, this.getMinutes(item.rendezVous.dateDebut));
+        max = Math.max(max, this.getMinutes(item.rendezVous.dateFin));
+      });
+    });
+    if (!Number.isFinite(min) || !Number.isFinite(max)) {
+      return { start: defaultStart, end: defaultEnd };
+    }
+    const paddedStart = Math.max(0, min - 60);
+    const paddedEnd = Math.min(24 * 60, max + 60);
+    const span = paddedEnd - paddedStart;
+    if (span < 240) {
+      return { start: paddedStart, end: Math.min(24 * 60, paddedStart + 240) };
+    }
+    return { start: paddedStart, end: paddedEnd };
+  });
+  schedulerTimes = computed(() => {
+    const bounds = this.schedulerBounds();
+    const step = this.slotMinutes();
+    const times: number[] = [];
+    for (let minutes = bounds.start; minutes <= bounds.end; minutes += step) {
+      times.push(minutes);
+    }
+    return times;
+  });
+  schedulerBodyHeight = computed(() => {
+    const bounds = this.schedulerBounds();
+    return (bounds.end - bounds.start) * this.minuteHeight;
   });
 
   ngOnInit() {
-    this.rangeStart.set(this.selectedDate());
-    this.activeDate.set(this.selectedDate());
-    this.refreshForDate(this.selectedDate());
-    this.headerService.activeDate$
-      .pipe(
-        filter((date): date is Date => date instanceof Date),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe(date => {
-        this.activeDate.set(date);
-        this.refreshForDate(date);
-      });
+    const today = new Date();
+    const end = this.addDays(today, 4);
+    this.rangeStart.set(today);
+    this.rangeEnd.set(end);
+    this.activeDate.set(today);
+    this.dateFilterStart.set(this.formatDateInput(today));
+    this.dateFilterEnd.set(this.formatDateInput(end));
+    this.loadGarageHours();
+    this.refreshForDate(today);
   }
 
   refresh() {
@@ -139,10 +220,6 @@ export class AdminCalendarComponent implements OnInit {
     const range = this.getRangeBounds();
     const rangeStartIso = range ? this.toIsoStart(range.start) : monthStart;
     const rangeEndIso = range ? this.toIsoEnd(range.end) : monthEnd;
-    this.calendarApi.getCalendar({ start: monthStart, end: monthEnd, slotMinutes: this.slotMinutes() }).subscribe({
-      next: slots => this.calendarSlots.set(slots ?? []),
-      error: () => this.calendarSlots.set([])
-    });
     this.calendarApi.getCalendar({ start: rangeStartIso, end: rangeEndIso, slotMinutes: this.slotMinutes() }).subscribe({
       next: slots => this.rangeSlots.set(slots ?? []),
       error: () => this.rangeSlots.set([])
@@ -150,13 +227,11 @@ export class AdminCalendarComponent implements OnInit {
     this.demandesApi.getAll({ silentError: true }).subscribe({
       next: demandes => {
         this.demandes.set(demandes ?? []);
-        this.rendezVousItems.set(this.extractRendezVous(demandes, monthStart, monthEnd));
         this.rangeRendezVous.set(this.extractRendezVous(demandes, rangeStartIso, rangeEndIso));
         this.loading.set(false);
       },
       error: () => {
         this.demandes.set([]);
-        this.rendezVousItems.set([]);
         this.rangeRendezVous.set([]);
         this.error.set('Impossible de charger le calendrier.');
         this.loading.set(false);
@@ -183,8 +258,32 @@ export class AdminCalendarComponent implements OnInit {
   setDateFilter(field: 'start' | 'end', value: string) {
     if (field === 'start') {
       this.dateFilterStart.set(value || null);
+      const parsed = this.parseDateOnly(value);
+      if (parsed) {
+        this.rangeStart.set(parsed);
+        const currentEnd = this.rangeEnd();
+        if (currentEnd && parsed > currentEnd) {
+          this.rangeEnd.set(parsed);
+          this.dateFilterEnd.set(this.formatDateInput(parsed));
+        }
+        this.activeDate.set(parsed);
+        this.refreshForDate(parsed);
+      }
     } else {
       this.dateFilterEnd.set(value || null);
+      const parsed = this.parseDateOnly(value);
+      if (parsed) {
+        const currentStart = this.rangeStart();
+        if (currentStart && parsed < currentStart) {
+          this.rangeStart.set(parsed);
+          this.dateFilterStart.set(this.formatDateInput(parsed));
+          this.activeDate.set(parsed);
+          this.refreshForDate(parsed);
+        } else {
+          this.rangeEnd.set(parsed);
+          this.refresh();
+        }
+      }
     }
   }
 
@@ -196,24 +295,65 @@ export class AdminCalendarComponent implements OnInit {
     }
   }
 
-  onDateSelected(date: Date | null) {
-    if (!date) return;
-    this.activeDate.set(date);
-    const start = this.rangeStart();
-    const end = this.rangeEnd();
-    if (!start || (start && end)) {
-      this.rangeStart.set(date);
-      this.rangeEnd.set(null);
-    } else {
-      if (date < start) {
-        this.rangeEnd.set(start);
-        this.rangeStart.set(date);
-      } else {
-        this.rangeEnd.set(date);
+  onSchedulerPointerDown(event: PointerEvent) {
+    if (event.button !== 0) return;
+    const target = event.currentTarget as HTMLElement | null;
+    if (!target) return;
+    target.setPointerCapture(event.pointerId);
+    this.dragState = {
+      startX: event.clientX,
+      startY: event.clientY,
+      scrollLeft: target.scrollLeft,
+      scrollTop: target.scrollTop
+    };
+    this.isDragging.set(true);
+  }
+
+  onSchedulerPointerMove(event: PointerEvent) {
+    if (!this.dragState) return;
+    event.preventDefault();
+    const target = event.currentTarget as HTMLElement | null;
+    if (!target) return;
+    const dx = event.clientX - this.dragState.startX;
+    const dy = event.clientY - this.dragState.startY;
+    target.scrollLeft = this.dragState.scrollLeft - dx;
+    target.scrollTop = this.dragState.scrollTop - dy;
+  }
+
+  onSchedulerPointerUp(event: PointerEvent) {
+    const target = event.currentTarget as HTMLElement | null;
+    if (target && this.dragState) {
+      const moved = Math.abs(event.clientX - this.dragState.startX) + Math.abs(event.clientY - this.dragState.startY);
+      if (moved > 6) {
+        this.suppressClickUntil = Date.now() + 250;
       }
+      target.releasePointerCapture(event.pointerId);
     }
-    this.selectedDate.set(date);
-    this.refreshForDate(date);
+    this.dragState = null;
+    this.isDragging.set(false);
+  }
+
+  onEntryClick(entry: SchedulerEntry) {
+    if (Date.now() < this.suppressClickUntil) return;
+    if (entry.type !== 'rdv' || !entry.payload) return;
+    this.selectRdv(entry.payload);
+    this.openDetailsModal();
+  }
+
+  isDayClosed(day: { date: string }) {
+    return this.getDayIntervals(new Date(day.date + 'T00:00:00')).length === 0;
+  }
+
+  private hasVisibleEntries(day: { date: string; slots: CreneauCalendarEntryDto[]; rendezVous: CalendarRendezVousItem[] }) {
+    const intervals = this.getDayIntervals(new Date(day.date + 'T00:00:00'));
+    if (!intervals.length) return false;
+    const slotVisible = day.slots.some(slot =>
+      this.hasOverlap(this.getMinutes(slot.dateDebut), this.getMinutes(slot.dateFin), intervals)
+    );
+    const rdvVisible = day.rendezVous.some(item =>
+      this.hasOverlap(this.getMinutes(item.rendezVous.dateDebut), this.getMinutes(item.rendezVous.dateFin), intervals)
+    );
+    return slotVisible || rdvVisible;
   }
 
   selectRdv(item: CalendarRendezVousItem) {
@@ -300,7 +440,7 @@ export class AdminCalendarComponent implements OnInit {
       next: updated => {
         this.rdvSaving.set(false);
         this.rdvFeedback.set('Rendez-vous mis à jour.');
-        this.rendezVousItems.update(items =>
+        this.rangeRendezVous.update(items =>
           items.map(item => item.rendezVous.idRdv === updated.idRdv
             ? { ...item, rendezVous: { ...item.rendezVous, ...updated } }
             : item
@@ -308,7 +448,7 @@ export class AdminCalendarComponent implements OnInit {
         );
         const current = this.selectedRdv();
         if (current) {
-          const updatedItem = this.rendezVousItems().find(item => item.rendezVous.idRdv === current.rendezVous.idRdv);
+          const updatedItem = this.rangeRendezVous().find(item => item.rendezVous.idRdv === current.rendezVous.idRdv);
           if (updatedItem) {
             this.selectRdv(updatedItem);
           }
@@ -339,16 +479,69 @@ export class AdminCalendarComponent implements OnInit {
     }
   }
 
-  availabilityBadgeClass(code: string) {
-    switch (this.normalizeStatus(code)) {
+  buildDayEntries(day: { date: string; slots: CreneauCalendarEntryDto[]; rendezVous: CalendarRendezVousItem[] }) {
+    const intervals = this.getDayIntervals(new Date(day.date + 'T00:00:00'));
+    if (!intervals.length) return [];
+    const entries: SchedulerEntry[] = [];
+    day.slots.forEach(slot => {
+      const ranges = this.clampToIntervals(this.getMinutes(slot.dateDebut), this.getMinutes(slot.dateFin), intervals);
+      ranges.forEach((range, index) => {
+        entries.push({
+          id: `slot-${slot.dateDebut}-${slot.codeStatut}-${index}`,
+          label: slot.libelleStatut || slot.codeStatut,
+          startMinutes: range.start,
+          endMinutes: range.end,
+          type: 'slot',
+          status: slot.codeStatut
+        });
+      });
+    });
+    day.rendezVous.forEach(item => {
+      const ranges = this.clampToIntervals(
+        this.getMinutes(item.rendezVous.dateDebut),
+        this.getMinutes(item.rendezVous.dateFin),
+        intervals
+      );
+      ranges.forEach((range, index) => {
+        entries.push({
+          id: `rdv-${item.rendezVous.idRdv}-${index}`,
+          label: item.clientLabel,
+          startMinutes: range.start,
+          endMinutes: range.end,
+          type: 'rdv',
+          status: item.rendezVous.codeStatut,
+          payload: item
+        });
+      });
+    });
+    return entries.sort((a, b) => a.startMinutes - b.startMinutes);
+  }
+
+  entryTop(entry: SchedulerEntry) {
+    const bounds = this.schedulerBounds();
+    return (entry.startMinutes - bounds.start) * this.minuteHeight;
+  }
+
+  entryHeight(entry: SchedulerEntry) {
+    return Math.max(28, (entry.endMinutes - entry.startMinutes) * this.minuteHeight);
+  }
+
+  formatTimeLabel(minutes: number) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  }
+
+  slotEntryStatusLabel(code: string) {
+    switch (code) {
       case 'Libre':
-        return 'badge--available';
+        return 'Disponible';
       case 'Reserve':
-        return 'badge--reserved';
+        return 'Réservé';
       case 'Indisponible':
-        return 'badge--blocked';
+        return 'Indisponible';
       default:
-        return 'badge--neutral';
+        return code;
     }
   }
 
@@ -380,17 +573,6 @@ export class AdminCalendarComponent implements OnInit {
     return Array.from(map.entries()).map(([date, groupedItems]) => ({ date, items: groupedItems }));
   }
 
-  dayHighlight: MatCalendarCellClassFunction<Date> = (date, view) => {
-    if (view !== 'month') return '';
-    const status = this.dayStatus(date);
-    const classes = [];
-    if (status === 'Libre') classes.push('calendar-day--free');
-    if (status === 'Reserve') classes.push('calendar-day--reserved');
-    if (status === 'Indisponible') classes.push('calendar-day--blocked');
-    if (this.isInSelectedRange(date)) classes.push('calendar-day--range');
-    return classes.join(' ');
-  }
-
   private formatDateTimeLocal(value: string) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return '';
@@ -402,6 +584,12 @@ export class AdminCalendarComponent implements OnInit {
     if (!value) return null;
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  }
+
+  private parseDateOnly(value: string | null) {
+    if (!value) return null;
+    const date = new Date(`${value}T00:00:00`);
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   private toIsoStart(date: Date) {
@@ -424,12 +612,6 @@ export class AdminCalendarComponent implements OnInit {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0);
   }
 
-  private isSameDay(a: Date, b: Date) {
-    return a.getFullYear() === b.getFullYear()
-      && a.getMonth() === b.getMonth()
-      && a.getDate() === b.getDate();
-  }
-
   private getRangeBounds() {
     const start = this.rangeStart();
     if (!start) return null;
@@ -445,49 +627,114 @@ export class AdminCalendarComponent implements OnInit {
     return this.rangeRendezVous();
   }
 
-  private dayStatus(date: Date) {
-    const slots = this.calendarSlots().filter(slot => this.isSameDay(new Date(slot.dateDebut), date));
-    if (!slots.length) return null;
-    const normalizedStatuses = slots.map(slot => this.normalizeStatus(slot.codeStatut));
-    const hasLibre = normalizedStatuses.some(status => status === 'Libre');
-    const hasReserve = normalizedStatuses.some(status => status === 'Reserve');
-    const allIndispo = normalizedStatuses.every(status => status === 'Indisponible');
-    if (allIndispo) return 'Indisponible';
-    if (hasReserve) return 'Reserve';
-    if (hasLibre) return 'Libre';
-    return null;
-  }
-
-  private normalizeStatus(status?: string | null) {
-    if (!status) return null;
-    const cleaned = status.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    if (cleaned.startsWith('libre')) return 'Libre';
-    if (cleaned.startsWith('reserv')) return 'Reserve';
-    if (cleaned.startsWith('indispo')) return 'Indisponible';
-    return status;
-  }
-
   private formatDateLabel(date: Date) {
     return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  }
+
+  private formatDateInput(date: Date) {
+    return date.toISOString().slice(0, 10);
   }
 
   private formatDateKey(date: Date) {
     return date.toISOString().slice(0, 10);
   }
 
-  private isInSelectedRange(date: Date) {
-    const start = this.rangeStart();
-    if (!start) return false;
-    const end = this.rangeEnd();
-    const rangeEnd = end ?? start;
-    const target = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-    const startTime = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime();
-    const endTime = new Date(rangeEnd.getFullYear(), rangeEnd.getMonth(), rangeEnd.getDate()).getTime();
-    return target >= Math.min(startTime, endTime) && target <= Math.max(startTime, endTime);
-  }
-
   private lockBodyScroll(lock: boolean) {
     if (typeof document === 'undefined') return;
     document.body.style.overflow = lock ? 'hidden' : '';
+  }
+
+  private getMinutes(value: string) {
+    const date = new Date(value);
+    return date.getHours() * 60 + date.getMinutes();
+  }
+
+  private addDays(date: Date, days: number) {
+    const next = new Date(date);
+    next.setDate(next.getDate() + days);
+    return next;
+  }
+
+  private isSameDay(a: Date, b: Date) {
+    return a.getFullYear() === b.getFullYear()
+      && a.getMonth() === b.getMonth()
+      && a.getDate() === b.getDate();
+  }
+
+  private loadGarageHours() {
+    this.hoursApi.listPublic().subscribe({
+      next: list => {
+        this.garageHours.set(list ?? []);
+      },
+      error: () => {
+        this.garageHours.set([]);
+      }
+    });
+  }
+
+  private getDayIntervals(date: Date): Array<{ start: number; end: number }> {
+    const dateKey = this.formatDateKey(date);
+    const hours = this.garageHours();
+    const exceptional = this.resolveExceptional(hours, dateKey);
+    if (exceptional) {
+      if (exceptional.status === 'CLOSED') return [];
+      return this.buildIntervals(exceptional);
+    }
+    const dayKey = this.dayMap[date.getDay()];
+    const annual = hours.find(hour => hour.scope === 'ANNUAL' && hour.dayOfWeek === dayKey);
+    if (annual) {
+      if (annual.status === 'CLOSED') return [];
+      return this.buildIntervals(annual);
+    }
+    return [{ start: 8 * 60, end: 18 * 60 }];
+  }
+
+  private resolveExceptional(list: GarageHourDto[], dateKey: string) {
+    const singleDay = list.find(
+      hour => hour.scope === 'EXCEPTIONAL' && hour.exceptionalType === 'SINGLE_DAY' && hour.exceptionalDate === dateKey
+    );
+    if (singleDay) return singleDay;
+    return list.find(hour => {
+      if (hour.scope !== 'EXCEPTIONAL' || hour.exceptionalType !== 'PERIOD') return false;
+      if (!hour.exceptionalStartDate || !hour.exceptionalEndDate) return false;
+      return hour.exceptionalStartDate <= dateKey && dateKey <= hour.exceptionalEndDate;
+    });
+  }
+
+  private buildIntervals(hour: GarageHourDto) {
+    const intervals: Array<{ start: number; end: number }> = [];
+    const start = this.timeToMinutes(hour.startTime);
+    const end = this.timeToMinutes(hour.endTime);
+    if (start !== null && end !== null && end > start) {
+      intervals.push({ start, end });
+    }
+    if (hour.openingType === 'SPLIT') {
+      const start2 = this.timeToMinutes(hour.startTime2);
+      const end2 = this.timeToMinutes(hour.endTime2);
+      if (start2 !== null && end2 !== null && end2 > start2) {
+        intervals.push({ start: start2, end: end2 });
+      }
+    }
+    return intervals.sort((a, b) => a.start - b.start);
+  }
+
+  private timeToMinutes(value?: string | null): number | null {
+    if (!value) return null;
+    const [hours, minutes] = value.split(':').map(Number);
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+    return (hours || 0) * 60 + (minutes || 0);
+  }
+
+  private clampToIntervals(start: number, end: number, intervals: Array<{ start: number; end: number }>) {
+    return intervals
+      .map(interval => ({
+        start: Math.max(start, interval.start),
+        end: Math.min(end, interval.end)
+      }))
+      .filter(range => range.end > range.start);
+  }
+
+  private hasOverlap(start: number, end: number, intervals: Array<{ start: number; end: number }>) {
+    return intervals.some(interval => end > interval.start && start < interval.end);
   }
 }
