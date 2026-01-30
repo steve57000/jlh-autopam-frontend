@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { MatDatepickerModule, MatCalendarCellClassFunction } from '@angular/material/datepicker';
@@ -8,6 +8,10 @@ import { DemandesServiceService } from '../services/demandes-services.service';
 import { CreneauxCalendarService, CreneauCalendarEntryDto } from '../services/creneaux-calendar.service';
 import { RendezVousService } from '../services/rendezvous.service';
 import type { DemandeWithServices, RendezVousSummary } from '../modeles/demande.model';
+import { AdminCalendarHeaderComponent } from './admin-calendar-header.component';
+import { CalendarHeaderService } from './calendar-header.service';
+import { filter } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface CalendarRendezVousItem {
   demandeId: number;
@@ -26,13 +30,16 @@ interface CalendarGroup<T> {
   templateUrl: './admin-calendar.component.html',
   styleUrls: ['./admin-calendar.component.scss'],
   imports: [CommonModule, DatePipe, FormsModule, RouterModule, MatDatepickerModule, MatNativeDateModule],
-  standalone: true
+  standalone: true,
+  providers: [CalendarHeaderService]
 })
 export class AdminCalendarComponent implements OnInit {
   private readonly demandesApi = inject(DemandesServiceService);
   private readonly calendarApi = inject(CreneauxCalendarService);
   private readonly rendezVousApi = inject(RendezVousService);
   private readonly router = inject(Router);
+  private readonly headerService = inject(CalendarHeaderService);
+  private readonly destroyRef = inject(DestroyRef);
 
   loading = signal(false);
   error = signal<string | null>(null);
@@ -41,6 +48,7 @@ export class AdminCalendarComponent implements OnInit {
   rangeStart = signal<Date | null>(null);
   rangeEnd = signal<Date | null>(null);
   activeDate = signal(new Date());
+  calendarHeader = AdminCalendarHeaderComponent;
 
   calendarSlots = signal<CreneauCalendarEntryDto[]>([]);
   rangeSlots = signal<CreneauCalendarEntryDto[]>([]);
@@ -84,6 +92,15 @@ export class AdminCalendarComponent implements OnInit {
     this.rangeStart.set(this.selectedDate());
     this.activeDate.set(this.selectedDate());
     this.refreshForDate(this.selectedDate());
+    this.headerService.activeDate$
+      .pipe(
+        filter((date): date is Date => date instanceof Date),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(date => {
+        this.activeDate.set(date);
+        this.refreshForDate(date);
+      });
   }
 
   refresh() {
@@ -121,13 +138,6 @@ export class AdminCalendarComponent implements OnInit {
         this.loading.set(false);
       }
     });
-  }
-
-  onActiveDateChange(date: Date | Event) {
-    if (date instanceof Date) {
-      this.activeDate.set(date);
-      this.refreshForDate(date);
-    }
   }
 
   setSlotMinutes(value: string) {

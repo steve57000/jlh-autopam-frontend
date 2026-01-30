@@ -34,9 +34,9 @@
         <mat-calendar
           [selected]="selectedDate()"
           (selectedChange)="onDateSelected($event)"
-          (activeDateChange)="onActiveDateChange($event)"
           [dateClass]="dayHighlight"
           [startAt]="activeDate()"
+          [headerComponent]="calendarHeader"
         ></mat-calendar>
         <div class="calendar-legend">
           <span class="legend-item legend-item--free">Libre</span>
