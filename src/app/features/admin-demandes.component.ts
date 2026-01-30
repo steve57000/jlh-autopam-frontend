@@ -9,6 +9,7 @@ import { ServicesService } from '../services/services.service';
 import { ServiceDto } from '../modeles/service.model';
 import { RendezVousService, RendezVousUpsertPayload } from '../services/rendezvous.service';
 import { RendezVousPropositionsService } from '../services/rendezvous-propositions.service';
+import { CreneauxCalendarService, CreneauCalendarEntryDto } from '../services/creneaux-calendar.service';
 import {
   RendezVousProposition,
   RendezVousPropositionBatchPayload
@@ -60,6 +61,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   private readonly servicesApi = inject(ServicesService);
   private readonly rendezVousApi = inject(RendezVousService);
   private readonly rdvPropositionsApi = inject(RendezVousPropositionsService);
+  private readonly calendarApi = inject(CreneauxCalendarService);
   private readonly auth = inject(AuthService);
 
   // Données
@@ -135,6 +137,13 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   rdvProposalFeedback = signal<string | null>(null);
   rdvProposalFeedbackType = signal<'success' | 'error' | null>(null);
   vehicleEnergyOptions = VEHICLE_ENERGY_OPTIONS;
+
+  calendarStart = signal(this.formatDateOnly(new Date()));
+  calendarEnd = signal(this.formatDateOnly(this.addDays(new Date(), 7)));
+  calendarSlotMinutes = signal(30);
+  calendarLoading = signal(false);
+  calendarError = signal<string | null>(null);
+  calendarSlots = signal<CreneauCalendarEntryDto[]>([]);
 
   filtered = computed(() => {
     const t = this.type();
@@ -378,6 +387,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.syncRendezVousForm(clone.rendezVous ?? null);
     this.loadRendezVousProposals(id);
     this.resetProposalDraft();
+    this.refreshCalendar();
     this.setBodyScrollLock(true);
   }
 
@@ -397,6 +407,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.rdvProposalDraft.set([{ dateDebut: '', dateFin: '' }]);
     this.rdvProposalFeedback.set(null);
     this.rdvProposalFeedbackType.set(null);
+    this.calendarSlots.set([]);
+    this.calendarError.set(null);
     this.setBodyScrollLock(false);
   }
 
@@ -411,6 +423,66 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.rdvProposalDraft.set([{ dateDebut: '', dateFin: '' }]);
     this.rdvProposalFeedback.set(null);
     this.rdvProposalFeedbackType.set(null);
+  }
+
+  refreshCalendar() {
+    const start = this.calendarStart();
+    const end = this.calendarEnd();
+    if (!start || !end) return;
+    this.calendarLoading.set(true);
+    this.calendarError.set(null);
+    this.calendarApi.getCalendar({
+      start: this.toIsoStart(start),
+      end: this.toIsoEnd(end),
+      slotMinutes: this.calendarSlotMinutes()
+    }).subscribe({
+      next: slots => {
+        this.calendarSlots.set(slots ?? []);
+        this.calendarLoading.set(false);
+      },
+      error: () => {
+        this.calendarSlots.set([]);
+        this.calendarLoading.set(false);
+        this.calendarError.set('Impossible de charger les disponibilités.');
+      }
+    });
+  }
+
+  updateCalendarRange(field: 'start' | 'end', value: string) {
+    if (field === 'start') {
+      this.calendarStart.set(value);
+    } else {
+      this.calendarEnd.set(value);
+    }
+    this.refreshCalendar();
+  }
+
+  updateCalendarSlotMinutes(value: string) {
+    this.calendarSlotMinutes.set(Number(value));
+    this.refreshCalendar();
+  }
+
+  applyCalendarSlot(slot: CreneauCalendarEntryDto) {
+    if (slot.codeStatut !== 'Libre') return;
+    const draft = this.rdvProposalDraft();
+    const targetIndex = draft.findIndex(item => !item.dateDebut && !item.dateFin);
+    const index = targetIndex === -1 ? draft.length : targetIndex;
+    if (index >= 3) {
+      this.rdvProposalFeedback.set('Vous avez atteint le maximum de créneaux.');
+      this.rdvProposalFeedbackType.set('error');
+      return;
+    }
+    const nextDraft = [...draft];
+    if (index === draft.length) {
+      nextDraft.push({ dateDebut: '', dateFin: '' });
+    }
+    nextDraft[index] = {
+      dateDebut: this.formatDateInput(slot.dateDebut),
+      dateFin: this.formatDateInput(slot.dateFin)
+    };
+    this.rdvProposalDraft.set(nextDraft);
+    this.rdvProposalFeedback.set('Créneau ajouté à la proposition.');
+    this.rdvProposalFeedbackType.set('success');
   }
 
   addProposalSlot() {
@@ -1335,6 +1407,25 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     if (!value) return null;
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  }
+
+  private formatDateOnly(date: Date): string {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  }
+
+  private toIsoStart(value: string): string {
+    return new Date(`${value}T00:00:00`).toISOString();
+  }
+
+  private toIsoEnd(value: string): string {
+    return new Date(`${value}T23:59:59`).toISOString();
+  }
+
+  private addDays(date: Date, days: number): Date {
+    const next = new Date(date);
+    next.setDate(next.getDate() + days);
+    return next;
   }
 
   // ⚠️ ADAPTÉ : utilise maintenant tailleOctets (backend) pour déduire la taille en Ko / Mo
