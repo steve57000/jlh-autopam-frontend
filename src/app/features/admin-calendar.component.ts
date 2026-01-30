@@ -5,13 +5,13 @@ import { Router, RouterModule } from '@angular/router';
 import { DemandesServiceService } from '../services/demandes-services.service';
 import { CreneauxCalendarService, CreneauCalendarEntryDto } from '../services/creneaux-calendar.service';
 import { RendezVousService } from '../services/rendezvous.service';
-import type { DemandeWithServices, RendezVousSummary } from '../modeles/demande.model';
+import type { DemandeTypeCode, DemandeWithServices, RendezVousSummary } from '../modeles/demande.model';
 import { GarageHoursService } from '../services/garage-hours.service';
 import { GarageHourDto } from '../modeles/garage-hours.model';
 
 interface CalendarRendezVousItem {
   demandeId: number;
-  demandeType: string;
+  demandeType: DemandeTypeCode;
   clientLabel: string;
   rendezVous: RendezVousSummary;
 }
@@ -575,7 +575,7 @@ export class AdminCalendarComponent implements OnInit {
           rendezVous
         } satisfies CalendarRendezVousItem;
       })
-      .filter((item): item is CalendarRendezVousItem => Boolean(item))
+      .filter((item): item is CalendarRendezVousItem => item !== null)
       .filter(item => {
         const date = new Date(item.rendezVous.dateDebut);
         return date >= startDate && date <= endDate;
