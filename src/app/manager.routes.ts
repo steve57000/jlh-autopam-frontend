@@ -3,6 +3,7 @@ import { ManagerLayoutComponent } from './layout/manager-layout.component';
 import { ManagerDashboardComponent } from './dashboard/manager-dashboard.component';
 import { AdminDemandesComponent } from './features/admin-demandes.component';
 import { AdminClientsComponent } from './features/admin-clients.component';
+import { AdminCalendarComponent } from './features/admin-calendar.component';
 import { ManagerGuard } from './guards/manager.guard';
 
 export const managerRoutes: Routes = [
@@ -25,6 +26,11 @@ export const managerRoutes: Routes = [
         path: 'clients',
         component: AdminClientsComponent,
         data: { title: 'Clients' },
+      },
+      {
+        path: 'calendrier',
+        component: AdminCalendarComponent,
+        data: { title: 'Calendrier' },
       },
     ],
   },
