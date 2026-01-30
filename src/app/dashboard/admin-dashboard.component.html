@@ -10,6 +10,7 @@
     <div class="dashboard__actions">
       <button type="button" class="btn" (click)="refresh()" [disabled]="loading()">Actualiser</button>
       <a class="btn btn-outline" routerLink="/admin/demandes">Gérer les demandes</a>
+      <a class="btn btn-outline" routerLink="/admin/calendrier">Calendrier</a>
       <a class="btn btn-outline" routerLink="/admin/utilisateurs">
         @if (isAdminPrincipal) { Gérer les administrateurs } @else { Gérer les gestionnaires }
       </a>
