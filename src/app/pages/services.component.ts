@@ -237,10 +237,7 @@ export class ServicesComponent implements OnInit, OnDestroy {
     const telephone = (payload.telephone || '').trim();
     const commentaire = payload.rendezVousCommentaire?.trim() || null;
     try {
-      const clientPatch: { immatriculation?: string | null; telephone?: string | null } = {};
-      if (payload.immatriculation !== undefined) {
-        clientPatch.immatriculation = immat.length > 0 ? immat : null;
-      }
+      const clientPatch: { telephone?: string | null } = {};
       if (payload.telephone !== undefined) {
         clientPatch.telephone = telephone.length > 0 ? telephone : null;
       }
@@ -254,12 +251,23 @@ export class ServicesComponent implements OnInit, OnDestroy {
             )
           );
         } catch {
-          if (payload.immatriculation !== undefined) {
-            fallback.immatriculation = immat.length > 0 ? immat : null;
-          }
           if (payload.telephone !== undefined) {
             fallback.telephone = telephone.length > 0 ? telephone : null;
           }
+        }
+      }
+
+      if (payload.immatriculation !== undefined) {
+        try {
+          await firstValueFrom(
+            this.http.patch<void>(
+              `${api}/demandes/${id}/immatriculation`,
+              { immatriculation: immat.length > 0 ? immat : null },
+              skipErrorOptions
+            )
+          );
+        } catch {
+          fallback.immatriculation = immat.length > 0 ? immat : null;
         }
       }
 
