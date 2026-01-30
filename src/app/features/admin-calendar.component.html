@@ -125,7 +125,7 @@
                             </span>
                           </button>
                         } @else {
-                          @if (entry.status === 'Reserve' && entry.payload) {
+                          @if (normalizeStatus(entry.status) === 'Reserve' && entry.payload) {
                             <button
                               type="button"
                               class="scheduler-entry scheduler-entry--slot scheduler-entry--reserved"
@@ -142,7 +142,7 @@
                             <div
                               class="scheduler-entry scheduler-entry--slot"
                               [class.scheduler-entry--free]="entry.status === 'Libre'"
-                              [class.scheduler-entry--reserved]="entry.status === 'Reserve'"
+                              [class.scheduler-entry--reserved]="normalizeStatus(entry.status) === 'Reserve'"
                               [class.scheduler-entry--blocked]="entry.status === 'Indisponible'"
                               [style.top.px]="entryTop(entry)"
                               [style.height.px]="entryHeight(entry)"

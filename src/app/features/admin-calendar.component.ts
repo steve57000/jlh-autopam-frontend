@@ -446,9 +446,11 @@ export class AdminCalendarComponent implements OnInit {
     day.slots.forEach(slot => {
       const ranges = this.clampToIntervals(this.getMinutes(slot.dateDebut), this.getMinutes(slot.dateFin), intervals);
       ranges.forEach((range, index) => {
-        const payload = slot.codeStatut === 'Reserve'
-          ? this.findRendezVousForRange(day.rendezVous, range.start, range.end)
-          : undefined;
+        let payload: CalendarRendezVousItem | undefined;
+        if (this.normalizeStatus(slot.codeStatut) === 'Reserve') {
+          payload = this.findRendezVousForRange(day.rendezVous, range.start, range.end)
+            ?? this.findRendezVousForRange(this.rangeRendezVous(), range.start, range.end);
+        }
         entries.push({
           id: `slot-${slot.dateDebut}-${slot.codeStatut}-${index}`,
           label: slot.libelleStatut || slot.codeStatut,
@@ -513,7 +515,7 @@ export class AdminCalendarComponent implements OnInit {
     return this.selectedRdv()?.rendezVous.codeStatut !== 'Annule';
   }
 
-  private normalizeStatus(code?: string | null) {
+  normalizeStatus(code?: string | null) {
     const value = (code ?? '').toString();
     if (value === 'Libre' || value.toLowerCase() === 'libre') return 'Libre';
     if (value === 'Reserve' || value.toLowerCase() === 'reserve' || value.toLowerCase() === 'réservé') {
