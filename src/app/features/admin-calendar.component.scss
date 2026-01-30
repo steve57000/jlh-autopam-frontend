@@ -79,7 +79,7 @@
 .calendar-layout {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr) minmax(260px, 0.8fr);
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
 
   @media (max-width: 1100px) {
     grid-template-columns: 1fr;
@@ -251,21 +251,6 @@
   border-color: rgba(148, 163, 184, 0.4);
 }
 
-.calendar-detail {
-  background: #fff;
-  border-radius: 1rem;
-  padding: 1rem;
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
-  display: grid;
-  gap: 0.75rem;
-
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-}
-
 .detail-grid {
   display: grid;
   gap: 0.75rem;
@@ -309,6 +294,10 @@
   place-items: center;
   padding: 1rem;
   z-index: 1000;
+}
+
+.calendar-modal--full {
+  padding: 2rem;
 }
 
 .calendar-modal__content {

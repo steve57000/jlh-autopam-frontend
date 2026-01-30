@@ -44,11 +44,15 @@ export class AdminCalendarComponent implements OnInit {
   loading = signal(false);
   error = signal<string | null>(null);
   slotMinutes = signal(30);
+  customSlotMinutes = signal<number | null>(null);
   selectedDate = signal(new Date());
   rangeStart = signal<Date | null>(null);
   rangeEnd = signal<Date | null>(null);
   activeDate = signal(new Date());
   calendarHeader = AdminCalendarHeaderComponent;
+  typeFilter = signal<'Tous' | 'Libre' | 'Reserve' | 'Indisponible'>('Tous');
+  dateFilterStart = signal<string | null>(null);
+  dateFilterEnd = signal<string | null>(null);
 
   calendarSlots = signal<CreneauCalendarEntryDto[]>([]);
   rangeSlots = signal<CreneauCalendarEntryDto[]>([]);
@@ -61,6 +65,9 @@ export class AdminCalendarComponent implements OnInit {
   rdvSaving = signal(false);
   rdvFeedback = signal<string | null>(null);
   showDemandeModal = signal(false);
+  showDetailsModal = signal(false);
+
+  readonly slotOptions = [30, 45, 60, 90, 120, 180];
 
   rangeLabel = computed(() => {
     const start = this.rangeStart();
@@ -86,6 +93,23 @@ export class AdminCalendarComponent implements OnInit {
       }
     });
     return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
+  });
+  filteredRangeDays = computed(() => {
+    const from = this.dateFilterStart() ? new Date(this.dateFilterStart() + 'T00:00:00') : null;
+    const to = this.dateFilterEnd() ? new Date(this.dateFilterEnd() + 'T23:59:59') : null;
+    const type = this.typeFilter();
+    return this.rangeDays()
+      .filter(day => {
+        const date = new Date(day.date + 'T00:00:00');
+        if (from && date < from) return false;
+        if (to && date > to) return false;
+        return true;
+      })
+      .map(day => ({
+        ...day,
+        slots: day.slots.filter(slot => type === 'Tous' || slot.codeStatut === type)
+      }))
+      .filter(day => day.slots.length || day.rendezVous.length);
   });
 
   ngOnInit() {
@@ -143,7 +167,33 @@ export class AdminCalendarComponent implements OnInit {
   setSlotMinutes(value: string) {
     const parsed = Number(value);
     this.slotMinutes.set(Number.isFinite(parsed) && parsed > 0 ? parsed : 30);
+    this.customSlotMinutes.set(null);
     this.refresh();
+  }
+
+  setCustomSlotMinutes(value: string) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      this.customSlotMinutes.set(parsed);
+      this.slotMinutes.set(parsed);
+      this.refresh();
+    }
+  }
+
+  setDateFilter(field: 'start' | 'end', value: string) {
+    if (field === 'start') {
+      this.dateFilterStart.set(value || null);
+    } else {
+      this.dateFilterEnd.set(value || null);
+    }
+  }
+
+  setTypeFilter(value: string) {
+    if (value === 'Libre' || value === 'Reserve' || value === 'Indisponible') {
+      this.typeFilter.set(value);
+    } else {
+      this.typeFilter.set('Tous');
+    }
   }
 
   onDateSelected(date: Date | null) {
@@ -183,12 +233,24 @@ export class AdminCalendarComponent implements OnInit {
     this.rdvFeedback.set(null);
   }
 
+  openDetailsModal() {
+    this.showDetailsModal.set(true);
+    this.lockBodyScroll(true);
+  }
+
+  closeDetailsModal() {
+    this.showDetailsModal.set(false);
+    this.lockBodyScroll(false);
+  }
+
   openDemandeModal() {
     this.showDemandeModal.set(true);
+    this.lockBodyScroll(true);
   }
 
   closeDemandeModal() {
     this.showDemandeModal.set(false);
+    this.lockBodyScroll(false);
   }
 
   selectedDemande() {
@@ -412,5 +474,10 @@ export class AdminCalendarComponent implements OnInit {
     const startTime = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime();
     const endTime = new Date(rangeEnd.getFullYear(), rangeEnd.getMonth(), rangeEnd.getDate()).getTime();
     return target >= Math.min(startTime, endTime) && target <= Math.max(startTime, endTime);
+  }
+
+  private lockBodyScroll(lock: boolean) {
+    if (typeof document === 'undefined') return;
+    document.body.style.overflow = lock ? 'hidden' : '';
   }
 }

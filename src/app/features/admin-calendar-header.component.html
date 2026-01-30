@@ -2,7 +2,14 @@
   <button type="button" class="calendar-header__btn" (click)="previousClicked()" aria-label="Mois précédent">
     ‹
   </button>
-  <span class="calendar-header__label">{{ periodLabel }}</span>
+  <div class="calendar-header__label">
+    <select [value]="activeMonthIndex" (change)="selectMonth(($any($event.target)).value)">
+      @for (month of months; let i = $index; track i) {
+        <option [value]="i">{{ month }}</option>
+      }
+    </select>
+    <span>{{ activeYear }}</span>
+  </div>
   <button type="button" class="calendar-header__btn" (click)="nextClicked()" aria-label="Mois suivant">
     ›
   </button>

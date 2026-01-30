@@ -11,6 +11,16 @@
 .calendar-header__label {
   font-weight: 600;
   text-transform: capitalize;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.calendar-header__label select {
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  text-transform: capitalize;
 }
 
 .calendar-header__btn {

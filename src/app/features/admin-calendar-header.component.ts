@@ -11,15 +11,35 @@ import { CalendarHeaderService } from './calendar-header.service';
   standalone: true
 })
 export class AdminCalendarHeaderComponent {
+  readonly months: string[];
+
   constructor(
     private readonly calendar: MatCalendar<Date>,
     private readonly dateAdapter: DateAdapter<Date>,
     @Inject(MAT_DATE_FORMATS) private readonly dateFormats: any,
     private readonly headerService: CalendarHeaderService
-  ) {}
+  ) {
+    this.months = this.dateAdapter.getMonthNames('short');
+  }
 
   get periodLabel(): string {
     return this.dateAdapter.format(this.calendar.activeDate, this.dateFormats.display.monthYearLabel);
+  }
+
+  get activeYear(): number {
+    return this.calendar.activeDate.getFullYear();
+  }
+
+  get activeMonthIndex(): number {
+    return this.calendar.activeDate.getMonth();
+  }
+
+  selectMonth(value: string) {
+    const monthIndex = Number(value);
+    if (!Number.isFinite(monthIndex)) return;
+    const next = this.dateAdapter.createDate(this.activeYear, monthIndex, 1);
+    this.calendar.activeDate = next;
+    this.headerService.setActiveDate(this.calendar.activeDate);
   }
 
   previousClicked() {

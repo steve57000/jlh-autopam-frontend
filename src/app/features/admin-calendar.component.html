@@ -16,9 +16,37 @@
     <label>
       <span>Durée des créneaux</span>
       <select [value]="slotMinutes()" (change)="setSlotMinutes(($any($event.target)).value)">
-        <option value="30">30 min</option>
-        <option value="45">45 min</option>
-        <option value="60">60 min</option>
+        @for (option of slotOptions; track option) {
+          <option [value]="option">{{ option }} min</option>
+        }
+      </select>
+    </label>
+    <label>
+      <span>Durée personnalisée (min)</span>
+      <input
+        type="number"
+        min="15"
+        step="5"
+        [value]="customSlotMinutes() ?? ''"
+        (input)="setCustomSlotMinutes(($any($event.target)).value)"
+        placeholder="Ex: 75"
+      />
+    </label>
+    <label>
+      <span>Filtre dates (du)</span>
+      <input type="date" [value]="dateFilterStart() ?? ''" (change)="setDateFilter('start', ($any($event.target)).value)" />
+    </label>
+    <label>
+      <span>au</span>
+      <input type="date" [value]="dateFilterEnd() ?? ''" (change)="setDateFilter('end', ($any($event.target)).value)" />
+    </label>
+    <label>
+      <span>Type</span>
+      <select [value]="typeFilter()" (change)="setTypeFilter(($any($event.target)).value)">
+        <option value="Tous">Tous</option>
+        <option value="Libre">Disponible</option>
+        <option value="Reserve">Réservé</option>
+        <option value="Indisponible">Indisponible</option>
       </select>
     </label>
     <button type="button" class="btn btn-outline" (click)="refresh()">Actualiser la vue</button>
@@ -51,10 +79,10 @@
           <h3>Détails {{ rangeLabel() }}</h3>
           <p class="muted">Cliquez sur un rendez-vous pour ouvrir la fiche.</p>
         </header>
-        @if (!rangeDays().length) {
+        @if (!filteredRangeDays().length) {
           <p class="calendar-page__state">Aucun créneau ou rendez-vous sur la période.</p>
         } @else {
-          @for (group of rangeDays(); track group.date) {
+          @for (group of filteredRangeDays(); track group.date) {
             <div class="calendar-day">
               <h4>{{ group.date | date:'EEEE d MMMM' }}</h4>
               <h5>Disponibilités</h5>
@@ -79,7 +107,7 @@
                 <ul>
                   @for (item of group.rendezVous; track item.rendezVous.idRdv) {
                     <li>
-                      <button type="button" class="calendar-link" (click)="selectRdv(item)">
+                      <button type="button" class="calendar-link" (click)="selectRdv(item); openDetailsModal()">
                         <div>
                           <strong>{{ item.rendezVous.dateDebut | date:'HH:mm' }}</strong>
                           – {{ item.rendezVous.dateFin | date:'HH:mm' }}
@@ -100,66 +128,68 @@
         }
       </section>
 
-      <aside class="calendar-detail">
-        @if (selectedRdv(); as selected) {
-          <header>
-            <h3>Rendez-vous #{{ selected.demandeId }}</h3>
-            <button type="button" class="btn btn-ghost btn-small" (click)="closeRdvDetails()">Fermer</button>
-          </header>
-          <p class="muted">Type : {{ selected.demandeType }} • {{ selected.clientLabel }}</p>
-          <div class="detail-grid">
-            <label>
-              <span>Début</span>
-              <input
-                type="datetime-local"
-                [value]="rdvDraft()?.dateDebut"
-                (change)="updateDraftField('dateDebut', ($any($event.target)).value)"
-              />
-            </label>
-            <label>
-              <span>Fin</span>
-              <input
-                type="datetime-local"
-                [value]="rdvDraft()?.dateFin"
-                (change)="updateDraftField('dateFin', ($any($event.target)).value)"
-              />
-            </label>
-          </div>
-          <label class="detail-comment">
-            <span>Note interne</span>
-            <textarea
-              rows="3"
-              [value]="rdvDraft()?.commentaire"
-              (input)="updateDraftField('commentaire', ($any($event.target)).value)"
-            ></textarea>
-          </label>
-          <div class="detail-actions">
-            <button type="button" class="btn" (click)="saveNote()" [disabled]="rdvSaving()">Enregistrer la note</button>
-            <button type="button" class="btn btn-outline" (click)="openDemandeModal()">Voir la demande</button>
-          </div>
-          <div class="detail-actions detail-actions--secondary">
-            <button type="button" class="btn btn-outline" (click)="updateStatus('Reporte')" [disabled]="rdvSaving()">
-              Reporter
-            </button>
-            <button type="button" class="btn btn-ghost" (click)="updateStatus('Annule')" [disabled]="rdvSaving()">
-              Annuler
-            </button>
-          </div>
-          @if (rdvFeedback()) {
-            <p class="feedback" [class.feedback--error]="rdvFeedback() !== 'Rendez-vous mis à jour.'">
-              {{ rdvFeedback() }}
-            </p>
-          }
-        } @else {
-          <div class="calendar-empty">
-            <h3>Détails</h3>
-            <p class="muted">Sélectionnez un rendez-vous pour consulter ses informations.</p>
-          </div>
-        }
-      </aside>
     </div>
   }
 </section>
+
+@if (showDetailsModal()) {
+  <div class="calendar-modal calendar-modal--full">
+    <div class="calendar-modal__content" role="dialog" aria-modal="true">
+      <header>
+        <h3>Détails du rendez-vous</h3>
+        <button type="button" class="btn btn-ghost btn-small" (click)="closeDetailsModal(); closeRdvDetails()">Fermer</button>
+      </header>
+      @if (selectedRdv(); as selected) {
+        <p class="muted">Type : {{ selected.demandeType }} • {{ selected.clientLabel }}</p>
+        <div class="detail-grid">
+          <label>
+            <span>Début</span>
+            <input
+              type="datetime-local"
+              [value]="rdvDraft()?.dateDebut"
+              (change)="updateDraftField('dateDebut', ($any($event.target)).value)"
+            />
+          </label>
+          <label>
+            <span>Fin</span>
+            <input
+              type="datetime-local"
+              [value]="rdvDraft()?.dateFin"
+              (change)="updateDraftField('dateFin', ($any($event.target)).value)"
+            />
+          </label>
+        </div>
+        <label class="detail-comment">
+          <span>Note interne</span>
+          <textarea
+            rows="3"
+            [value]="rdvDraft()?.commentaire"
+            (input)="updateDraftField('commentaire', ($any($event.target)).value)"
+          ></textarea>
+        </label>
+        <div class="detail-actions">
+          <button type="button" class="btn" (click)="saveNote()" [disabled]="rdvSaving()">Enregistrer la note</button>
+          <button type="button" class="btn btn-outline" (click)="openDemandeModal()">Voir la demande</button>
+        </div>
+        <div class="detail-actions detail-actions--secondary">
+          <button type="button" class="btn btn-outline" (click)="updateStatus('Reporte')" [disabled]="rdvSaving()">
+            Reporter
+          </button>
+          <button type="button" class="btn btn-ghost" (click)="updateStatus('Annule')" [disabled]="rdvSaving()">
+            Annuler
+          </button>
+        </div>
+        @if (rdvFeedback()) {
+          <p class="feedback" [class.feedback--error]="rdvFeedback() !== 'Rendez-vous mis à jour.'">
+            {{ rdvFeedback() }}
+          </p>
+        }
+      } @else {
+        <p class="calendar-page__state">Aucun rendez-vous sélectionné.</p>
+      }
+    </div>
+  </div>
+}
 
 @if (showDemandeModal()) {
   <div class="calendar-modal">
