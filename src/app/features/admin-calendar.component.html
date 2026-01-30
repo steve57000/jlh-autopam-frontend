@@ -35,61 +35,68 @@
           [selected]="selectedDate()"
           (selectedChange)="onDateSelected($event)"
           [dateClass]="dayHighlight"
+          [startAt]="activeDate()"
         ></mat-calendar>
         <div class="calendar-legend">
           <span class="legend-item legend-item--free">Libre</span>
-          <span class="legend-item legend-item--rdv">Rendez-vous</span>
-          <span class="legend-item legend-item--mixed">Mixte</span>
+          <span class="legend-item legend-item--reserved">Réservé</span>
+          <span class="legend-item legend-item--blocked">Indisponible</span>
         </div>
+        <p class="muted">Cliquez sur une date puis une seconde pour définir une période.</p>
       </section>
 
       <section class="calendar-panel">
         <header>
-          <h3>Détails du {{ selectedDate() | date:'EEEE d MMMM' }}</h3>
+          <h3>Détails {{ rangeLabel() }}</h3>
           <p class="muted">Cliquez sur un rendez-vous pour ouvrir la fiche.</p>
         </header>
-        <div class="calendar-day">
-          <h4>Disponibilités</h4>
-          @if (!dailySlots().length) {
-            <p class="calendar-page__state">Aucun créneau calculé.</p>
-          } @else {
-            <ul>
-              @for (slot of dailySlots(); track slot.dateDebut) {
-                <li>
-                  <span>{{ slot.dateDebut | date:'HH:mm' }} – {{ slot.dateFin | date:'HH:mm' }}</span>
-                  <span class="badge" [class]="availabilityBadgeClass(slot.codeStatut)">
-                    {{ slot.libelleStatut || slot.codeStatut }}
-                  </span>
-                </li>
-              }
-            </ul>
-          }
-        </div>
-        <div class="calendar-day">
-          <h4>Rendez-vous</h4>
-          @if (!dailyRendezVous().length) {
-            <p class="calendar-page__state">Aucun rendez-vous.</p>
-          } @else {
-            <ul>
-              @for (item of dailyRendezVous(); track item.rendezVous.idRdv) {
-                <li>
-                  <button type="button" class="calendar-link" (click)="selectRdv(item)">
-                    <div>
-                      <strong>{{ item.rendezVous.dateDebut | date:'HH:mm' }}</strong>
-                      – {{ item.rendezVous.dateFin | date:'HH:mm' }}
-                    </div>
-                    <div>
-                      <span>{{ item.clientLabel }}</span>
-                      <span class="badge" [class]="statusBadgeClass(item.rendezVous.codeStatut)">
-                        {{ item.rendezVous.libelleStatut || item.rendezVous.codeStatut }}
+        @if (!rangeDays().length) {
+          <p class="calendar-page__state">Aucun créneau ou rendez-vous sur la période.</p>
+        } @else {
+          @for (group of rangeDays(); track group.date) {
+            <div class="calendar-day">
+              <h4>{{ group.date | date:'EEEE d MMMM' }}</h4>
+              <h5>Disponibilités</h5>
+              @if (!group.slots.length) {
+                <p class="calendar-page__state">Aucun créneau.</p>
+              } @else {
+                <ul>
+                  @for (slot of group.slots; track slot.dateDebut) {
+                    <li>
+                      <span>{{ slot.dateDebut | date:'HH:mm' }} – {{ slot.dateFin | date:'HH:mm' }}</span>
+                      <span class="badge" [class]="availabilityBadgeClass(slot.codeStatut)">
+                        {{ slot.libelleStatut || slot.codeStatut }}
                       </span>
-                    </div>
-                  </button>
-                </li>
+                    </li>
+                  }
+                </ul>
               }
-            </ul>
+              <h5>Rendez-vous</h5>
+              @if (!group.rendezVous.length) {
+                <p class="calendar-page__state">Aucun rendez-vous.</p>
+              } @else {
+                <ul>
+                  @for (item of group.rendezVous; track item.rendezVous.idRdv) {
+                    <li>
+                      <button type="button" class="calendar-link" (click)="selectRdv(item)">
+                        <div>
+                          <strong>{{ item.rendezVous.dateDebut | date:'HH:mm' }}</strong>
+                          – {{ item.rendezVous.dateFin | date:'HH:mm' }}
+                        </div>
+                        <div>
+                          <span>{{ item.clientLabel }}</span>
+                          <span class="badge" [class]="statusBadgeClass(item.rendezVous.codeStatut)">
+                            {{ item.rendezVous.libelleStatut || item.rendezVous.codeStatut }}
+                          </span>
+                        </div>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
           }
-        </div>
+        }
       </section>
 
       <aside class="calendar-detail">
@@ -127,7 +134,7 @@
           </label>
           <div class="detail-actions">
             <button type="button" class="btn" (click)="saveNote()" [disabled]="rdvSaving()">Enregistrer la note</button>
-            <button type="button" class="btn btn-outline" (click)="navigateToDemande(selected)">Voir la demande</button>
+            <button type="button" class="btn btn-outline" (click)="openDemandeModal()">Voir la demande</button>
           </div>
           <div class="detail-actions detail-actions--secondary">
             <button type="button" class="btn btn-outline" (click)="updateStatus('Reporte')" [disabled]="rdvSaving()">
@@ -152,3 +159,47 @@
     </div>
   }
 </section>
+
+@if (showDemandeModal()) {
+  <div class="calendar-modal">
+    <div class="calendar-modal__content" role="dialog" aria-modal="true">
+      <header>
+        <h3>Demande de rendez-vous</h3>
+        <button type="button" class="btn btn-ghost btn-small" (click)="closeDemandeModal()">Fermer</button>
+      </header>
+      @if (selectedDemande(); as demande) {
+        <div class="calendar-modal__body">
+          <p><strong>Demande #{{ demande.id_demande }}</strong> — {{ demande.type_libelle || demande.code_type }}</p>
+          <p class="muted">
+            Statut : {{ demande.statut_libelle || demande.code_statut }}
+          </p>
+          <p>
+            Client : {{ demande.client?.prenom }} {{ demande.client?.nom }}
+            @if (demande.client?.telephone) {
+              • {{ demande.client?.telephone }}
+            }
+          </p>
+          @if (demande.rendezVous) {
+            <p>
+              Rendez-vous : {{ demande.rendezVous.dateDebut | date:'dd/MM HH:mm' }}
+              – {{ demande.rendezVous.dateFin | date:'HH:mm' }}
+            </p>
+            @if (demande.rendezVous.commentaire) {
+              <p class="muted">Note : {{ demande.rendezVous.commentaire }}</p>
+            }
+          }
+        </div>
+        <div class="calendar-modal__actions">
+          <button type="button" class="btn btn-outline" (click)="updateStatus('Reporte')" [disabled]="rdvSaving()">
+            Reporter le rendez-vous
+          </button>
+          <button type="button" class="btn btn-ghost" (click)="updateStatus('Annule')" [disabled]="rdvSaving()">
+            Annuler le rendez-vous
+          </button>
+        </div>
+      } @else {
+        <p class="calendar-page__state">Aucune demande trouvée.</p>
+      }
+    </div>
+  </div>
+}
