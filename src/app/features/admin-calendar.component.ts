@@ -516,13 +516,24 @@ export class AdminCalendarComponent implements OnInit {
   }
 
   normalizeStatus(code?: string | null) {
-    const value = (code ?? '').toString();
-    if (value === 'Libre' || value.toLowerCase() === 'libre') return 'Libre';
-    if (value === 'Reserve' || value.toLowerCase() === 'reserve' || value.toLowerCase() === 'réservé') {
-      return 'Reserve';
-    }
-    if (value === 'Indisponible' || value.toLowerCase() === 'indisponible') return 'Indisponible';
+    const value = this.normalizeStatusKey(code);
+    if (value === 'libre') return 'Libre';
+    if (value === 'indisponible') return 'Indisponible';
+    if (this.isReservedStatus(value)) return 'Reserve';
     return 'Indisponible';
+  }
+
+  private isReservedStatus(value: string) {
+    return ['reserve', 'confirme', 'confirmee', 'reporte', 'annule'].includes(value);
+  }
+
+  private normalizeStatusKey(code?: string | null) {
+    return (code ?? '')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
   }
 
   private findRendezVousForRange(items: CalendarRendezVousItem[], start: number, end: number) {
