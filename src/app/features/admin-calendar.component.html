@@ -114,6 +114,7 @@
                             class="scheduler-entry scheduler-entry--rdv"
                             [style.top.px]="entryTop(entry)"
                             [style.height.px]="entryHeight(entry)"
+                            (pointerdown)="$event.stopPropagation()"
                             (click)="onEntryClick(entry)"
                           >
                             <span class="scheduler-entry__time">
@@ -131,6 +132,7 @@
                               class="scheduler-entry scheduler-entry--slot scheduler-entry--reserved"
                               [style.top.px]="entryTop(entry)"
                               [style.height.px]="entryHeight(entry)"
+                              (pointerdown)="$event.stopPropagation()"
                               (click)="onEntryClick(entry)"
                             >
                               <span class="scheduler-entry__time">
@@ -204,7 +206,7 @@
         </label>
         <div class="detail-actions">
           <button type="button" class="btn" (click)="saveNote()" [disabled]="rdvSaving()">Enregistrer la note</button>
-          <button type="button" class="btn btn-outline" (click)="openDemandeModal()">Voir la demande</button>
+          <button type="button" class="btn btn-outline" (click)="navigateToDemande(selected)">Voir la demande</button>
         </div>
         <div class="detail-actions detail-actions--secondary">
           <button

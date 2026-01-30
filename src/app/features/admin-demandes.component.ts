@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { DemandesServiceService } from '../services/demandes-services.service';
 import { DemandeWithServices, ServiceItem, DemandeDocumentDto, RendezVousSummary } from '../modeles/demande.model';
@@ -17,6 +17,8 @@ import {
 import { AuthService } from '../services/auth.service';
 import { VEHICLE_ENERGY_OPTIONS } from '../shared/vehicle-energy-options';
 import { forkJoin } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 type TypeFilterValue = 'Tous' | DemandeWithServices['code_type'] | string;
 type StatutFilterValue = 'Tous' | DemandeWithServices['code_statut'] | string;
@@ -63,6 +65,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   private readonly rdvPropositionsApi = inject(RendezVousPropositionsService);
   private readonly calendarApi = inject(CreneauxCalendarService);
   private readonly auth = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
 
   // Données
   loading = signal(true);
@@ -144,6 +148,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   calendarLoading = signal(false);
   calendarError = signal<string | null>(null);
   calendarSlots = signal<CreneauCalendarEntryDto[]>([]);
+  private focusDemandeId = signal<number | null>(null);
 
   filtered = computed(() => {
     const t = this.type();
@@ -256,6 +261,15 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.loadLookups();
     this.loadServicesCatalog();
     this.reload();
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(params => {
+        const focus = Number(params.get('focus'));
+        if (Number.isFinite(focus)) {
+          this.focusDemandeId.set(focus);
+          this.openFocusDemande();
+        }
+      });
   }
 
   get canDeleteDemandes(): boolean {
@@ -340,6 +354,7 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       next: (rows: DemandeWithServices[]) => {
         this.demandes.set(rows);
         this.loading.set(false);
+        this.openFocusDemande();
       },
       error: (e: unknown) => {
         this.error.set('Impossible de charger les demandes');
@@ -389,6 +404,15 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.resetProposalDraft();
     this.refreshCalendar();
     this.setBodyScrollLock(true);
+  }
+
+  private openFocusDemande() {
+    const focusId = this.focusDemandeId();
+    if (!focusId) return;
+    const selected = this.demandes().find(item => this.getDemandeId(item) === focusId);
+    if (!selected) return;
+    this.focusDemandeId.set(null);
+    this.openDetails(selected);
   }
 
   closeDetails() {

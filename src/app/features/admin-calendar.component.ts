@@ -71,7 +71,7 @@ export class AdminCalendarComponent implements OnInit {
 
   readonly slotOptions = [30, 45, 60, 90, 120, 180];
   readonly minuteHeight = 1.2;
-  private dragState: { startX: number; startY: number; scrollLeft: number; scrollTop: number } | null = null;
+  private dragState: { startX: number; startY: number; scrollLeft: number; scrollTop: number; daysScrollLeft: number } | null = null;
   private suppressClickUntil = 0;
 
   private readonly dayMap = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'] as const;
@@ -259,12 +259,15 @@ export class AdminCalendarComponent implements OnInit {
     if (event.button !== 0) return;
     const target = event.currentTarget as HTMLElement | null;
     if (!target) return;
+    if ((event.target as HTMLElement | null)?.closest('.scheduler-entry')) return;
+    const daysContainer = target.querySelector('.scheduler-grid__days') as HTMLElement | null;
     target.setPointerCapture(event.pointerId);
     this.dragState = {
       startX: event.clientX,
       startY: event.clientY,
       scrollLeft: target.scrollLeft,
-      scrollTop: target.scrollTop
+      scrollTop: target.scrollTop,
+      daysScrollLeft: daysContainer?.scrollLeft ?? target.scrollLeft
     };
     this.isDragging.set(true);
   }
@@ -274,9 +277,14 @@ export class AdminCalendarComponent implements OnInit {
     event.preventDefault();
     const target = event.currentTarget as HTMLElement | null;
     if (!target) return;
+    const daysContainer = target.querySelector('.scheduler-grid__days') as HTMLElement | null;
     const dx = event.clientX - this.dragState.startX;
     const dy = event.clientY - this.dragState.startY;
-    target.scrollLeft = this.dragState.scrollLeft - dx;
+    if (daysContainer) {
+      daysContainer.scrollLeft = this.dragState.daysScrollLeft - dx;
+    } else {
+      target.scrollLeft = this.dragState.scrollLeft - dx;
+    }
     target.scrollTop = this.dragState.scrollTop - dy;
   }
 
@@ -422,8 +430,15 @@ export class AdminCalendarComponent implements OnInit {
   }
 
   navigateToDemande(item: CalendarRendezVousItem) {
+    const demandeId = this.resolveDemandeId(item);
+    if (!demandeId) {
+      this.rdvFeedback.set("Impossible de retrouver la demande liée à ce rendez-vous.");
+      return;
+    }
     const base = this.router.url.startsWith('/manager') ? '/manager/demandes' : '/admin/demandes';
-    this.router.navigate([base], { queryParams: { focus: item.demandeId } });
+    this.closeDetailsModal();
+    this.closeRdvDetails();
+    this.router.navigate([base], { queryParams: { focus: demandeId } });
   }
 
   statusBadgeClass(code: string) {
@@ -581,6 +596,26 @@ export class AdminCalendarComponent implements OnInit {
         return date >= startDate && date <= endDate;
       })
       .sort((a, b) => new Date(a.rendezVous.dateDebut).getTime() - new Date(b.rendezVous.dateDebut).getTime());
+  }
+
+  private resolveDemandeId(item: CalendarRendezVousItem) {
+    if (Number.isFinite(item.demandeId)) {
+      return item.demandeId;
+    }
+    const creneauId = item.rendezVous.creneau?.idCreneau;
+    if (creneauId != null) {
+      const match = this.demandes().find(demande =>
+        demande.rendezVous?.creneau?.idCreneau === creneauId
+        || demande.timeline?.some(entry => entry.rendezVous?.creneau?.idCreneau === creneauId)
+      );
+      if (match) return match.id_demande;
+    }
+    const rdvId = item.rendezVous.idRdv;
+    const matchByRdv = this.demandes().find(demande =>
+      demande.rendezVous?.idRdv === rdvId
+      || demande.timeline?.some(entry => entry.rendezVous?.idRdv === rdvId)
+    );
+    return matchByRdv?.id_demande ?? null;
   }
 
   private groupByDate<T>(items: T[], dateSelector: (item: T) => string): CalendarGroup<T>[] {
