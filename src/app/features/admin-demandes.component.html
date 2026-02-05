@@ -147,7 +147,7 @@
           </p>
         }
 
-        @if (isLockedForEdit()) {
+        @if (isDemandLockedForEdit()) {
           <p class="lock-note">
             Demande confirmée : les modifications sont verrouillées (sauf ajout de document).
           </p>
@@ -179,7 +179,7 @@
           <p class="muted">Contact principal pour la validation du rendez-vous.</p>
         </section>
 
-        <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
+        <section class="details-block details-block--editable" [class.details-block--locked]="isDemandLockedForEdit()">
           <h4>Coordonnées client</h4>
           <p class="muted">À compléter si vous devez rappeler le client ou confirmer le rendez-vous.</p>
           <div class="details-grid">
@@ -189,7 +189,7 @@
               type="tel"
               [ngModel]="draft.client?.telephone ?? ''"
               (ngModelChange)="updateClientField('telephone', $event)"
-              [disabled]="isLockedForEdit()"
+              [disabled]="isDemandLockedForEdit()"
             />
           </label>
           <label>
@@ -198,7 +198,7 @@
               type="text"
               [ngModel]="draft.client?.adresseLigne1 ?? ''"
               (ngModelChange)="updateClientField('adresseLigne1', $event)"
-              [disabled]="isLockedForEdit()"
+              [disabled]="isDemandLockedForEdit()"
             />
           </label>
           <label>
@@ -207,7 +207,7 @@
               type="text"
               [ngModel]="draft.client?.adresseLigne2 ?? ''"
               (ngModelChange)="updateClientField('adresseLigne2', $event)"
-              [disabled]="isLockedForEdit()"
+              [disabled]="isDemandLockedForEdit()"
             />
           </label>
           <label>
@@ -216,7 +216,7 @@
               type="text"
               [ngModel]="draft.client?.adresseCodePostal ?? ''"
               (ngModelChange)="updateClientField('adresseCodePostal', $event)"
-              [disabled]="isLockedForEdit()"
+              [disabled]="isDemandLockedForEdit()"
             />
           </label>
           <label>
@@ -225,13 +225,13 @@
               type="text"
               [ngModel]="draft.client?.adresseVille ?? ''"
               (ngModelChange)="updateClientField('adresseVille', $event)"
-              [disabled]="isLockedForEdit()"
+              [disabled]="isDemandLockedForEdit()"
             />
           </label>
           </div>
         </section>
 
-        <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
+        <section class="details-block details-block--editable" [class.details-block--locked]="isDemandLockedForEdit()">
           <h4>Véhicule</h4>
           <div class="details-grid">
           <label>
@@ -240,7 +240,7 @@
               type="text"
               [ngModel]="draft.client?.immatriculation ?? ''"
               (ngModelChange)="updateClientField('immatriculation', $event)"
-              [disabled]="isLockedForEdit()"
+              [disabled]="isDemandLockedForEdit()"
             />
             <small class="field-hint">Cette immatriculation reste liée à la demande, même si le profil client évolue.</small>
           </label>
@@ -250,7 +250,7 @@
               type="text"
               [ngModel]="draft.client?.vehiculeMarque ?? ''"
               (ngModelChange)="updateClientField('vehiculeMarque', $event)"
-              [disabled]="isLockedForEdit()"
+              [disabled]="isDemandLockedForEdit()"
             />
           </label>
           <label>
@@ -259,7 +259,7 @@
               type="text"
               [ngModel]="draft.client?.vehiculeModele ?? ''"
               (ngModelChange)="updateClientField('vehiculeModele', $event)"
-              [disabled]="isLockedForEdit()"
+              [disabled]="isDemandLockedForEdit()"
             />
           </label>
           <label>
@@ -267,7 +267,7 @@
             <select
               [ngModel]="draft.client?.vehiculeEnergie ?? ''"
               (ngModelChange)="updateClientField('vehiculeEnergie', $event)"
-              [disabled]="isLockedForEdit()"
+              [disabled]="isDemandLockedForEdit()"
             >
               <option value="">Non renseigné</option>
               @for (opt of vehicleEnergyOptions; track opt.value) {
@@ -278,13 +278,13 @@
           </div>
         </section>
 
-        <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
+        <section class="details-block details-block--editable" [class.details-block--locked]="isDemandLockedForEdit()">
           <h4>Paramètres de la demande</h4>
           <p class="muted">Le statut peut être ajusté manuellement selon l'avancement de la demande.</p>
           <div class="details-grid">
           <label>
             <span>Type de demande</span>
-            <select [ngModel]="draft.code_type" (ngModelChange)="setDraftType($event)" [disabled]="isLockedForEdit()">
+            <select [ngModel]="draft.code_type" (ngModelChange)="setDraftType($event)" [disabled]="isDemandLockedForEdit()">
               @for (opt of typeOptions(); track opt.value) {
                 @if (opt.value !== 'Tous') {
                   <option [value]="opt.value">{{ opt.label }}</option>
@@ -297,7 +297,7 @@
             <select
               [ngModel]="draft.code_statut"
               (ngModelChange)="setDraftStatut($event)"
-              [disabled]="isLockedForEdit()"
+              [disabled]="isDemandLockedForEdit()"
             >
               @for (opt of statutOptions(); track opt.value) {
                 @if (opt.value !== 'Tous') {
@@ -309,7 +309,7 @@
           </div>
         </section>
 
-        <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
+        <section class="details-block details-block--editable" [class.details-block--locked]="isDemandLockedForEdit()">
           <h4>Services inclus</h4>
           <p class="muted">Vérifiez les quantités et les prix avant de confirmer la demande.</p>
           <table class="services-table">
@@ -334,7 +334,7 @@
                     min="1"
                     [ngModel]="service.quantite"
                     (ngModelChange)="updateServiceField(i, 'quantite', $event)"
-                    [disabled]="isLockedForEdit()"
+                    [disabled]="isDemandLockedForEdit()"
                   />
                 </td>
                 <td>
@@ -346,18 +346,18 @@
                     step="0.01"
                     [ngModel]="service.prix_unitaire ?? ''"
                     (ngModelChange)="updateServiceField(i, 'prix_unitaire', $event)"
-                    [disabled]="isLockedForEdit()"
+                    [disabled]="isDemandLockedForEdit()"
                   />
                 </td>
                 <td>
-                  <button type="button" class="btn-link" (click)="removeService(i)" [disabled]="isLockedForEdit()">Retirer</button>
+                  <button type="button" class="btn-link" (click)="removeService(i)" [disabled]="isDemandLockedForEdit()">Retirer</button>
                 </td>
               </tr>
             }
             </tbody>
           </table>
 
-          <div class="service-add" [class.service-add--disabled]="isLockedForEdit()">
+          <div class="service-add" [class.service-add--disabled]="isDemandLockedForEdit()">
             <h5>Ajouter un service</h5>
             <div class="service-add__fields">
               <label>
@@ -365,7 +365,7 @@
                 <select
                   [ngModel]="newServiceSelection().serviceId ?? ''"
                   (ngModelChange)="setNewServiceField('serviceId', $event)"
-                  [disabled]="isLockedForEdit()"
+                  [disabled]="isDemandLockedForEdit()"
                 >
                   <option value="">Sélectionnez…</option>
                   @for (svc of serviceCatalog(); track svc.idService) {
@@ -380,7 +380,7 @@
                   min="1"
                   [ngModel]="newServiceSelection().quantite"
                   (ngModelChange)="setNewServiceField('quantite', $event)"
-                  [disabled]="isLockedForEdit()"
+                  [disabled]="isDemandLockedForEdit()"
                 />
               </label>
               <label>
@@ -390,10 +390,10 @@
                   step="0.01"
                   [ngModel]="newServiceSelection().prix ?? ''"
                   (ngModelChange)="setNewServiceField('prix', $event)"
-                  [disabled]="isLockedForEdit()"
+                  [disabled]="isDemandLockedForEdit()"
                 />
               </label>
-              <button type="button" class="btn" (click)="addServiceLineFromSelection()" [disabled]="isLockedForEdit()">Ajouter</button>
+              <button type="button" class="btn" (click)="addServiceLineFromSelection()" [disabled]="isDemandLockedForEdit()">Ajouter</button>
             </div>
           </div>
         </section>
@@ -445,7 +445,7 @@
         </section>
 
         @if (draft.code_type === 'Devis') {
-          <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
+          <section class="details-block details-block--editable" [class.details-block--locked]="isDemandLockedForEdit()">
             <h4>Validation du devis</h4>
             <p class="muted">
               Validez le devis après avoir ajusté les services. Le client pourra ensuite demander un rendez-vous,
@@ -462,7 +462,7 @@
                   type="text"
                   [ngModel]="devisValidationComment()"
                   (ngModelChange)="devisValidationComment.set($event)"
-                  [disabled]="isLockedForEdit() || hasPriceValidation(draft)"
+                  [disabled]="isDemandLockedForEdit() || hasPriceValidation(draft)"
                 />
               </label>
             </div>
@@ -471,7 +471,7 @@
                 type="button"
                 class="btn"
                 (click)="validateDevis()"
-                [disabled]="isLockedForEdit() || devisValidationSaving() || hasPriceValidation(draft)"
+                [disabled]="isDemandLockedForEdit() || devisValidationSaving() || hasPriceValidation(draft)"
               >
                 @if (devisValidationSaving()) { Validation… } @else { Valider le devis }
               </button>
@@ -488,7 +488,7 @@
         }
 
         @if ((draft.code_type === 'RendezVous' || draft.code_type === 'Service') && rdvForm(); as rdv) {
-          <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
+          <section class="details-block details-block--editable" [class.details-block--locked]="isDemandLockedForEdit()">
             <h4>Créneaux proposés au client</h4>
             <p class="muted">
               Proposez 1 à 3 créneaux. Le client dispose de 24h pour accepter ou demander une nouvelle proposition.
@@ -509,7 +509,7 @@
                         type="button"
                         class="btn btn-outline btn-small"
                         (click)="acceptProposal(proposal.idProposition)"
-                        [disabled]="isLockedForEdit() || proposal.statut !== 'PROPOSE'"
+                        [disabled]="isDemandLockedForEdit() || proposal.statut !== 'PROPOSE'"
                       >
                         Valider ce créneau
                       </button>
@@ -517,7 +517,7 @@
                         type="button"
                         class="btn btn-ghost btn-small"
                         (click)="declineProposal(proposal.idProposition)"
-                        [disabled]="isLockedForEdit() || proposal.statut !== 'PROPOSE'"
+                        [disabled]="isDemandLockedForEdit() || proposal.statut !== 'PROPOSE'"
                       >
                         Refuser
                       </button>
@@ -557,45 +557,72 @@
                   />
                 </label>
                 <label>
-                  <span>Durée</span>
-                  <select
+                  <span>Durée (min)</span>
+                  <input
+                    type="number"
+                    min="30"
+                    max="720"
+                    step="15"
                     [value]="calendarSlotMinutes()"
                     (change)="updateCalendarSlotMinutes(($any($event.target)).value)"
-                  >
-                    <option value="30">30 min</option>
-                    <option value="45">45 min</option>
-                    <option value="60">60 min</option>
-                  </select>
+                  />
                 </label>
               </div>
               @if (calendarLoading()) {
                 <p class="muted">Chargement des disponibilités…</p>
               } @else if (calendarError()) {
                 <p class="feedback feedback--error">{{ calendarError() }}</p>
-              } @else if (!calendarSlots().length) {
+              } @else if (!calendarDays().length) {
                 <p class="muted">Aucun créneau calculé pour la période.</p>
               } @else {
-                <ul class="calendar-availability__list">
-                  @for (slot of calendarSlots(); track slot.dateDebut) {
-                    <li>
-                      <div>
-                        <strong>{{ slot.dateDebut | date:'dd/MM HH:mm' }}</strong>
-                        → {{ slot.dateFin | date:'HH:mm' }}
-                        <span class="badge badge--availability" [class]="slot.codeStatut">
-                          {{ slot.libelleStatut || slot.codeStatut }}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        class="btn btn-ghost btn-small"
-                        [disabled]="slot.codeStatut !== 'Libre'"
-                        (click)="applyCalendarSlot(slot)"
-                      >
-                        Proposer
-                      </button>
-                    </li>
+                <div class="calendar-availability__legend">
+                  <span class="calendar-status" [ngStyle]="calendarStatusStyle('available')">Disponible</span>
+                  <span class="calendar-status" [ngStyle]="calendarStatusStyle('limited')">Créneaux limités</span>
+                  <span class="calendar-status" [ngStyle]="calendarStatusStyle('full')">Complet</span>
+                  <span class="calendar-status" [ngStyle]="calendarStatusStyle('closed')">Fermé</span>
+                </div>
+                <div class="calendar-availability__days">
+                  @for (day of calendarDays(); track day.date) {
+                    <button
+                      type="button"
+                      class="calendar-day"
+                      [class.is-selected]="day.date === selectedCalendarDay()"
+                      [ngStyle]="calendarStatusStyle(day.status)"
+                      (click)="selectCalendarDay(day.date)"
+                    >
+                      <span class="calendar-day__label">{{ day.label }}</span>
+                    </button>
                   }
-                </ul>
+                </div>
+                <div class="calendar-availability__slots">
+                  @if (!selectedCalendarDay()) {
+                    <p class="muted">Sélectionnez un jour pour afficher les créneaux.</p>
+                  } @else if (!calendarSlots().length) {
+                    <p class="muted">Aucun créneau disponible pour ce jour.</p>
+                  } @else {
+                    <ul class="calendar-availability__list">
+                      @for (slot of calendarSlots(); track slot.dateDebut) {
+                        <li>
+                          <div>
+                            <strong>{{ slot.dateDebut | date:'dd/MM HH:mm' }}</strong>
+                            → {{ slot.dateFin | date:'HH:mm' }}
+                            <span class="badge badge--availability" [class]="slot.codeStatut">
+                              {{ getCalendarSlotLabel(slot) }}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            class="btn btn-ghost btn-small"
+                            [disabled]="slot.codeStatut !== 'Libre'"
+                            (click)="applyCalendarSlot(slot)"
+                          >
+                            Proposer
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </div>
               }
             </div>
 
@@ -608,7 +635,7 @@
                       type="datetime-local"
                       [value]="slot.dateDebut"
                       (change)="setProposalSlot(i, 'dateDebut', ($any($event.target)).value)"
-                      [disabled]="isLockedForEdit()"
+                      [disabled]="isDemandLockedForEdit()"
                     />
                   </label>
                   <label>
@@ -617,14 +644,14 @@
                       type="datetime-local"
                       [value]="slot.dateFin"
                       (change)="setProposalSlot(i, 'dateFin', ($any($event.target)).value)"
-                      [disabled]="isLockedForEdit()"
+                      [disabled]="isDemandLockedForEdit()"
                     />
                   </label>
                   <button
                     type="button"
                     class="btn btn-ghost btn-small"
                     (click)="removeProposalSlot(i)"
-                    [disabled]="isLockedForEdit()"
+                    [disabled]="isDemandLockedForEdit()"
                   >
                     Retirer
                   </button>
@@ -635,7 +662,7 @@
                   type="button"
                   class="btn btn-outline btn-small"
                   (click)="addProposalSlot()"
-                  [disabled]="isLockedForEdit()"
+                  [disabled]="isDemandLockedForEdit()"
                 >
                   Ajouter un créneau
                 </button>
@@ -643,7 +670,7 @@
                   type="button"
                   class="btn btn-small"
                   (click)="submitProposalSlots()"
-                  [disabled]="isLockedForEdit()"
+                  [disabled]="isDemandLockedForEdit()"
                 >
                   Envoyer les propositions
                 </button>
@@ -659,7 +686,7 @@
             </div>
           </section>
 
-          <section class="details-block details-block--editable" [class.details-block--locked]="isLockedForEdit()">
+          <section class="details-block details-block--editable" [class.details-block--locked]="isRdvLockedForEdit()">
             <h4>Planification du rendez-vous</h4>
             <p class="muted">
               Renseignez un rendez-vous confirmé ou attendez la validation client lorsqu'un créneau est proposé.
@@ -671,7 +698,7 @@
                   type="datetime-local"
                   [value]="rdv.dateDebut"
                   (change)="setRdvField('dateDebut', ($any($event.target)).value)"
-                  [disabled]="isLockedForEdit()"
+                  [disabled]="isRdvLockedForEdit()"
                 />
               </label>
               <label>
@@ -680,7 +707,7 @@
                   type="datetime-local"
                   [value]="rdv.dateFin"
                   (change)="setRdvField('dateFin', ($any($event.target)).value)"
-                  [disabled]="isLockedForEdit()"
+                  [disabled]="isRdvLockedForEdit()"
                 />
               </label>
               <label>
@@ -688,7 +715,7 @@
                 <select
                   [value]="rdv.codeStatut"
                   (change)="setRdvField('codeStatut', ($any($event.target)).value)"
-                  [disabled]="isLockedForEdit()"
+                  [disabled]="isRdvLockedForEdit()"
                 >
                   @for (opt of rdvStatusOptionsFor(rdv); track opt.value) {
                     <option [value]="opt.value" [disabled]="opt.disabled">{{ opt.label }}</option>
@@ -708,7 +735,7 @@
                 rows="2"
                 [value]="rdv.commentaire || ''"
                 (input)="setRdvField('commentaire', ($any($event.target)).value)"
-                [disabled]="isLockedForEdit()"
+                [disabled]="isRdvLockedForEdit()"
               ></textarea>
             </label>
             <div class="detail-actions">
@@ -716,7 +743,7 @@
                 type="button"
                 class="btn"
                 (click)="saveRendezVous()"
-                [disabled]="rdvSaving() || isLockedForEdit()"
+                [disabled]="rdvSaving() || isRdvLockedForEdit()"
               >
                 @if (rdvSaving()) { Sauvegarde… } @else { Confirmer le rendez-vous }
               </button>
@@ -737,7 +764,7 @@
             type="button"
             class="btn"
             (click)="saveChanges()"
-            [disabled]="saving() || !hasChanges() || isLockedForEdit()"
+            [disabled]="saving() || !hasChanges() || isDemandLockedForEdit()"
           >
             @if (saving()) { Sauvegarde… } @else { Enregistrer les modifications }
           </button>
@@ -745,7 +772,7 @@
             type="button"
             class="btn btn-ghost"
             (click)="resetDraft()"
-            [disabled]="saving() || !hasChanges() || isLockedForEdit()"
+            [disabled]="saving() || !hasChanges() || isDemandLockedForEdit()"
           >
             Réinitialiser
           </button>

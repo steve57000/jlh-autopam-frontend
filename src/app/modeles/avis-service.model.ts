@@ -17,6 +17,7 @@ export interface AvisServiceDto {
   clientId: number;
   clientNomPrenom?: string | null;
   note: number;
+  statut?: string | null;
   commentaire?: string | null;
   creeLe: string;
   client?: AvisServiceClientDto | null;

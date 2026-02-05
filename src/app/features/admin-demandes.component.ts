@@ -147,7 +147,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   calendarSlotMinutes = signal(30);
   calendarLoading = signal(false);
   calendarError = signal<string | null>(null);
-  calendarSlots = signal<CreneauCalendarEntryDto[]>([]);
+  calendarSlotsRaw = signal<CreneauCalendarEntryDto[]>([]);
+  selectedCalendarDay = signal<string | null>(null);
   private focusDemandeId = signal<number | null>(null);
 
   filtered = computed(() => {
@@ -184,6 +185,64 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     const id = this.selectedId();
     if (id == null) return null;
     return this.demandes().find(d => this.getDemandeId(d) === id) ?? null;
+  });
+
+  readonly calendarDays = computed(() => {
+    const start = this.calendarStart();
+    const end = this.calendarEnd();
+    const slots = this.calendarSlotsRaw();
+    if (!start || !end) {
+      return [];
+    }
+    const startDate = new Date(`${start}T00:00:00`);
+    const endDate = new Date(`${end}T00:00:00`);
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      return [];
+    }
+    const days: Array<{
+      date: string;
+      label: string;
+      status: 'available' | 'limited' | 'full' | 'closed';
+      slots: CreneauCalendarEntryDto[];
+    }> = [];
+    for (let cursor = new Date(startDate); cursor <= endDate; cursor.setDate(cursor.getDate() + 1)) {
+      const date = this.formatDateOnly(cursor);
+      const daySlots = slots.filter(slot => this.formatDateOnly(new Date(slot.dateDebut)) === date);
+      const openSlots = daySlots.filter(slot => !this.isClosedSlot(slot));
+      const hasAvailable = openSlots.some(slot => slot.codeStatut === 'Libre');
+      const hasLimited = openSlots.some(slot => slot.codeStatut === 'Reserve');
+      const hasUnavailable = openSlots.some(
+        slot => slot.codeStatut === 'Indisponible' && (slot.totalCount ?? 0) > 0
+      );
+      let status: 'available' | 'limited' | 'full' | 'closed' = 'closed';
+      if (openSlots.length === 0) {
+        status = 'closed';
+      } else if (hasAvailable) {
+        status = 'available';
+      } else if (hasLimited) {
+        status = 'limited';
+      } else if (hasUnavailable) {
+        status = 'full';
+      }
+      days.push({
+        date,
+        label: cursor.toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'short' }),
+        status,
+        slots: openSlots
+      });
+    }
+    return days;
+  });
+
+  readonly calendarSlots = computed(() => {
+    const selected = this.selectedCalendarDay();
+    const days = this.calendarDays();
+    if (!selected) {
+      return [];
+    }
+    return (days.find(day => day.date === selected)?.slots ?? [])
+      .filter(slot => !this.isClosedSlot(slot))
+      .sort((a, b) => new Date(a.dateDebut).getTime() - new Date(b.dateDebut).getTime());
   });
 
   stepLabels(draft: DemandeWithServices) {
@@ -249,12 +308,24 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     return JSON.stringify(this.normalize(baseline)) !== JSON.stringify(this.normalize(current));
   });
 
-  readonly isLockedForEdit = computed(() => {
+  readonly isDemandLockedForEdit = computed(() => {
     const draft = this.draft();
     if (!draft) {
       return false;
     }
-    return draft.code_statut === 'Traitee' || draft.code_statut === 'Annulee';
+    const rdvStatut = draft.rendezVous?.codeStatut;
+    return draft.code_statut === 'Traitee'
+      || draft.code_statut === 'Annulee'
+      || rdvStatut === 'Confirme';
+  });
+
+  readonly isRdvLockedForEdit = computed(() => {
+    const draft = this.draft();
+    if (!draft) {
+      return false;
+    }
+    const rdvStatut = draft.rendezVous?.codeStatut;
+    return draft.code_statut === 'Annulee' || rdvStatut === 'Annule';
   });
 
   ngOnInit() {
@@ -431,7 +502,8 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.rdvProposalDraft.set([{ dateDebut: '', dateFin: '' }]);
     this.rdvProposalFeedback.set(null);
     this.rdvProposalFeedbackType.set(null);
-    this.calendarSlots.set([]);
+    this.calendarSlotsRaw.set([]);
+    this.selectedCalendarDay.set(null);
     this.calendarError.set(null);
     this.setBodyScrollLock(false);
   }
@@ -461,11 +533,13 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
       slotMinutes: this.calendarSlotMinutes()
     }).subscribe({
       next: slots => {
-        this.calendarSlots.set(slots ?? []);
+        this.calendarSlotsRaw.set(slots ?? []);
+        this.ensureCalendarSelection();
         this.calendarLoading.set(false);
       },
       error: () => {
-        this.calendarSlots.set([]);
+        this.calendarSlotsRaw.set([]);
+        this.selectedCalendarDay.set(null);
         this.calendarLoading.set(false);
         this.calendarError.set('Impossible de charger les disponibilités.');
       }
@@ -482,7 +556,9 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
   }
 
   updateCalendarSlotMinutes(value: string) {
-    this.calendarSlotMinutes.set(Number(value));
+    const parsed = Number(value);
+    const normalized = Number.isFinite(parsed) && parsed > 0 ? parsed : 30;
+    this.calendarSlotMinutes.set(Math.min(Math.max(normalized, 30), 720));
     this.refreshCalendar();
   }
 
@@ -507,6 +583,74 @@ export class AdminDemandesComponent implements OnInit, OnDestroy {
     this.rdvProposalDraft.set(nextDraft);
     this.rdvProposalFeedback.set('Créneau ajouté à la proposition.');
     this.rdvProposalFeedbackType.set('success');
+  }
+
+  getCalendarSlotLabel(slot: CreneauCalendarEntryDto) {
+    const base = this.calendarSlotBaseLabel(slot.codeStatut);
+    const total = slot.totalCount ?? null;
+    const available = slot.availableCount ?? null;
+    const reserved = slot.reservedCount ?? null;
+    const unavailable = slot.unavailableCount ?? null;
+    if (!total || total <= 0) {
+      return slot.libelleStatut || base;
+    }
+    if (slot.codeStatut === 'Libre' && available !== null) {
+      return `${base} (${available}/${total})`;
+    }
+    if (slot.codeStatut === 'Reserve' && reserved !== null) {
+      return `${base} (${reserved}/${total})`;
+    }
+    if (slot.codeStatut === 'Indisponible' && unavailable !== null) {
+      return `${base} (${unavailable}/${total})`;
+    }
+    return `${base} (0/${total})`;
+  }
+
+  private calendarSlotBaseLabel(code: string) {
+    switch (code) {
+      case 'Libre':
+        return 'Disponible';
+      case 'Reserve':
+        return 'Réservé';
+      case 'Indisponible':
+        return 'Indisponible';
+      default:
+        return code;
+    }
+  }
+
+  selectCalendarDay(date: string) {
+    this.selectedCalendarDay.set(date);
+  }
+
+  private ensureCalendarSelection() {
+    const days = this.calendarDays();
+    if (!days.length) {
+      this.selectedCalendarDay.set(null);
+      return;
+    }
+    const current = this.selectedCalendarDay();
+    if (!current || !days.some(day => day.date === current)) {
+      this.selectedCalendarDay.set(days[0].date);
+    }
+  }
+
+  private isClosedSlot(slot: CreneauCalendarEntryDto): boolean {
+    return slot.codeStatut === 'Indisponible' && (slot.totalCount ?? 0) === 0;
+  }
+
+  calendarStatusStyle(status: 'available' | 'limited' | 'full' | 'closed') {
+    switch (status) {
+      case 'available':
+        return { '--status-bg': 'rgba(34, 197, 94, 0.08)', '--status-border': 'rgba(34, 197, 94, 0.6)', '--status-color': '#15803d' };
+      case 'limited':
+        return { '--status-bg': 'rgba(249, 115, 22, 0.08)', '--status-border': 'rgba(249, 115, 22, 0.6)', '--status-color': '#c2410c' };
+      case 'full':
+        return { '--status-bg': 'rgba(239, 68, 68, 0.08)', '--status-border': 'rgba(239, 68, 68, 0.5)', '--status-color': '#b91c1c' };
+      case 'closed':
+      default:
+        return { '--status-bg': 'rgba(148, 163, 184, 0.12)', '--status-border': 'rgba(148, 163, 184, 0.5)', '--status-color': '#475569' };
+    }
   }
 
   addProposalSlot() {

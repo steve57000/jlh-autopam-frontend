@@ -41,7 +41,7 @@
           </p>
         }
         <div class="home-avis__grid">
-          @for (avis of displayAvis; track avis.idAvis) {
+          @for (avis of latestAvis; track avis.idAvis) {
             <article class="avis-card">
               <header class="avis-card__header">
                 <app-rating-stars [rating]="avis.note" [showValue]="false"></app-rating-stars>

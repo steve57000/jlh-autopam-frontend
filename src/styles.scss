@@ -78,6 +78,56 @@ a {
 a.cta-btn-secondary { text-align: center; }
 
 // Base commune pour les boutons
+
+.calendar-availability__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.calendar-status {
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--status-border, transparent);
+  background: var(--status-bg, transparent);
+  color: var(--status-color, inherit);
+  font-weight: 600;
+}
+
+.calendar-availability__days {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+}
+
+.calendar-day {
+  border: 1px solid var(--status-border, transparent);
+  border-radius: 0.75rem;
+  padding: 0.5rem;
+  background: var(--status-bg, #fff);
+  display: grid;
+  gap: 0.15rem;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  color: var(--status-color, inherit);
+
+  &__label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: capitalize;
+  }
+
+  &.is-selected {
+    box-shadow: 0 0 0 2px rgba(v.$color-primary, 0.3);
+    border-color: rgba(v.$color-primary, 0.6);
+  }
+}
+
+.calendar-availability__slots {
+  display: grid;
+  gap: 0.5rem;
+}
 %btn-base {
   position: relative;
   display: inline-flex; align-items: center; justify-content: center; gap: .5rem;

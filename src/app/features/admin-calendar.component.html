@@ -138,7 +138,7 @@
                               <span class="scheduler-entry__time">
                                 {{ formatTimeLabel(entry.startMinutes) }} – {{ formatTimeLabel(entry.endMinutes) }}
                               </span>
-                              <span class="scheduler-entry__label">{{ slotEntryStatusLabel(entry.status) }}</span>
+                              <span class="scheduler-entry__label">{{ entry.label }}</span>
                             </button>
                           } @else {
                             <div
@@ -152,7 +152,7 @@
                               <span class="scheduler-entry__time">
                                 {{ formatTimeLabel(entry.startMinutes) }} – {{ formatTimeLabel(entry.endMinutes) }}
                               </span>
-                              <span class="scheduler-entry__label">{{ slotEntryStatusLabel(entry.status) }}</span>
+                              <span class="scheduler-entry__label">{{ entry.label }}</span>
                             </div>
                           }
                         }

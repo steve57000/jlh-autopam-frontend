@@ -561,6 +561,7 @@ export class DemandesServiceService {
       statut?.code ??
       statut ??
       'Confirme';
+    const normalizedCodeStatut = this.normalizeRendezVousStatut(String(codeStatut ?? ''));
     const libelleStatut =
       raw?.libelleStatut ??
       raw?.rendezVousStatutLibelle ??
@@ -574,7 +575,7 @@ export class DemandesServiceService {
 
     return {
       idRdv: id,
-      codeStatut,
+      codeStatut: normalizedCodeStatut,
       libelleStatut,
       dateDebut,
       dateFin,
@@ -593,5 +594,24 @@ export class DemandesServiceService {
         }
         : undefined
     } satisfies RendezVousSummary;
+  }
+
+  private normalizeRendezVousStatut(raw: string): string {
+    const trimmed = raw?.trim?.() ?? '';
+    if (!trimmed) {
+      return 'Confirme';
+    }
+    const withoutAccents = trimmed.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const normalized = withoutAccents.replace(/[\s_-]/g, '').toLowerCase();
+    if (normalized.startsWith('confir')) {
+      return 'Confirme';
+    }
+    if (normalized.startsWith('report')) {
+      return 'Reporte';
+    }
+    if (normalized.startsWith('annul')) {
+      return 'Annule';
+    }
+    return trimmed;
   }
 }

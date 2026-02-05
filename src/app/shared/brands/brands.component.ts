@@ -45,14 +45,14 @@ export class BrandsComponent implements AfterViewInit, OnDestroy {
 
   // Images en frontend (assets)
   brands: Brand[] = [
-    { name: 'Gates', src: 'assets/brands/gates.svg' },
-    { name: 'Goodyear', src: 'assets/brands/goodyear.svg' },
-    { name: 'Bosch', src: 'assets/brands/bosch.svg' },
-    { name: 'Kumho Tyres', src: 'assets/brands/kumho-tyres.svg' },
-    { name: 'Dunlop', src: 'assets/brands/dunlop.svg' },
-    { name: 'Kleber', src: 'assets/brands/kleber.svg' },
-    { name: 'Moog', src: 'assets/brands/moog.svg' },
-    { name: 'Filtres Purflux', src: 'assets/brands/purflux.svg' },
+    { name: 'Gates', src: 'assets/brands/gates.svg', width: 260, height: 140 },
+    { name: 'Goodyear', src: 'assets/brands/goodyear.svg', width: 200, height: 200 },
+    { name: 'Bosch', src: 'assets/brands/bosch.svg', width: 300, height: 68 },
+    { name: 'Kumho Tyres', src: 'assets/brands/kumho-tyres.svg', width: 200, height: 200 },
+    { name: 'Dunlop', src: 'assets/brands/dunlop.svg', width: 200, height: 200 },
+    { name: 'Kleber', src: 'assets/brands/kleber.svg', width: 200, height: 200 },
+    { name: 'Moog', src: 'assets/brands/moog.svg', width: 200, height: 200 },
+    { name: 'Filtres Purflux', src: 'assets/brands/purflux.svg', width: 200, height: 200 },
     {
       name: 'Total Lubrifiants',
       src: 'assets/brands/total-220.webp',
@@ -61,9 +61,9 @@ export class BrandsComponent implements AfterViewInit, OnDestroy {
       width: 220,
       height: 123,
     },
-    { name: 'Yacco', src: 'assets/brands/yacco.svg' },
-    { name: 'LUK', src: 'assets/brands/luk.svg' },
-    { name: 'febi bilstein', src: 'assets/brands/febi-bilstein.svg' },
+    { name: 'Yacco', src: 'assets/brands/yacco.svg', width: 200, height: 200 },
+    { name: 'LUK', src: 'assets/brands/luk.svg', width: 200, height: 200 },
+    { name: 'febi bilstein', src: 'assets/brands/febi-bilstein.svg', width: 220, height: 192 },
   ];
 
   canScrollLeft = false;

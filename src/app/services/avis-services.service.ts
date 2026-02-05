@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { EMPTY, Observable } from 'rxjs';
 import { expand, map, reduce } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { environment } from '@environments/environment';
 import type {
   AvisServiceCreatePayload,
   AvisServiceDto,
@@ -22,17 +22,29 @@ export class AvisServicesService {
 
   constructor(private http: HttpClient) {}
 
-  getAvisByService(serviceId: number, params: AvisQueryParams = {}): Observable<PagedResponse<AvisServiceDto>> {
-    const httpParams = this.buildParams(params);
-    return this.http.get<PagedResponse<AvisServiceDto>>(
-      `${environment.apiBaseUrl}/services/${serviceId}/avis`,
-      { params: httpParams }
-    );
+  // ✅ NOUVEAU: récupère tous les avis APPROVED (tous services confondus) paginés
+  getApprovedAvisPage(params: AvisQueryParams = {}): Observable<PagedResponse<AvisServiceDto>> {
+    const httpParams = this.buildParams({
+      page: params.page ?? 0,
+      size: params.size ?? 10,
+      sort: params.sort ?? 'creeLe,desc'
+    });
+    return this.http.get<PagedResponse<AvisServiceDto>>(this.base, { params: httpParams });
   }
 
-  getAvisStats(serviceId: number): Observable<AvisServiceStatsDto> {
-    return this.http.get<AvisServiceStatsDto>(`${environment.apiBaseUrl}/services/${serviceId}/avis/stats`);
+  // ✅ Optionnel: route filtrée (service/demande/client) si tu en as besoin ailleurs
+  getAvisPage(
+    filter: { serviceId?: number; demandeId?: number; clientId?: number; statut?: string },
+    params: AvisQueryParams = {}
+  ): Observable<PagedResponse<AvisServiceDto>> {
+    let httpParams = this.buildParams(params);
+    if (filter.serviceId != null) httpParams = httpParams.set('serviceId', String(filter.serviceId));
+    if (filter.demandeId != null) httpParams = httpParams.set('demandeId', String(filter.demandeId));
+    if (filter.clientId != null) httpParams = httpParams.set('clientId', String(filter.clientId));
+    if (filter.statut) httpParams = httpParams.set('statut', filter.statut);
+    return this.http.get<PagedResponse<AvisServiceDto>>(this.base, {params: httpParams});
   }
+
 
   getAllAvisByService(serviceId: number, params: AvisQueryParams = {}): Observable<AvisServiceDto[]> {
     const size = params.size ?? 50;
@@ -80,22 +92,40 @@ export class AvisServicesService {
     );
   }
 
+  /**
+   * ✅ Détail d'un avis (protégé côté backend actuellement)
+   */
   getAvisDetail(avisId: number): Observable<AvisServiceDto> {
     return this.http.get<AvisServiceDto>(`${this.base}/${avisId}`);
   }
 
   getAvisByDemande(demandeId: number, params: AvisQueryParams = {}): Observable<PagedResponse<AvisServiceDto>> {
-    const httpParams = this.buildParams(params).set('demandeId', demandeId.toString());
-    return this.http.get<PagedResponse<AvisServiceDto>>(this.base, { params: httpParams });
+    return this.getAvisPage({ demandeId }, params);
   }
 
   getAvisByClient(clientId: number, params: AvisQueryParams = {}): Observable<PagedResponse<AvisServiceDto>> {
-    const httpParams = this.buildParams(params).set('clientId', clientId.toString());
-    return this.http.get<PagedResponse<AvisServiceDto>>(this.base, { params: httpParams });
+    return this.getAvisPage({ clientId }, params);
   }
 
   createAvis(payload: AvisServiceCreatePayload): Observable<AvisServiceDto> {
     return this.http.post<AvisServiceDto>(this.base, payload);
+  }
+
+  /**
+   * ⚠️ Tu as encore ces endpoints dans ton frontend:
+   * /services/{id}/avis et /services/{id}/avis/stats
+   * Je les garde si tu les utilises ailleurs, mais Home n'en dépend plus.
+   */
+  getAvisByService(serviceId: number, params: AvisQueryParams = {}): Observable<PagedResponse<AvisServiceDto>> {
+    const httpParams = this.buildParams(params);
+    return this.http.get<PagedResponse<AvisServiceDto>>(
+      `${environment.apiBaseUrl}/services/${serviceId}/avis`,
+      { params: httpParams }
+    );
+  }
+
+  getAvisStats(serviceId: number): Observable<AvisServiceStatsDto> {
+    return this.http.get<AvisServiceStatsDto>(`${environment.apiBaseUrl}/services/${serviceId}/avis/stats`);
   }
 
   private buildParams(params: AvisQueryParams): HttpParams {

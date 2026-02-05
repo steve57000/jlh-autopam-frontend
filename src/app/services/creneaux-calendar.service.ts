@@ -8,6 +8,10 @@ export interface CreneauCalendarEntryDto {
   dateFin: string;
   codeStatut: 'Libre' | 'Reserve' | 'Indisponible' | string;
   libelleStatut?: string;
+  totalCount?: number | null;
+  availableCount?: number | null;
+  reservedCount?: number | null;
+  unavailableCount?: number | null;
 }
 
 @Injectable({ providedIn: 'root' })
