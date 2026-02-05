@@ -859,7 +859,7 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     if (this.isArchived(d)) return false;
     if (this.rendezVousInfo(d)) return false;
     const statut = d.statutDemande?.codeStatut;
-    return statut !== 'Annulee' && statut !== 'Traitee';
+    return statut !== 'Annulee';
   }
 
   updateRdvRequestComment(demandeId: number, value: string) {

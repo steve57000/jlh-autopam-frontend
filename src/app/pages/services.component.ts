@@ -311,23 +311,8 @@ export class ServicesComponent implements OnInit, OnDestroy {
 
       const needsValidation = payload.type === 'Service' || payload.type === 'Devis';
       if (needsValidation && !payload.validationPrix) {
-        this.toast.error('Validation du prix requise avant la planification.');
+        this.toast.error('Merci de confirmer que le prix est indicatif et pourra être ajusté.');
         return;
-      }
-      if (needsValidation) {
-        const montantValide = (this.draft?.services ?? [])
-          .reduce((sum, line) => sum + (line.prixUnitaire || 0) * (line.quantite || 0), 0);
-        await firstValueFrom(
-          this.http.post(
-            `${api}/demandes/${id}/timeline/validation-prix`,
-            {
-              type: 'MONTANT',
-              montantValide,
-              commentaire: 'Prix validé par le client.'
-            },
-            skipErrorOptions
-          )
-        );
       }
 
       if (

@@ -42,3 +42,17 @@ export interface PagedResponse<T> {
   number: number;
   size: number;
 }
+
+export interface SpringPagedModel<T> {
+  content?: T[];
+  totalElements?: number;
+  totalPages?: number;
+  number?: number;
+  size?: number;
+  page?: {
+    size?: number;
+    number?: number;
+    totalElements?: number;
+    totalPages?: number;
+  };
+}

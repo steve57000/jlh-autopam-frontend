@@ -20,4 +20,25 @@ describe('ClientDashboardComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+
+  it('canRequestRendezVous should allow Traitee quote without linked rendez-vous', () => {
+    const demande: any = {
+      statutDemande: { codeStatut: 'Traitee' },
+      devis: { idDevis: 10 },
+      timeline: []
+    };
+
+    expect(component.canRequestRendezVous(demande)).toBeTrue();
+  });
+
+  it('canRequestRendezVous should reject Annulee quote', () => {
+    const demande: any = {
+      statutDemande: { codeStatut: 'Annulee' },
+      devis: { idDevis: 10 },
+      timeline: []
+    };
+
+    expect(component.canRequestRendezVous(demande)).toBeFalse();
+  });
 });

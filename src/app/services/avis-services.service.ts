@@ -7,7 +7,8 @@ import type {
   AvisServiceCreatePayload,
   AvisServiceDto,
   AvisServiceStatsDto,
-  PagedResponse
+  PagedResponse,
+  SpringPagedModel
 } from '../modeles/avis-service.model';
 
 interface AvisQueryParams {
@@ -29,7 +30,9 @@ export class AvisServicesService {
       size: params.size ?? 10,
       sort: params.sort ?? 'creeLe,desc'
     });
-    return this.http.get<PagedResponse<AvisServiceDto>>(this.base, { params: httpParams });
+    return this.http.get<SpringPagedModel<AvisServiceDto>>(this.base, { params: httpParams }).pipe(
+      map(response => this.normalizePagedResponse(response, params.size ?? 10))
+    );
   }
 
   // ✅ Optionnel: route filtrée (service/demande/client) si tu en as besoin ailleurs
@@ -42,7 +45,9 @@ export class AvisServicesService {
     if (filter.demandeId != null) httpParams = httpParams.set('demandeId', String(filter.demandeId));
     if (filter.clientId != null) httpParams = httpParams.set('clientId', String(filter.clientId));
     if (filter.statut) httpParams = httpParams.set('statut', filter.statut);
-    return this.http.get<PagedResponse<AvisServiceDto>>(this.base, {params: httpParams});
+    return this.http.get<SpringPagedModel<AvisServiceDto>>(this.base, {params: httpParams}).pipe(
+      map(response => this.normalizePagedResponse(response, params.size ?? 10))
+    );
   }
 
 
@@ -51,35 +56,7 @@ export class AvisServicesService {
     const sort = params.sort ?? 'creeLe,desc';
 
     return this.getAvisByService(serviceId, { page: 0, size, sort }).pipe(
-      map(response => {
-        if (Array.isArray(response)) {
-          return {
-            content: response,
-            totalPages: 1,
-            number: 0,
-            totalElements: response.length,
-            size: response.length
-          };
-        }
-        if (!response || typeof response !== 'object') {
-          return {
-            content: [],
-            totalPages: 1,
-            number: 0,
-            totalElements: 0,
-            size
-          };
-        }
-        return {
-          content: response.content ?? [],
-          totalPages: Number.isFinite(response.totalPages) ? response.totalPages : 1,
-          number: Number.isFinite(response.number) ? response.number : 0,
-          totalElements: Number.isFinite(response.totalElements)
-            ? response.totalElements
-            : response.content?.length ?? 0,
-          size: Number.isFinite(response.size) ? response.size : size
-        };
-      }),
+      map(response => this.normalizePagedResponse(response, size)),
       expand(response => {
         const nextPage = response.number + 1;
         if (nextPage >= response.totalPages) {
@@ -118,14 +95,48 @@ export class AvisServicesService {
    */
   getAvisByService(serviceId: number, params: AvisQueryParams = {}): Observable<PagedResponse<AvisServiceDto>> {
     const httpParams = this.buildParams(params);
-    return this.http.get<PagedResponse<AvisServiceDto>>(
+    return this.http.get<SpringPagedModel<AvisServiceDto>>(
       `${environment.apiBaseUrl}/services/${serviceId}/avis`,
       { params: httpParams }
+    ).pipe(
+      map(response => this.normalizePagedResponse(response, params.size ?? 10))
     );
   }
 
   getAvisStats(serviceId: number): Observable<AvisServiceStatsDto> {
     return this.http.get<AvisServiceStatsDto>(`${environment.apiBaseUrl}/services/${serviceId}/avis/stats`);
+  }
+
+
+  private normalizePagedResponse(response: SpringPagedModel<AvisServiceDto> | null | undefined, fallbackSize: number): PagedResponse<AvisServiceDto> {
+    if (!response || typeof response !== 'object') {
+      return { content: [], totalPages: 1, number: 0, totalElements: 0, size: fallbackSize };
+    }
+
+    const pageMeta = response.page ?? {};
+    const content = response.content ?? [];
+    const size = Number.isFinite(response.size)
+      ? Number(response.size)
+      : Number.isFinite(pageMeta.size)
+        ? Number(pageMeta.size)
+        : fallbackSize;
+    const number = Number.isFinite(response.number)
+      ? Number(response.number)
+      : Number.isFinite(pageMeta.number)
+        ? Number(pageMeta.number)
+        : 0;
+    const totalPages = Number.isFinite(response.totalPages)
+      ? Number(response.totalPages)
+      : Number.isFinite(pageMeta.totalPages)
+        ? Number(pageMeta.totalPages)
+        : 1;
+    const totalElements = Number.isFinite(response.totalElements)
+      ? Number(response.totalElements)
+      : Number.isFinite(pageMeta.totalElements)
+        ? Number(pageMeta.totalElements)
+        : content.length;
+
+    return { content, size, number, totalPages, totalElements };
   }
 
   private buildParams(params: AvisQueryParams): HttpParams {

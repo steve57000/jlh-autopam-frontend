@@ -487,7 +487,16 @@
           </section>
         }
 
-        @if ((draft.code_type === 'RendezVous' || draft.code_type === 'Service') && rdvForm(); as rdv) {
+        @if (draft.code_type === 'Devis' && !canManageRendezVous(draft)) {
+          <section class="details-block details-block--editable details-block--locked">
+            <h4>Créneaux et rendez-vous</h4>
+            <p class="muted">
+              La planification sera disponible dès que le devis est validé, ou après une demande de rendez-vous du client.
+            </p>
+          </section>
+        }
+
+        @if (canManageRendezVous(draft) && rdvForm(); as rdv) {
           <section class="details-block details-block--editable" [class.details-block--locked]="isDemandLockedForEdit()">
             <h4>Créneaux proposés au client</h4>
             <p class="muted">
@@ -604,7 +613,7 @@
                       @for (slot of calendarSlots(); track slot.dateDebut) {
                         <li>
                           <div>
-                            <strong>{{ slot.dateDebut | date:'dd/MM HH:mm' }}</strong>
+                            <strong>{{ slot.dateDebut | date:'HH:mm' }}</strong>
                             → {{ slot.dateFin | date:'HH:mm' }}
                             <span class="badge badge--availability" [class]="slot.codeStatut">
                               {{ getCalendarSlotLabel(slot) }}
@@ -613,7 +622,7 @@
                           <button
                             type="button"
                             class="btn btn-ghost btn-small"
-                            [disabled]="slot.codeStatut !== 'Libre'"
+                            [disabled]="!isSlotProposable(slot)"
                             (click)="applyCalendarSlot(slot)"
                           >
                             Proposer
@@ -626,54 +635,57 @@
               }
             </div>
 
-            <div class="proposal-form">
-              @for (slot of rdvProposalDraft(); let i = $index; track i) {
-                <div class="proposal-form__row">
-                  <label>
-                    <span>Début</span>
-                    <input
-                      type="datetime-local"
-                      [value]="slot.dateDebut"
-                      (change)="setProposalSlot(i, 'dateDebut', ($any($event.target)).value)"
+            <details class="proposal-form" [attr.open]="rdvProposalDraft().length ? '' : null">
+              <summary>Créneaux à envoyer au client</summary>
+              <div class="proposal-form__content">
+                @for (slot of rdvProposalDraft(); let i = $index; track i) {
+                  <div class="proposal-form__row">
+                    <label>
+                      <span>Début</span>
+                      <input
+                        type="datetime-local"
+                        [value]="slot.dateDebut"
+                        (change)="setProposalSlot(i, 'dateDebut', ($any($event.target)).value)"
+                        [disabled]="isDemandLockedForEdit()"
+                      />
+                    </label>
+                    <label>
+                      <span>Fin</span>
+                      <input
+                        type="datetime-local"
+                        [value]="slot.dateFin"
+                        (change)="setProposalSlot(i, 'dateFin', ($any($event.target)).value)"
+                        [disabled]="isDemandLockedForEdit()"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-small"
+                      (click)="removeProposalSlot(i)"
                       [disabled]="isDemandLockedForEdit()"
-                    />
-                  </label>
-                  <label>
-                    <span>Fin</span>
-                    <input
-                      type="datetime-local"
-                      [value]="slot.dateFin"
-                      (change)="setProposalSlot(i, 'dateFin', ($any($event.target)).value)"
-                      [disabled]="isDemandLockedForEdit()"
-                    />
-                  </label>
+                    >
+                      Retirer
+                    </button>
+                  </div>
+                }
+                <div class="proposal-form__actions">
                   <button
                     type="button"
-                    class="btn btn-ghost btn-small"
-                    (click)="removeProposalSlot(i)"
+                    class="btn btn-outline btn-small"
+                    (click)="addProposalSlot()"
                     [disabled]="isDemandLockedForEdit()"
                   >
-                    Retirer
+                    Ajouter un créneau
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-small"
+                    (click)="submitProposalSlots()"
+                    [disabled]="isDemandLockedForEdit()"
+                  >
+                    Envoyer les propositions
                   </button>
                 </div>
-              }
-              <div class="proposal-form__actions">
-                <button
-                  type="button"
-                  class="btn btn-outline btn-small"
-                  (click)="addProposalSlot()"
-                  [disabled]="isDemandLockedForEdit()"
-                >
-                  Ajouter un créneau
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-small"
-                  (click)="submitProposalSlots()"
-                  [disabled]="isDemandLockedForEdit()"
-                >
-                  Envoyer les propositions
-                </button>
               </div>
               @if (rdvProposalFeedback()) {
                 <p
@@ -683,7 +695,7 @@
                   {{ rdvProposalFeedback() }}
                 </p>
               }
-            </div>
+            </details>
           </section>
 
           <section class="details-block details-block--editable" [class.details-block--locked]="isRdvLockedForEdit()">
