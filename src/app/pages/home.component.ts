@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 import { PromotionService } from '../services/promotion.service';
 import { ServicesService } from '../services/services.service';
@@ -37,7 +38,8 @@ type MetiersPicto = {
     MetiersPictosComponent,
     BrandsComponent,
     RatingStarsComponent,
-    DatePipe
+    DatePipe,
+    RouterLink
   ]
 })
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {

@@ -9,6 +9,7 @@ import { AdminServiceIconsComponent } from './features/admin-service-icons.compo
 import { AdminUsersComponent } from './features/admin-users.component';
 import { AdminGarageHoursComponent } from './features/admin-garage-hours.component';
 import { AdminCalendarComponent } from './features/admin-calendar.component';
+import { AdminAvisComponent } from './features/admin-avis.component';
 import { AdminGuard } from './guards/admin.guard';
 
 export const adminRoutes: Routes = [
@@ -51,6 +52,11 @@ export const adminRoutes: Routes = [
         path: 'promotions',
         component: AdminPromotionsComponent,
         data: { title: 'Promotions' },
+      },
+      {
+        path: 'avis',
+        component: AdminAvisComponent,
+        data: { title: 'Modération des avis' },
       },
       {
         path: 'calendrier',

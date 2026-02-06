@@ -6,6 +6,7 @@ import { environment } from '@environments/environment';
 import type {
   AvisServiceCreatePayload,
   AvisServiceDto,
+  AvisServiceModerationPayload,
   AvisServiceStatsDto,
   PagedResponse,
   SpringPagedModel
@@ -86,6 +87,11 @@ export class AvisServicesService {
 
   createAvis(payload: AvisServiceCreatePayload): Observable<AvisServiceDto> {
     return this.http.post<AvisServiceDto>(this.base, payload);
+  }
+
+
+  moderateAvis(avisId: number, payload: AvisServiceModerationPayload): Observable<AvisServiceDto> {
+    return this.http.patch<AvisServiceDto>(`${this.base}/${avisId}/moderation`, payload);
   }
 
   /**

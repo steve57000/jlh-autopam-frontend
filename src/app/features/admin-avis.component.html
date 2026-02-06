@@ -1,0 +1,53 @@
+<section class="admin-avis">
+  <header class="admin-avis__header">
+    <div>
+      <h2>Modération des avis clients</h2>
+      <p>Validez ou refusez les avis en attente de publication.</p>
+    </div>
+    <button type="button" class="btn btn-outline" (click)="loadPendingAvis()">Rafraîchir</button>
+  </header>
+
+  @if (loading()) {
+    <p class="admin-avis__state">Chargement des avis en attente…</p>
+  } @else if (error()) {
+    <p class="admin-avis__state admin-avis__state--error">{{ error() }}</p>
+  } @else if (!avis().length) {
+    <p class="admin-avis__state">Aucun avis en attente de validation.</p>
+  } @else {
+    <div class="admin-avis__list">
+      @for (item of avis(); track item.idAvis) {
+        <article class="admin-avis__card">
+          <header>
+            <h3>{{ item.serviceLibelle || 'Service' }} — Note {{ item.note }}/5</h3>
+            <p>
+              Client: {{ item.clientNomPrenom || 'Client' }} ·
+              Date: {{ item.creeLe | date:'dd/MM/yyyy HH:mm' }} ·
+              Demande #{{ item.demandeId }}
+            </p>
+          </header>
+
+          <p class="admin-avis__comment">{{ item.commentaire || 'Avis sans commentaire.' }}</p>
+
+          <label class="admin-avis__refus">
+            <span>Motif de refus (obligatoire si refus)</span>
+            <textarea
+              rows="2"
+              [(ngModel)]="refusDraft[item.idAvis]"
+              [disabled]="isModerating(item.idAvis)"
+              placeholder="Ex: contenu inapproprié, propos injurieux, hors sujet..."
+            ></textarea>
+          </label>
+
+          <div class="admin-avis__actions">
+            <button type="button" class="btn btn-outline" [disabled]="isModerating(item.idAvis)" (click)="reject(item)">
+              Refuser
+            </button>
+            <button type="button" class="btn" [disabled]="isModerating(item.idAvis)" (click)="approve(item)">
+              Valider
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

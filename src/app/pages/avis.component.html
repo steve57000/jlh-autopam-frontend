@@ -1,0 +1,42 @@
+<section class="avis-page">
+  <header class="avis-page__header">
+    <div>
+      <p class="avis-page__eyebrow">Avis clients</p>
+      <h1>Tous les avis publiés</h1>
+      <p>Retrouvez l'ensemble des retours validés sur les prestations réalisées.</p>
+    </div>
+    <a routerLink="/services" class="btn btn-outline">Voir les services</a>
+  </header>
+
+  @if (loading && !avis.length) {
+    <p class="avis-page__state">Chargement des avis…</p>
+  } @else if (error && !avis.length) {
+    <p class="avis-page__state avis-page__state--error">Impossible de charger les avis.</p>
+  } @else if (!avis.length) {
+    <p class="avis-page__state">Aucun avis publié pour le moment.</p>
+  } @else {
+    <div class="avis-page__grid">
+      @for (item of avis; track item.idAvis) {
+        <article class="avis-page__card">
+          <header>
+            <app-rating-stars [rating]="item.note" [showValue]="false"></app-rating-stars>
+            <p class="avis-page__service">{{ item.serviceLibelle || 'Service' }}</p>
+          </header>
+          <p class="avis-page__comment">{{ item.commentaire || 'Avis sans commentaire.' }}</p>
+          <footer>
+            <span>{{ item.clientNomPrenom || 'Client' }}</span>
+            <span>{{ item.creeLe | date:'dd/MM/yyyy' }}</span>
+          </footer>
+        </article>
+      }
+    </div>
+
+    @if (hasMore) {
+      <div class="avis-page__actions">
+        <button type="button" class="btn btn-outline" [disabled]="loading" (click)="loadNextPage()">
+          @if (loading) { Chargement… } @else { Charger plus d'avis }
+        </button>
+      </div>
+    }
+  }
+</section>

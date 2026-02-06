@@ -16,6 +16,7 @@ export const routes: Routes = [
       // ✅ Page Services : publique (affichage pour tous)
       //    Les actions (ajout/validation) restent visibles/actives uniquement si rôle CLIENT.
       { path: 'services', loadComponent: () => import('./pages/services.component').then(m => m.ServicesComponent) },
+      { path: 'avis', loadComponent: () => import('./pages/avis.component').then(m => m.AvisComponent) },
       {
         path: 'services/entretien',
         loadComponent: () => import('./pages/services.component').then(m => m.ServicesComponent),

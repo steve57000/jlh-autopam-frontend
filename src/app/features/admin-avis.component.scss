@@ -1,0 +1,61 @@
+.admin-avis {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-avis__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.admin-avis__state {
+  margin: 0;
+  padding: .75rem 1rem;
+  border-radius: .75rem;
+  background: #f5f7fb;
+}
+
+.admin-avis__state--error {
+  background: #fff1f0;
+  color: #aa2e25;
+}
+
+.admin-avis__list {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-avis__card {
+  border: 1px solid #e6e8ef;
+  border-radius: 1rem;
+  padding: 1rem;
+  display: grid;
+  gap: .75rem;
+  background: #fff;
+}
+
+.admin-avis__comment {
+  margin: 0;
+}
+
+.admin-avis__refus {
+  display: grid;
+  gap: .35rem;
+
+  textarea {
+    width: 100%;
+    border: 1px solid #ccd3df;
+    border-radius: .65rem;
+    padding: .55rem .7rem;
+    font: inherit;
+    resize: vertical;
+  }
+}
+
+.admin-avis__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .6rem;
+}
