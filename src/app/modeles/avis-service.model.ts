@@ -31,6 +31,7 @@ export interface AvisServiceStatsDto {
 
 export interface AvisServiceCreatePayload {
   demandeId: number;
+  serviceId: number;
   note: number;
   commentaire?: string | null;
 }

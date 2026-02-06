@@ -699,6 +699,7 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
 
     const payload: AvisServiceCreatePayload = {
       demandeId,
+      serviceId,
       note,
       commentaire
     };
